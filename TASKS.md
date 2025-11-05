@@ -13,7 +13,7 @@
     * `Node.js (Express)` プロジェクトを作成。
     * `MySQL` / `SQLite` への接続設定。
 2.  **[Backend] データベース構築 (マイグレーション)**
-    * 全5テーブル (`users`, `genres`, `problems`, `typing_sessions` に **`total_types` を追加**, `session_problems`) を作成するスクリプトを準備・実行。
+    * 全5テーブル (`users`, `genres`, `problems`, `typing_sessions`, `session_problems`) を作成するスクリプトを準備・実行。
 3.  **[Backend] ユーザー認証 API (JWT)**
     * `/register` (ユーザー登録), `/login` (ログイン), `/me` (認証確認) API を作成。
 4.  **[Backend] 管理画面 API (CRUD)**
