@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ユーザー (users)
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  is_admin  Boolean  @default(false)
+  sessions  TypingSession[] // このユーザーの「まとめ記録」たち
+
+  @@map("users")
+}
+
+// ジャンル (genres)
+model Genre {
+  id       Int        @id @default(autoincrement())
+  name     String
+  problems Problem[]  // このジャンルの「問題」たち
+  sessions TypingSession[] // このジャンルを使った「まとめ記録」たち
+
+  @@map("genres")
+}
+
+// DB問題マスター (problems)
+model Problem {
+  id           Int     @id @default(autoincrement())
+  genre_id     Int
+  problem_text String
+  genre        Genre   @relation(fields: [genre_id], references: [id]) // ジャンルとの「つながり」
+
+  @@map("problems")
+}
+
+// まとめ記録 (typing_sessions)
+model TypingSession {
+  id                Int       @id @default(autoincrement())
+  user_id           Int
+  session_type      String    // "db" か "gemini" が入る
+  genre_id          Int?
+  gemini_prompt     String?
+  average_wpm       Float
+  average_accuracy  Float
+  most_missed_key   String
+  total_types       Int
+  created_at        DateTime  @default(now())
+
+  user              User      @relation(fields: [user_id], references: [id]) // ユーザーとの「つながり」
+  genre             Genre?    @relation(fields: [genre_id], references: [id]) // ジャンルとの「つながり」
+  session_problems  SessionProblem[] // このセッションの「詳細記録」たち
+
+  @@map("typing_sessions")
+}
+
+// 詳細記録 (session_problems)
+model SessionProblem {
+  id           Int      @id @default(autoincrement())
+  session_id   Int
+  problem_text String
+  wpm          Float
+  accuracy     Float
+  missed_keys  String   // ここは「JSON文字列」で保存する
+
+  session      TypingSession @relation(fields: [session_id], references: [id]) // まとめ記録との「つながり」
+
+  @@map("session_problems")
+}
