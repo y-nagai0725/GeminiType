@@ -74,7 +74,7 @@ app.post('/api/register', async (req, res) => {
 
     // 存在チェック
     if (!name || !email || !password) {
-      return res.status(400).json({ message: '全部の項目を入力して下さい。' });
+      return res.status(400).json({ message: '全ての項目を入力して下さい。' });
     }
     // ユーザー名チェック (10文字以内)
     if (name.length > 10) {
@@ -83,7 +83,7 @@ app.post('/api/register', async (req, res) => {
     // メールアドレスチェック
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: 'メールアドレスの形が正しくありません。' });
+      return res.status(400).json({ message: 'メールアドレスの形式が正しくありません。' });
     }
     // パスワードチェック (4文字以上)
     if (password.length < 4) {
@@ -279,9 +279,9 @@ app.post('/api/admin/problems', authenticateToken, isAdmin, async (req, res) => 
     // 登録成功時、201を返す
     res.status(201).json(newProblem);
   } catch (error) {
-    // 存在しない genre_id を指定した場合
-    if (error.code === 'P2003' || error.code === 'P2025') {
-      return res.status(400).json({ message: '存在しないジャンルです。' });
+    // 存在しない genre_id を指定した場合、400エラー
+    if (error.code === 'P2003') {
+      return res.status(400).json({ message: '存在しないジャンルが指定されています。' });
     } else {
       // デバッグ用
       res.status(500).json({ message: SERVER_ERROR_MESSAGE_500, error: error.message });
@@ -290,6 +290,157 @@ app.post('/api/admin/problems', authenticateToken, isAdmin, async (req, res) => 
       // res.status(500).json({ message: SERVER_ERROR_MESSAGE_500 });
       // console.error(error);
     }
+  }
+});
+
+/**
+ * [admin] ジャンルを更新 (PUT /api/admin/genres/:id)
+ */
+app.put('/api/admin/genres/:id', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    // URLの「:id」を受け取る
+    const { id } = req.params;
+
+    // ジャンル名
+    const { name } = req.body;
+
+    // バリデーション
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ message: 'ジャンル名を入力して下さい。' });
+    }
+
+    // 更新
+    const updatedGenre = await prisma.genre.update({
+      where: { id: Number(id) }, // この「id」のジャンル
+      data: { name },
+    });
+
+    // 更新データを返す
+    res.json(updatedGenre);
+  } catch (error) {
+    // 存在しない「id」を指定した場合、404エラー
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'ジャンルが見つかりませんでした。' });
+    }
+    // デバッグ用
+    res.status(500).json({ message: SERVER_ERROR_MESSAGE_500, error: error.message });
+
+    // 本番環境用
+    // res.status(500).json({ message: SERVER_ERROR_MESSAGE_500 });
+    // console.error(error);
+  }
+});
+
+/**
+ * [admin] ジャンルを削除 (DELETE /api/admin/genres/:id)
+ */
+app.delete('/api/admin/genres/:id', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    // URLの「:id」を受け取る
+    const { id } = req.params;
+
+    // 削除
+    await prisma.genre.delete({
+      where: { id: Number(id) }, // この「id」のジャンル
+    });
+    // 削除成功時、204を返す
+    res.status(204).send();
+
+  } catch (error) {
+    // 存在しない「id」を指定した場合、404エラー
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'ジャンルが見つかりませんでした。' });
+    }
+
+    // 削除対象のジャンルに「問題文」が存在している場合、400エラー
+    if (error.code === 'P2003') {
+      return res.status(400).json({ message: 'そのジャンルにはまだ問題文が存在している為、削除できません。' });
+    }
+
+    // デバッグ用
+    res.status(500).json({ message: SERVER_ERROR_MESSAGE_500, error: error.message });
+
+    // 本番環境用
+    // res.status(500).json({ message: SERVER_ERROR_MESSAGE_500 });
+    // console.error(error);
+  }
+});
+
+/**
+ * [admin] 問題文を更新 (PUT /api/admin/problems/:id)
+ */
+app.put('/api/admin/problems/:id', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    // URLの「:id」を受け取る
+    const { id } = req.params;
+
+    // ジャンルID, 問題文
+    const { genre_id, problem_text } = req.body;
+
+    // バリデーション
+    if (!genre_id || !problem_text || problem_text.trim() === '') {
+      return res.status(400).json({ message: 'ジャンルと問題文、両方入力して下さい。' });
+    }
+
+    // 更新
+    const updatedProblem = await prisma.problem.update({
+      where: { id: Number(id) }, // この「id」の問題文
+      data: {
+        genre_id: Number(genre_id),
+        problem_text: problem_text,
+      },
+    });
+
+    // 更新した問題文を返す
+    res.json(updatedProblem);
+
+  } catch (error) {
+    // 存在しない「id」を指定した場合、404エラー
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: '問題文が見つかりませんでした。' });
+    }
+
+    // 存在しない「genre_id」を指定した場合、400エラー
+    if (error.code === 'P2003') {
+      return res.status(400).json({ message: '存在しないジャンルが指定されています。' });
+    }
+
+    // デバッグ用
+    res.status(500).json({ message: SERVER_ERROR_MESSAGE_500, error: error.message });
+
+    // 本番環境用
+    // res.status(500).json({ message: SERVER_ERROR_MESSAGE_500 });
+    // console.error(error);
+  }
+});
+
+/**
+ * [admin] 問題文を削除 (DELETE /api/admin/problems/:id)
+ */
+app.delete('/api/admin/problems/:id', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    // URLの「:id」を受け取る
+    const { id } = req.params;
+
+    // 削除
+    await prisma.problem.delete({
+      where: { id: Number(id) }, // この「id」の問題文
+    });
+
+    // 削除が成功時、204を返す
+    res.status(204).send();
+  } catch (error) {
+    // 存在しない「id」を指定した場合、404エラー
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: '問題文が見つかりませんでした。' });
+    }
+
+    // デバッグ用
+    res.status(500).json({ message: SERVER_ERROR_MESSAGE_500, error: error.message });
+
+    // 本番環境用
+    // res.status(500).json({ message: SERVER_ERROR_MESSAGE_500 });
+    // console.error(error);
   }
 });
 
