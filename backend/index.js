@@ -3,6 +3,7 @@ const cors = require('cors');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 require('dotenv').config();
 
 const prisma = new PrismaClient();
@@ -10,6 +11,11 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+/**
+ * Yahoo web APIのURL
+ */
+const YAHOO_API_URL = 'https://jlp.yahooapis.jp/FuriganaService/V2/furigana';
 
 /**
  * ポート番号
@@ -435,6 +441,94 @@ app.delete('/api/admin/problems/:id', authenticateToken, isAdmin, async (req, re
       return res.status(404).json({ message: '問題文が見つかりませんでした。' });
     }
 
+    // デバッグ用
+    res.status(500).json({ message: SERVER_ERROR_MESSAGE_500, error: error.message });
+
+    // 本番環境用
+    // res.status(500).json({ message: SERVER_ERROR_MESSAGE_500 });
+    // console.error(error);
+  }
+});
+
+/**
+ * 「日本語の文字列 1個」を受け取って、「ローマ字の文字列 1個」を返す
+ * @param {String} japaneseText 日本語の文字列
+ * @returns ローマ字の文字列
+ */
+const getRubyFromYahoo = async (japaneseText) => {
+  // .envからClientIdを読み込む
+  const YAHOO_ID = process.env.YAHOO_CLIENT_ID;
+
+  // .envにClientIdがなかったら、エラーとする
+  if (!YAHOO_ID) {
+    throw new Error('Yahoo! クライアントIDが設定されていません。');
+  }
+
+  try {
+    // Yahoo! APIに送信
+    const response = await axios.post(
+      YAHOO_API_URL,
+      {
+        id: '1234-1',
+        jsonrpc: '2.0',
+        //method: 'jlp.furiganaservice.post',
+        method: 'jlp.furiganaservice.furigana',
+        params: {
+          q: japaneseText, // 受け取った日本語の文字列
+          grade: 1,
+        },
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': `Yahoo AppID: ${YAHOO_ID}`,
+        },
+      }
+    );
+
+    // Yahoo! API から「エラー」が返ってきた場合
+    if (response.data.error) {
+      throw new Error(`Yahoo! API エラー: ${response.data.error.message}`);
+    }
+
+    // 成功したら、返ってきた「単語の配列 (result.word)」をすべてつなげる
+    const roman = response.data.result.word
+      .map((word) => word.roman) // "roman" の部分だけ取り出す
+      .join(''); // すべてつなげる
+
+    // 完成したローマ字を返す
+    return roman;
+
+  } catch (error) {
+    // axios の通信エラーやYahoo! API のエラー
+    console.error('Yahoo! API との通信に失敗しました。', error);
+    // このエラーを「呼び出し元（/api/convert-ruby）」に伝える
+    throw new Error('Yahoo! API との通信に失敗しました。');
+  }
+};
+
+/**
+ * Yahoo! ルビ振り汎用 API (POST /api/convert-ruby)
+ */
+app.post('/api/convert-ruby', authenticateToken, async (req, res) => {
+  try {
+    // 「日本語の『配列』」を受け取る
+    const { texts } = req.body;
+
+    // バリデーション
+    if (!texts || !Array.isArray(texts) || texts.length === 0) {
+      return res.status(400).json({ message: '「texts」という名前の「配列」を送信して下さい。' });
+    }
+
+    // Promise.allで全てを並列処理し、完了まで待機
+    const romans = await Promise.all(
+      texts.map(text => getRubyFromYahoo(text))
+    );
+
+    // 「ローマ字の『配列』」を返す
+    res.json({ romans: romans });
+
+  } catch (error) {
     // デバッグ用
     res.status(500).json({ message: SERVER_ERROR_MESSAGE_500, error: error.message });
 
