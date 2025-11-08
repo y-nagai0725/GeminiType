@@ -1,0 +1,16 @@
+@use "./_mixins.scss" as *;
+@use "./_variables.scss" as *;
+@import "./reset.scss";
+
+html {
+}
+
+a,
+img {
+  display: block;
+}
+
+img {
+  width: 100%;
+  object-fit: cover;
+}

@@ -471,7 +471,6 @@ const getRubyFromYahoo = async (japaneseText) => {
       {
         id: '1234-1',
         jsonrpc: '2.0',
-        //method: 'jlp.furiganaservice.post',
         method: 'jlp.furiganaservice.furigana',
         params: {
           q: japaneseText, // 受け取った日本語の文字列

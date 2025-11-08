@@ -1,0 +1,40 @@
+@use "./_variables.scss" as *;
+
+//タブレット用メディアクエリ
+@mixin tab {
+  @media screen and (min-width: 768px) {
+    @content;
+  }
+}
+
+//PC用メディアクエリ
+@mixin pc {
+  @media screen and (min-width: 1024px) {
+    @content;
+  }
+}
+
+//pc用hover
+@mixin hover {
+  @media (any-hover: hover) {
+    &:hover {
+      @content;
+    }
+  }
+}
+
+//コンテンツ幅
+@mixin contents-width {
+  padding: 0 2rem;
+
+  @include tab {
+    padding: 0 3rem;
+  }
+
+  @include pc {
+    padding: 0;
+    margin-inline: auto;
+    width: 90%;
+    max-width: 1200px;
+  }
+}
