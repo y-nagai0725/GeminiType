@@ -39,11 +39,10 @@
 
 <script setup>
 import { ref } from "vue";
-import { RouterLink, useRouter } from "vue-router"; // (★) 「useRouter」を追加！
-import api from "../services/api"; // (★) 最強の「api.js」をインポート！
+import { RouterLink } from "vue-router";
+import { useAuthStore } from '../stores/authStore';
 
-// (★) router を「プログラムで」動かすための道具だよ
-const router = useRouter();
+const authStore = useAuthStore();
 
 // フォームの「中身」を保存する「宝箱」
 const email = ref("");
@@ -53,24 +52,11 @@ const password = ref("");
 const handleLogin = async () => {
   // (★) 「async」を付けて「待てる」ようにするよ
   try {
-    // 1. お兄ちゃんのAPIに「ログイン」のお願いをするよ！♡
-    const response = await api.post("/api/login", {
-      //
-      email: email.value,
-      password: password.value,
-    });
+    // (★) 「宝箱」の「loginの魔法」を唱えるだけ！♡
+    await authStore.login(email.value, password.value)
 
-    // 2. 成功したら「トークン」が返ってくるはず！
-    const token = response.data.token;
-
-    // 3. (★) トークンを「localStorage」っていうブラウザの鍵付きロッカーに保存！
-    localStorage.setItem("token", token);
-
-    // 4. (★) ログイン成功！♡（仮のアラート）
-    alert("お兄ちゃん、おかえりなさい！♡");
-
-    // 5. (★) メインメニュー（仮のトップページ "/"）に「ワープ」するよ！
-    router.push("/"); // (←あとでメインメニュー画面のパスに変えようね！)
+    // (★) ログイン成功！♡（アラートはもういらないね！）
+    // （ワープもぜんぶ「authStore」がやってくれるよ！）
   } catch (error) {
     // 400番台とか500番台のエラーが起きたら…
     console.error("ログイン失敗…", error);
