@@ -451,9 +451,9 @@ app.delete('/api/admin/problems/:id', authenticateToken, isAdmin, async (req, re
 });
 
 /**
- * 「日本語の文字列 1個」を受け取って、「ローマ字の文字列 1個」を返す
+ * 「日本語の文字列」を受け取って、「{ひらがな, ローマ字}」を返す
  * @param {String} japaneseText 日本語の文字列
- * @returns ローマ字の文字列
+ * @returns {object} ひらがな、ローマ字のオブジェクト
  */
 const getRubyFromYahoo = async (japaneseText) => {
   // .envからClientIdを読み込む
@@ -490,13 +490,18 @@ const getRubyFromYahoo = async (japaneseText) => {
       throw new Error(`Yahoo! API エラー: ${response.data.error.message}`);
     }
 
-    // 成功したら、返ってきた「単語の配列 (result.word)」をすべてつなげる
-    const roman = response.data.result.word
-      .map((word) => word.roman) // "roman" の部分だけ取り出す
-      .join(''); // すべてつなげる
+    // ひらがな配列
+    const hiraganaWords = response.data.result.word.map(word => word.furigana || word.surface);
 
-    // 完成したローマ字を返す
-    return roman;
+    // ローマ字配列
+    const romanWords = response.data.result.word.map(word => word.roman);
+
+    // 配列をつなげて文字列にする
+    const hiragana = hiraganaWords.join('');
+    const roman = romanWords.join('');
+
+    // 完成したひらがなとローマ字を返す
+    return { hiragana, roman };
 
   } catch (error) {
     // axios の通信エラーやYahoo! API のエラー
@@ -520,12 +525,12 @@ app.post('/api/convert-ruby', authenticateToken, async (req, res) => {
     }
 
     // Promise.allで全てを並列処理し、完了まで待機
-    const romans = await Promise.all(
+    const results = await Promise.all(
       texts.map(text => getRubyFromYahoo(text))
     );
 
-    // 「ローマ字の『配列』」を返す
-    res.json({ romans: romans });
+    // 「ひらがな・ローマ字のオブジェクトの『配列』」を返す
+    res.json({ results });
 
   } catch (error) {
     // デバッグ用
