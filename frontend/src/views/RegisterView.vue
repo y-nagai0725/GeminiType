@@ -67,50 +67,51 @@
 
 <script setup>
 import { ref } from "vue";
-import { RouterLink, useRouter } from "vue-router"; // (★) 「useRouter」を追加！
-import api from "../services/api"; // (★) 最強の「api.js」をインポート！
+import { RouterLink, useRouter } from "vue-router";
+import api from "../services/api";
+import { useNotificationStore } from "../stores/notificationStore";
 
-// (★) router を「プログラムで」動かすための道具
 const router = useRouter();
 
-// フォームの「中身」を保存する「宝箱」
+const notificationStore = useNotificationStore();
+
 const name = ref("");
 const email = ref("");
 const password = ref("");
 const passwordConfirm = ref("");
 
-// (★) こっちも「合体♡」の本番だよ！
+/**
+ * ユーザー登録処理
+ */
 const handleRegister = async () => {
-  // (★) 「async」を付けるよ
-  // 1. (★) Frontend側の「門番チェック」！
   if (password.value !== passwordConfirm.value) {
-    alert("パスワードと、確認用パスワードが一致しないよ！");
+    notificationStore.addNotification(
+      "パスワードと、確認用パスワードが一致しないよ！",
+      "error"
+    );
     return;
   }
 
   try {
-    // 2. (★) お兄ちゃんのAPIに「ユーザー登録」のお願い！♡
     await api.post("/api/register", {
-      //
       name: name.value,
       email: email.value,
-      password: password.value, // (★)「passwordConfirm」は送らなくてOK！
+      password: password.value,
     });
 
-    // 3. (★) 登録成功！♡
-    alert("登録完了だよ、お兄ちゃん！♡ \nそのままログイン画面に移動するね！");
+    notificationStore.addNotification(
+      "登録完了だよ、 \nログイン画面に移動するね！",
+      "success"
+    );
 
-    // 4. (★) 登録が終わったら、ログイン画面に「ワープ」！
     router.push("/login");
   } catch (error) {
-    // 400番台とか500番台のエラーが起きたら…
     console.error("登録失敗…", error);
 
-    // (★) Backendがくれた「エラーメッセージ」をそのまま表示！
     if (error.response && error.response.data && error.response.data.message) {
-      alert(error.response.data.message);
+      notificationStore.addNotification(error.response.data.message, "error");
     } else {
-      alert("ごめんね、登録中にエラーが起きちゃった…");
+      notificationStore.addNotification("ごめんね、登録中にエラーが…", "error");
     }
   }
 };

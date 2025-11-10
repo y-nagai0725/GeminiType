@@ -1,10 +1,12 @@
 <template>
   <RouterView />
+
+  <NotificationDisplay />
 </template>
 
 <script setup>
-// この2行は、<RouterView /> を使うためのおまじないだよ♡
 import { RouterView } from "vue-router";
+import NotificationDisplay from './components/NotificationDisplay.vue';
 </script>
 
 <style lang="scss" scoped>

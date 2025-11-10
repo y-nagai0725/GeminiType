@@ -40,32 +40,33 @@
 <script setup>
 import { ref } from "vue";
 import { RouterLink } from "vue-router";
-import { useAuthStore } from '../stores/authStore';
+import { useAuthStore } from "../stores/authStore";
+import { useNotificationStore } from "../stores/notificationStore";
 
 const authStore = useAuthStore();
+const notificationStore = useNotificationStore();
 
-// フォームの「中身」を保存する「宝箱」
 const email = ref("");
 const password = ref("");
 
-// (★) ここが「合体♡」の本番だよ！
+/**
+ * ログイン処理
+ */
 const handleLogin = async () => {
-  // (★) 「async」を付けて「待てる」ようにするよ
   try {
-    // (★) 「宝箱」の「loginの魔法」を唱えるだけ！♡
-    await authStore.login(email.value, password.value)
+    await authStore.login(email.value, password.value);
 
-    // (★) ログイン成功！♡（アラートはもういらないね！）
-    // （ワープもぜんぶ「authStore」がやってくれるよ！）
+    notificationStore.addNotification("おかえりなさい！", "success");
   } catch (error) {
-    // 400番台とか500番台のエラーが起きたら…
     console.error("ログイン失敗…", error);
 
-    // (★) Backendがくれた「エラーメッセージ」をそのまま表示！
     if (error.response && error.response.data && error.response.data.message) {
-      alert(error.response.data.message);
+      notificationStore.addNotification(error.response.data.message, "error");
     } else {
-      alert("ごめんね、ログイン中にエラーが起きちゃった…");
+      notificationStore.addNotification(
+        "ごめんね、ログイン中にエラーが…",
+        "error"
+      );
     }
   }
 };
