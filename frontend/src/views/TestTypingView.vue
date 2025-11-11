@@ -7,7 +7,11 @@
       心ゆくまでテストしてね、お兄ちゃん！♡
     </p>
 
-    <TypingCore v-if="dummyProblem" :problems="[dummyProblem]" />
+    <TypingCore
+      v-if="dummyProblem"
+      :problems="[dummyProblem]"
+      :showDebug="true"
+    />
     <p v-else>
       ダミーの問題文を準備中… (5秒後に `TypingCore` が「生まれる」よ！)
     </p>
@@ -30,7 +34,7 @@ onMounted(() => {
   setTimeout(() => {
     dummyProblem.value = {
       // (★) お兄ちゃんがテストしたい「問題文」をここに書いてね！
-      problem_text: "札幌市",
+      problem_text: "test:;'\"",
     };
   }, 5000); // 5秒
 });

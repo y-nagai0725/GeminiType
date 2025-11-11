@@ -2,12 +2,10 @@
   <div class="typing-core">
     <div class="typing-core__problem">
       <h2 v-if="targetProblem">{{ targetProblem.problem_text }}</h2>
-      <p v-else>問題文を読み込み中…</p>
     </div>
 
     <div class="typing-core__hiragana">
       <p v-if="targetHiragana">{{ targetHiragana }}</p>
-      <p v-else>（ひらがなを変換中…）</p>
     </div>
 
     <div class="typing-core__romaji">
@@ -19,14 +17,15 @@
       </span>
     </div>
 
-    <div class="typing-core__debug">
+    <div class="typing-core__debug" v-if="props.showDebug && currentUnit">
       <p>
-        ひらがなIndex: {{ currentIndex }} (「{{
-          targetHiragana[currentIndex]
-        }}」を判定中)
+        ひらがなIndex: {{ unitIndex }} (「{{ currentUnit.hiragana }}」を判定中)
       </p>
       <p>入力バッファ: [ {{ inputBuffer }} ]</p>
-      <p>お手本ローマ字: {{ displayRomaji }}</p>
+      <p>
+        （「{{ currentUnit.hiragana }}」のパターン:
+        {{ currentUnit.patterns.join(", ") }}）
+      </p>
     </div>
   </div>
 </template>
@@ -34,339 +33,234 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from "vue";
 import api from "../services/api";
+import romaMapData from "@/data/romanTypingParseDictionary.json";
 
-// (★) (★) (★)
-// お兄ちゃんの「ひらめき」 の「核（コア）」！「ローマ字マップ」！
-// (★) (★) (★)
-const romaMap = {
-  さ: ["sa"],
-  し: ["si", "shi", "ci"],
-  す: ["su"],
-  せ: ["se"],
-  そ: ["so"],
-  た: ["ta"],
-  ち: ["ti", "chi"],
-  つ: ["tu", "tsu"],
-  て: ["te"],
-  と: ["to"],
-  な: ["na"],
-  に: ["ni"],
-  ぬ: ["nu"],
-  ね: ["ne"],
-  の: ["no"],
-  は: ["ha"],
-  ひ: ["hi"],
-  ふ: ["fu", "hu"],
-  へ: ["he"],
-  ほ: ["ho"],
-  ま: ["ma"],
-  み: ["mi"],
-  む: ["mu"],
-  め: ["me"],
-  も: ["mo"],
-  や: ["ya"],
-  ゆ: ["yu"],
-  よ: ["yo"],
-  ら: ["ra"],
-  り: ["ri"],
-  る: ["ru"],
-  れ: ["re"],
-  ろ: ["ro"],
-  わ: ["wa"],
-  を: ["wo"],
-  ん: ["n", "nn", "n'"],
-  が: ["ga"],
-  ぎ: ["gi"],
-  ぐ: ["gu"],
-  げ: ["ge"],
-  ご: ["go"],
-  ざ: ["za"],
-  じ: ["zi", "ji"],
-  ず: ["zu"],
-  ぜ: ["ze"],
-  ぞ: ["zo"],
-  だ: ["da"],
-  ぢ: ["di"],
-  づ: ["du"],
-  で: ["de"],
-  ど: ["do"],
-  ば: ["ba"],
-  び: ["bi"],
-  ぶ: ["bu"],
-  べ: ["be"],
-  ぼ: ["bo"],
-  ぱ: ["pa"],
-  ぴ: ["pi"],
-  ぷ: ["pu"],
-  ぺ: ["pe"],
-  ぽ: ["po"],
-  あ: ["a"],
-  い: ["i"],
-  う: ["u"],
-  え: ["e"],
-  お: ["o"],
-  か: ["ka", "ca"],
-  き: ["ki"],
-  く: ["ku", "cu", "qu"],
-  け: ["ke"],
-  こ: ["ko", "co"],
-
-  // (★) 拗音（ちいさい「ゃ」とか）
-  きゃ: ["kya"],
-  きゅ: ["kyu"],
-  きょ: ["kyo"],
-  しゃ: ["sya", "sha"],
-  しゅ: ["syu", "shu"],
-  しょ: ["syo", "sho"],
-  ちゃ: ["tya", "cha"],
-  ちゅ: ["tyu", "chu"],
-  ちょ: ["tyo", "cho"],
-  にゃ: ["nya"],
-  にゅ: ["nyu"],
-  にょ: ["nyo"],
-  ひゃ: ["hya"],
-  ひゅ: ["hyu"],
-  ひょ: ["hyo"],
-  みゃ: ["mya"],
-  みゅ: ["myu"],
-  みょ: ["myo"],
-  りゃ: ["rya"],
-  りゅ: ["ryu"],
-  りょ: ["ryo"],
-  ぎゃ: ["gya"],
-  ぎゅ: ["gyu"],
-  ぎょ: ["gyo"],
-  じゃ: ["ja", "zya"],
-  じゅ: ["ju", "zyu"],
-  じょ: ["jo", "zyo"],
-  ぢゃ: ["dya"],
-  ぢゅ: ["dyu"],
-  ぢょ: ["dyo"],
-  びゃ: ["bya"],
-  びゅ: ["byu"],
-  びょ: ["byo"],
-  ぴゃ: ["pya"],
-  ぴゅ: ["pyu"],
-  ぴょ: ["pyo"],
-
-  // (★) 特殊（「っ」は、ルールが「別」だから、ここには「入れない」よ！）
-  ぁ: ["la", "xa"],
-  ぃ: ["li", "xi"],
-  ぅ: ["lu", "xu"],
-  ぇ: ["le", "xe"],
-  ぉ: ["lo", "xo"],
-  ゔ: ["vu"],
-  ふぁ: ["fa"],
-  ふぃ: ["fi"],
-  ふぇ: ["fe"],
-  ふぉ: ["fo"],
-
-  // (★) 記号（仮）
-  ー: ["-"],
-  "、": [","],
-  "。": ["."],
-};
-
-// (★) 「っ」の「特別ルール」！
-const tsuSpecialPatterns = ["xtu", "ltu", "xtsu", "ltsu"];
+// (★) JSON を「高速なMap」に変換！
+const romaMap = new Map(
+  romaMapData.map((item) => [item.Pattern, item.TypePattern])
+);
 
 // --- 1. 「外」から受け取る「お仕事リスト」 ---
 const props = defineProps({
   problems: { type: Array, required: true },
+  showDebug: {
+    type: Boolean,
+    default: false, // (★) デフォルトは「無し（見せない）」 だね！
+  },
 });
 
 // --- 2. 「宝箱」たち (State) ---
 const targetProblem = computed(() => props.problems[0] || null);
+const targetHiragana = ref("");
+const parsedProblem = ref([]);
+const unitIndex = ref(0);
+const inputBuffer = ref("");
+const activePatterns = ref([]); // (★) 「答え」のローマ字配列
+const typedRomajiLength = ref(0); // (★) 「色を変える」 長さ
 
-// (★) 「エンジン」 の「状態（ステータス）」
-const targetHiragana = ref(""); // 答えのひらがな (例: "さっぽろし")
-const displayRomaji = ref(""); // お手本ローマ字 (例: "sapporosi")
-const currentIndex = ref(0); // 今、ひらがな の何文字目？
-const inputBuffer = ref(""); // 今、入力途中のローマ字 (例: "s", "sh")
+// --- 3. 「計算結果」たち (Computed) ---
+const currentUnit = computed(
+  () => parsedProblem.value[unitIndex.value] || null
+);
+const currentPatterns = computed(() =>
+  currentUnit.value ? currentUnit.value.patterns : []
+);
 
-// (★) 「見た目」のための「計算結果」
-const typedDisplayRomaji = ref(""); // お手本の「色が変わった」部分
-const remainingDisplayRomaji = ref(""); // お手本の「まだ」の部分
+// (★) お手本ローマ字「全体」 (v9 と同じ！)
+const displayRomaji = computed(() => activePatterns.value.join(""));
+// (★) 「色が変わった」 部分 (v9 と同じ！)
+const typedDisplayRomaji = computed(() => {
+  return displayRomaji.value.substring(0, typedRomajiLength.value);
+});
+// (★) 「まだ」の部分 (v9 と同じ！)
+const remainingDisplayRomaji = computed(() => {
+  return displayRomaji.value.substring(typedRomajiLength.value);
+});
 
-// --- 3. 「魔法」たち (Functions) ---
+// --- 4. 「魔法」たち (Functions) ---
+
+/**
+ * (★) 「ひらがな」を「パース（分割）」する「専用エンジン」！ (v8 と同じ！)
+ */
+const parseHiragana = (hiragana) => {
+  /* ... (v8 とまったく同じ) ... */
+  const units = [];
+  const defaultPatterns = [];
+  let cursor = 0;
+  while (cursor < hiragana.length) {
+    let matched = false;
+    for (let len = 3; len >= 1; len--) {
+      const chunk = hiragana.substring(cursor, cursor + len);
+      if (romaMap.has(chunk)) {
+        const patterns = romaMap.get(chunk);
+        units.push({ hiragana: chunk, patterns: patterns });
+        defaultPatterns.push(patterns[0]);
+        cursor += len;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      console.error(`辞書 にない文字が！: ${hiragana[cursor]}`);
+      units.push({ hiragana: hiragana[cursor], patterns: [hiragana[cursor]] });
+      defaultPatterns.push(hiragana[cursor]);
+      cursor++;
+    }
+  }
+  return {
+    parsedUnits: units,
+    defaultActivePatterns: defaultPatterns,
+  };
+};
 
 /**
  * (★) (★) (★)
- * これが「v7作戦」 の「心臓部」！ `handleKeydown` ！
+ * 「v10」 の「心臓部」！ `handleKeydown` ！
  * (★) (★) (★)
  */
 const handleKeydown = (e) => {
-  // 1. 「a」とか「b」みたいな「1文字」のキーと「記号」だけを拾うよ
-  if (e.key.length !== 1 || e.ctrlKey || e.altKey || e.metaKey) {
-    // (Shiftキーは「OK」にする（"S"とか"?"とか打つため）)
-    if (e.key === "Shift") return;
+  // 1. 制御キーは「無視」
+  if (e.ctrlKey || e.altKey || e.metaKey) return;
 
-    // (Backspace の処理は、いったん「後！」)
-    if (e.key === "Backspace") return;
-
-    // (その他の制御キーはぜんぶ「無視」！)
-    if (e.key.length !== 1) return;
+  // (★) 「Backspace」と「Shift」は、
+  // 「キー入力（e.key）」としては「無視」するけど、
+  // 「ブラウザの動作（戻る）」は「止めて」ほしい！
+  if (e.key === "Backspace" || e.key === "Shift") {
+    e.preventDefault();
+    return; // (★) でも、タイピング判定は「しない」よ！
   }
 
-  // (★) ブラウザの「/」キー（検索）とかが動かないようにする！
+  // (★) 「1文字」のキー（"a", "S", "/", "?" とか）だけを拾う！
+  if (e.key.length !== 1) return;
+
   e.preventDefault();
 
-  // 2. 「今、判定してる『ひらがな』」を取得
-  const currentHiragana = targetHiragana.value[currentIndex.value];
-  if (!currentHiragana) {
-    console.log("ぜんぶ打ち終わってるよ！♡");
-    return; // ぜんぶ終わってたら、何もしない
-  }
+  if (!currentUnit.value) return;
 
-  // 3. 「入力バッファ」 に「今押したキー」を追加
-  const newBuffer = inputBuffer.value + e.key.toLowerCase();
+  // (★) (★) (★)
+  // 「.toLowerCase()」を「削除」する！
+  // (★) (★) (★)
+  const newBuffer = inputBuffer.value + e.key;
 
-  // 4. (★) お兄ちゃんの「ひらめき」！「『っ』の特別ルール」 から先にチェック！
-  if (currentHiragana === "っ") {
-    // 4-A. 「xtu」 みたいな「特別パターン」？
-    const specialMatch = tsuSpecialPatterns.find(
-      (pattern) => pattern === newBuffer
-    );
-    if (specialMatch) {
-      console.log("「っ」を(xtu) でクリア！");
-      clearBufferAndAdvance(); // (↓ 「魔法」を下でまとめるよ！)
-      return;
-    }
-    // 4-B. 「xtu」 の「途中」？
-    const partialSpecialMatch = tsuSpecialPatterns.find((pattern) =>
-      pattern.startsWith(newBuffer)
-    );
-    if (partialSpecialMatch) {
-      console.log('「っ」の(xtu) の途中… (例: "xt")');
-      inputBuffer.value = newBuffer; // 「xt」を「バッファ」 にためる
-      return;
-    }
-
-    // 4-C. 「子音重ね」？
-    const nextHiragana = targetHiragana.value[currentIndex.value + 1];
-    if (nextHiragana && romaMap[nextHiragana]) {
-      const nextConsonant = romaMap[nextHiragana][0][0]; // (例: "ぽ"('po')の'p')
-      if (newBuffer === nextConsonant) {
-        console.log(`「っ」を(子音重ね ${nextConsonant}) でクリア！`);
-        // (★) 「っ」はクリアするけど、バッファ は「リセットしない」！
-        advanceIndex(); // (↓ 「魔法」を下でまとめるよ！)
-        inputBuffer.value = newBuffer; // 「p」のまま、次の「ぽ」の判定にいく
-        return;
-      }
-    }
-  } // (「っ」のチェックおわり)
-
-  // 5. (★) 「普通のひらがな」 のチェック
-  const patterns = romaMap[currentHiragana] || [];
-
-  // 5-A. 「完全一致」？ (例: "si" や "shi")
-  const perfectMatch = patterns.find((pattern) => pattern === newBuffer);
+  // 1. (★) 「完全一致」？
+  const perfectMatch = currentPatterns.value.find(
+    (pattern) => pattern === newBuffer
+  );
   if (perfectMatch) {
-    console.log(`「${currentHiragana}」を(${perfectMatch})でクリア！`);
-    clearBufferAndAdvance();
+    advanceUnit(perfectMatch); // (★)「次」のユニットへ！
     return;
   }
 
-  // 5-B. 「前方一致」？ (例: "s" や "sh")
-  const partialMatch = patterns.find((pattern) =>
+  // 2. (★) 「前方一致」？
+  const partialMatch = currentPatterns.value.find((pattern) =>
     pattern.startsWith(newBuffer)
   );
   if (partialMatch) {
-    console.log(`「${currentHiragana}」の途中… (例: "s")`);
-    inputBuffer.value = newBuffer; // 「バッファ」 にためる
+    // (★) (★) (★)
+    // お兄ちゃんの「もう一声」 を、ここで「魔法」にするよ！
+    // (★) (★) (★)
+    handlePartialMatch(partialMatch, newBuffer);
     return;
   }
 
-  // 6. (★) 「ぜんぶダメ」＝「入力ミス」！
-  // (「っ」の子音重ね の「2文字目」の判定も、ここに来るよ)
-  // (例: "ぽ"('po')の判定で、バッファ が "p" + "o" = "po" になる)
-  if (currentHiragana !== "っ" && inputBuffer.value !== "") {
-    // (★) バッファ がある状態（例: "p"）から、もう一回「5」の判定をしてみる！
-    const retryPatterns = romaMap[currentHiragana] || [];
-    const retryPerfectMatch = retryPatterns.find(
-      (pattern) => pattern === newBuffer
-    );
-    if (retryPerfectMatch) {
-      console.log(
-        `(子音重ね後)「${currentHiragana}」を(${retryPerfectMatch})でクリア！`
-      );
-      clearBufferAndAdvance();
-      return;
-    }
-    const retryPartialMatch = retryPatterns.find((pattern) =>
-      pattern.startsWith(newBuffer)
-    );
-    if (retryPartialMatch) {
-      console.log(`(子音重ね後)「${currentHiragana}」の途中…`);
-      inputBuffer.value = newBuffer;
+  // 3. (★) 「ん」の特別ルール（v8 と同じ！）
+  if (currentUnit.value.hiragana === "ん" && inputBuffer.value === "n") {
+    const nextUnit = parsedProblem.value[unitIndex.value + 1];
+    const nextFirstChar = nextUnit ? nextUnit.patterns[0][0] : null;
+    if (
+      nextFirstChar &&
+      !["a", "i", "u", "e", "o", "n", "y"].includes(nextFirstChar)
+    ) {
+      advanceUnit("n");
+      handleKeydown(e);
       return;
     }
   }
-
-  // (★) ここに来たら、ぜんぶ「ダメ」！
   console.log("ミスタイプ！");
-  // (★) TODO: ミスした時の「音」を鳴らしたりする
 };
 
 /**
- * (★) 判定を「クリア」して「次」に進む「魔法」
+ * (★) 「前方一致」 の「途中」の時の「魔法」
+ * @param {string} partialPattern - 新しく「採用」されたローマ字 (例: "xtu")
+ * @param {string} newBuffer - 「今」のバッファ (例: "x")
  */
-const clearBufferAndAdvance = () => {
-  // (★) TODO: ここで「打ったローマ字」をお手本 に反映させる
-  // (「動的差し替え」 は、いったん「後！」)
-  // (まずは「色を変える」 ところから！)
+const handlePartialMatch = (partialPattern, newBuffer) => {
+  // 1. (★) お手本 が違うパターン だったら「差し替える」！
+  if (activePatterns.value[unitIndex.value] !== partialPattern) {
+    activePatterns.value[unitIndex.value] = partialPattern;
+  }
+  // 2. (★) バッファ を更新
+  inputBuffer.value = newBuffer;
 
-  // (★) 色を変えるロジック（仮）
-  // (Yahoo! がくれたお手本 の「頭」から、打った分だけ「色」をつける)
-  const typedLength = typedDisplayRomaji.value.length;
-  const currentPatternLength = inputBuffer.value.length || 1; // (子音重ね の時、inputBuffer が "p" になってる)
-  const newTypedLength = typedLength + currentPatternLength; // (★) ちょっとロジック が甘いかも！
-
-  // (★) TODO: 「お手本」の「動的差し替え」 をやらないと、
-  // (「sapporosi」と「saxtu」の「文字数」が合わなくて、ここが「破綻（はたん）」するね！)
-
-  // (★) いったん「v7作戦」 の「キモ」だけ！
-  inputBuffer.value = ""; // バッファ を「カラ」に！
-  currentIndex.value++; // 「次」のひらがな へ！
+  // 3. (★) 「色」 を更新！
+  updateHighlightingLength(); // (★) 魔法を呼ぶ！
 };
+
 /**
- * (★) 「ひらがなIndex」だけを進める「魔法」（子音重ね用）
+ * (★) 判定を「クリア」して「次」の「ユニット」に進む「魔法」
+ * @param {string} matchedPattern - 成立したローマ字 (例: "shi", "xtu")
  */
-const advanceIndex = () => {
-  currentIndex.value++; // 「次」のひらがな へ！
+const advanceUnit = (matchedPattern) => {
+  // 1. (★)「答え」配列を「確定」させる
+  activePatterns.value[unitIndex.value] = matchedPattern;
+
+  // 2. (★) バッファ を「カラ」にして「次」のユニットへ！
+  inputBuffer.value = "";
+  unitIndex.value++;
+
+  // 3. (★)「色」 を更新！
+  updateHighlightingLength(); // (★) 魔法を呼ぶ！
 };
 
-// --- 4. 「ライフサイクル」 (自動で動く魔法) ---
+/**
+ * (★) (★) (★)
+ * 「色を変える」「長さ」を「再計算」する「魔法」！
+ * (★) (★) (★)
+ */
+const updateHighlightingLength = () => {
+  let newLength = 0;
+
+  // 1. (★)「ぜんぶ『完成』した」ユニットの「長さ」を足す
+  for (let i = 0; i < unitIndex.value; i++) {
+    newLength += activePatterns.value[i].length;
+  }
+
+  // 2. (★)「今、打ってる『途中』」のバッファ の「長さ」を足す
+  newLength += inputBuffer.value.length;
+
+  // 3. (★)「色変わり」 の「長さ」を、ぜんぶ「更新」！
+  typedRomajiLength.value = newLength;
+};
+
+// --- 5. 「ライフサイクル」 (自動で動く魔法) ---
 onMounted(async () => {
-  // 1. (★) `window` で「見張る」！
   window.addEventListener("keydown", handleKeydown);
 
-  // 2. 「問題」があるかチェック！
   if (!targetProblem.value) return;
-
-  // 3. (★) Backendの「スーパー翻訳機」を呼び出すよ！
   try {
     const response = await api.post("/api/convert-ruby", {
       texts: [targetProblem.value.problem_text],
     });
+    const result = response.data.results[0];
 
-    const result = response.data.results[0]; // { hiragana, roman }
+    targetHiragana.value = result.hiragana;
 
-    // (★) 「答え（ひらがな）」をセット！
-    targetHiragana.value = result.hiragana; // "さっぽろし"
+    // (★) 「v10エンジン」 の「起動」！
+    const { parsedUnits, defaultActivePatterns } = parseHiragana(
+      result.hiragana
+    );
 
-    // (★) 「お手本（ローマ字）」の「初期状態」をセット！
-    displayRomaji.value = result.roman; // "sapporosi"
-    remainingDisplayRomaji.value = result.roman; // (★) 色変わり用
+    parsedProblem.value = parsedUnits;
+    activePatterns.value = defaultActivePatterns; // (★)「デフォルトのお手本」 配列をセット！
+
+    typedRomajiLength.value = 0; // (★)「色変わり」 の「初期状態」は 0 ！
   } catch (error) {
-    console.error("問題の読み込みに失敗しちゃった…", error);
-    targetHiragana.value = "（エラー）";
+    /* ... */
   }
 });
 
 onUnmounted(() => {
-  // 「見張り番」をちゃんと解除する（お片付け♡）
-  window.removeEventListener("keydown", handleKeydown);
+  window.removeEventListener("keydown", handleKeydown); // お片付け♡
 });
 </script>
 
