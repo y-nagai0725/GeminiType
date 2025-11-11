@@ -1,5 +1,5 @@
 <template>
-  <div class="typing-core" @click="focusInput">
+  <div class="typing-core">
     <div class="typing-core__problem">
       <h2 v-if="targetProblem">{{ targetProblem.problem_text }}</h2>
       <p v-else>問題文を読み込み中…</p>
@@ -12,162 +12,370 @@
 
     <div class="typing-core__romaji">
       <span class="typing-core__romaji--typed">
-        {{ typedRomaji }}
+        {{ typedDisplayRomaji }}
       </span>
       <span class="typing-core__romaji--remaining">
-        {{ remainingRomaji }}
+        {{ remainingDisplayRomaji }}
       </span>
     </div>
 
-    <input
-      type="text"
-      class="typing-core__hidden-input"
-      ref="typingInputRef"
-      @input="handleWanakanaInput"
-      autocomplete="off"
-      autocorrect="off"
-      autocapitalize="off"
-      spellcheck="false"
-    />
-
     <div class="typing-core__debug">
-      <p>入力されたひらがな: {{ typedHiragana }}</p>
+      <p>
+        ひらがなIndex: {{ currentIndex }} (「{{
+          targetHiragana[currentIndex]
+        }}」を判定中)
+      </p>
+      <p>入力バッファ: [ {{ inputBuffer }} ]</p>
+      <p>お手本ローマ字: {{ displayRomaji }}</p>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from "vue";
-import * as wanakana from "wanakana"; // (★) wanakanaちゃんをぜんぶインポート！
 import api from "../services/api";
+
+// (★) (★) (★)
+// お兄ちゃんの「ひらめき」 の「核（コア）」！「ローマ字マップ」！
+// (★) (★) (★)
+const romaMap = {
+  さ: ["sa"],
+  し: ["si", "shi", "ci"],
+  す: ["su"],
+  せ: ["se"],
+  そ: ["so"],
+  た: ["ta"],
+  ち: ["ti", "chi"],
+  つ: ["tu", "tsu"],
+  て: ["te"],
+  と: ["to"],
+  な: ["na"],
+  に: ["ni"],
+  ぬ: ["nu"],
+  ね: ["ne"],
+  の: ["no"],
+  は: ["ha"],
+  ひ: ["hi"],
+  ふ: ["fu", "hu"],
+  へ: ["he"],
+  ほ: ["ho"],
+  ま: ["ma"],
+  み: ["mi"],
+  む: ["mu"],
+  め: ["me"],
+  も: ["mo"],
+  や: ["ya"],
+  ゆ: ["yu"],
+  よ: ["yo"],
+  ら: ["ra"],
+  り: ["ri"],
+  る: ["ru"],
+  れ: ["re"],
+  ろ: ["ro"],
+  わ: ["wa"],
+  を: ["wo"],
+  ん: ["n", "nn", "n'"],
+  が: ["ga"],
+  ぎ: ["gi"],
+  ぐ: ["gu"],
+  げ: ["ge"],
+  ご: ["go"],
+  ざ: ["za"],
+  じ: ["zi", "ji"],
+  ず: ["zu"],
+  ぜ: ["ze"],
+  ぞ: ["zo"],
+  だ: ["da"],
+  ぢ: ["di"],
+  づ: ["du"],
+  で: ["de"],
+  ど: ["do"],
+  ば: ["ba"],
+  び: ["bi"],
+  ぶ: ["bu"],
+  べ: ["be"],
+  ぼ: ["bo"],
+  ぱ: ["pa"],
+  ぴ: ["pi"],
+  ぷ: ["pu"],
+  ぺ: ["pe"],
+  ぽ: ["po"],
+  あ: ["a"],
+  い: ["i"],
+  う: ["u"],
+  え: ["e"],
+  お: ["o"],
+  か: ["ka", "ca"],
+  き: ["ki"],
+  く: ["ku", "cu", "qu"],
+  け: ["ke"],
+  こ: ["ko", "co"],
+
+  // (★) 拗音（ちいさい「ゃ」とか）
+  きゃ: ["kya"],
+  きゅ: ["kyu"],
+  きょ: ["kyo"],
+  しゃ: ["sya", "sha"],
+  しゅ: ["syu", "shu"],
+  しょ: ["syo", "sho"],
+  ちゃ: ["tya", "cha"],
+  ちゅ: ["tyu", "chu"],
+  ちょ: ["tyo", "cho"],
+  にゃ: ["nya"],
+  にゅ: ["nyu"],
+  にょ: ["nyo"],
+  ひゃ: ["hya"],
+  ひゅ: ["hyu"],
+  ひょ: ["hyo"],
+  みゃ: ["mya"],
+  みゅ: ["myu"],
+  みょ: ["myo"],
+  りゃ: ["rya"],
+  りゅ: ["ryu"],
+  りょ: ["ryo"],
+  ぎゃ: ["gya"],
+  ぎゅ: ["gyu"],
+  ぎょ: ["gyo"],
+  じゃ: ["ja", "zya"],
+  じゅ: ["ju", "zyu"],
+  じょ: ["jo", "zyo"],
+  ぢゃ: ["dya"],
+  ぢゅ: ["dyu"],
+  ぢょ: ["dyo"],
+  びゃ: ["bya"],
+  びゅ: ["byu"],
+  びょ: ["byo"],
+  ぴゃ: ["pya"],
+  ぴゅ: ["pyu"],
+  ぴょ: ["pyo"],
+
+  // (★) 特殊（「っ」は、ルールが「別」だから、ここには「入れない」よ！）
+  ぁ: ["la", "xa"],
+  ぃ: ["li", "xi"],
+  ぅ: ["lu", "xu"],
+  ぇ: ["le", "xe"],
+  ぉ: ["lo", "xo"],
+  ゔ: ["vu"],
+  ふぁ: ["fa"],
+  ふぃ: ["fi"],
+  ふぇ: ["fe"],
+  ふぉ: ["fo"],
+
+  // (★) 記号（仮）
+  ー: ["-"],
+  "、": [","],
+  "。": ["."],
+};
+
+// (★) 「っ」の「特別ルール」！
+const tsuSpecialPatterns = ["xtu", "ltu", "xtsu", "ltsu"];
 
 // --- 1. 「外」から受け取る「お仕事リスト」 ---
 const props = defineProps({
-  problems: {
-    // 問題文の『配列』
-    type: Array,
-    required: true,
-  },
+  problems: { type: Array, required: true },
 });
 
 // --- 2. 「宝箱」たち (State) ---
-
-// (★) 今やってる「問題」（配列の「0番目」だけ使うよ！）
 const targetProblem = computed(() => props.problems[0] || null);
 
-// (★) 「答え」になるひらがな (例: "さっぽろし")
-const targetHiragana = ref("");
+// (★) 「エンジン」 の「状態（ステータス）」
+const targetHiragana = ref(""); // 答えのひらがな (例: "さっぽろし")
+const displayRomaji = ref(""); // お手本ローマ字 (例: "sapporosi")
+const currentIndex = ref(0); // 今、ひらがな の何文字目？
+const inputBuffer = ref(""); // 今、入力途中のローマ字 (例: "s", "sh")
 
-// (★) 「お手本ローマ字」 用の宝箱
-const typedRomaji = ref(""); // (例: "sappo")
-const remainingRomaji = ref(""); // (例: "rosi")
-
-// (★) 「内部判定」用の宝箱
-const typedHiragana = ref(""); // (例: "さっぽ")
-const typingInputRef = ref(null); // 「透明な入力ボックス」の本体
+// (★) 「見た目」のための「計算結果」
+const typedDisplayRomaji = ref(""); // お手本の「色が変わった」部分
+const remainingDisplayRomaji = ref(""); // お手本の「まだ」の部分
 
 // --- 3. 「魔法」たち (Functions) ---
 
 /**
- * (★) wanakana ちゃんが「透明な入力ボックス」を監視するよ！
+ * (★) (★) (★)
+ * これが「v7作戦」 の「心臓部」！ `handleKeydown` ！
+ * (★) (★) (★)
  */
-const handleWanakanaInput = (e) => {
-  const currentInputHiragana = e.target.value; // wanakanaが「ひらがな」に変換してくれる！
+const handleKeydown = (e) => {
+  // 1. 「a」とか「b」みたいな「1文字」のキーと「記号」だけを拾うよ
+  if (e.key.length !== 1 || e.ctrlKey || e.altKey || e.metaKey) {
+    // (Shiftキーは「OK」にする（"S"とか"?"とか打つため）)
+    if (e.key === "Shift") return;
 
-  // (★) 厳格モード（せいかくモード）！
-  // 「答え」の「頭」と「違って」たら…
-  if (!targetHiragana.value.startsWith(currentInputHiragana)) {
-    // 強制的に「前回の正しいひらがな」に戻す！
-    // (例: "さっぽ" の次に "a" (あ) って打っても、"さっぽ" に戻されちゃう♡)
-    e.target.value = typedHiragana.value;
-    return; // 何も進まない！
+    // (Backspace の処理は、いったん「後！」)
+    if (e.key === "Backspace") return;
+
+    // (その他の制御キーはぜんぶ「無視」！)
+    if (e.key.length !== 1) return;
   }
 
-  // (★) OK！正しい入力だったよ！
-  typedHiragana.value = currentInputHiragana; // 「さっぽ」を「さっぽろ」に更新
+  // (★) ブラウザの「/」キー（検索）とかが動かないようにする！
+  e.preventDefault();
 
-  // (★) お手本ローマ字を「動的」に更新するよ！
-  updateDisplayRomaji();
-};
+  // 2. 「今、判定してる『ひらがな』」を取得
+  const currentHiragana = targetHiragana.value[currentIndex.value];
+  if (!currentHiragana) {
+    console.log("ぜんぶ打ち終わってるよ！♡");
+    return; // ぜんぶ終わってたら、何もしない
+  }
 
-/**
- * (★) お手本ローマ字 を「更新」する魔法
- */
-const updateDisplayRomaji = () => {
-  // 1. 「今までに打った『ひらがな』」をローマ字に戻す
-  //    (★) ここが「saxtu」とかの「変化」に対応するキモだよ！
-  typedRomaji.value = wanakana.toRomaji(typedHiragana.value);
+  // 3. 「入力バッファ」 に「今押したキー」を追加
+  const newBuffer = inputBuffer.value + e.key.toLowerCase();
 
-  // 2. 「これから打つ『ひらがな』」を計算する
-  const remainingHiragana = targetHiragana.value.substring(
-    typedHiragana.value.length
+  // 4. (★) お兄ちゃんの「ひらめき」！「『っ』の特別ルール」 から先にチェック！
+  if (currentHiragana === "っ") {
+    // 4-A. 「xtu」 みたいな「特別パターン」？
+    const specialMatch = tsuSpecialPatterns.find(
+      (pattern) => pattern === newBuffer
+    );
+    if (specialMatch) {
+      console.log("「っ」を(xtu) でクリア！");
+      clearBufferAndAdvance(); // (↓ 「魔法」を下でまとめるよ！)
+      return;
+    }
+    // 4-B. 「xtu」 の「途中」？
+    const partialSpecialMatch = tsuSpecialPatterns.find((pattern) =>
+      pattern.startsWith(newBuffer)
+    );
+    if (partialSpecialMatch) {
+      console.log('「っ」の(xtu) の途中… (例: "xt")');
+      inputBuffer.value = newBuffer; // 「xt」を「バッファ」 にためる
+      return;
+    }
+
+    // 4-C. 「子音重ね」？
+    const nextHiragana = targetHiragana.value[currentIndex.value + 1];
+    if (nextHiragana && romaMap[nextHiragana]) {
+      const nextConsonant = romaMap[nextHiragana][0][0]; // (例: "ぽ"('po')の'p')
+      if (newBuffer === nextConsonant) {
+        console.log(`「っ」を(子音重ね ${nextConsonant}) でクリア！`);
+        // (★) 「っ」はクリアするけど、バッファ は「リセットしない」！
+        advanceIndex(); // (↓ 「魔法」を下でまとめるよ！)
+        inputBuffer.value = newBuffer; // 「p」のまま、次の「ぽ」の判定にいく
+        return;
+      }
+    }
+  } // (「っ」のチェックおわり)
+
+  // 5. (★) 「普通のひらがな」 のチェック
+  const patterns = romaMap[currentHiragana] || [];
+
+  // 5-A. 「完全一致」？ (例: "si" や "shi")
+  const perfectMatch = patterns.find((pattern) => pattern === newBuffer);
+  if (perfectMatch) {
+    console.log(`「${currentHiragana}」を(${perfectMatch})でクリア！`);
+    clearBufferAndAdvance();
+    return;
+  }
+
+  // 5-B. 「前方一致」？ (例: "s" や "sh")
+  const partialMatch = patterns.find((pattern) =>
+    pattern.startsWith(newBuffer)
   );
+  if (partialMatch) {
+    console.log(`「${currentHiragana}」の途中… (例: "s")`);
+    inputBuffer.value = newBuffer; // 「バッファ」 にためる
+    return;
+  }
 
-  // 3. 「これから打つ『ローマ字』」（デフォルトのお手本）を計算する
-  remainingRomaji.value = wanakana.toRomaji(remainingHiragana);
+  // 6. (★) 「ぜんぶダメ」＝「入力ミス」！
+  // (「っ」の子音重ね の「2文字目」の判定も、ここに来るよ)
+  // (例: "ぽ"('po')の判定で、バッファ が "p" + "o" = "po" になる)
+  if (currentHiragana !== "っ" && inputBuffer.value !== "") {
+    // (★) バッファ がある状態（例: "p"）から、もう一回「5」の判定をしてみる！
+    const retryPatterns = romaMap[currentHiragana] || [];
+    const retryPerfectMatch = retryPatterns.find(
+      (pattern) => pattern === newBuffer
+    );
+    if (retryPerfectMatch) {
+      console.log(
+        `(子音重ね後)「${currentHiragana}」を(${retryPerfectMatch})でクリア！`
+      );
+      clearBufferAndAdvance();
+      return;
+    }
+    const retryPartialMatch = retryPatterns.find((pattern) =>
+      pattern.startsWith(newBuffer)
+    );
+    if (retryPartialMatch) {
+      console.log(`(子音重ね後)「${currentHiragana}」の途中…`);
+      inputBuffer.value = newBuffer;
+      return;
+    }
+  }
+
+  // (★) ここに来たら、ぜんぶ「ダメ」！
+  console.log("ミスタイプ！");
+  // (★) TODO: ミスした時の「音」を鳴らしたりする
 };
 
 /**
- * (★) 画面をクリックしたら、透明な入力ボックスに「強制フォーカス」
+ * (★) 判定を「クリア」して「次」に進む「魔法」
  */
-const focusInput = () => {
-  if (typingInputRef.value) {
-    typingInputRef.value.focus();
-  }
+const clearBufferAndAdvance = () => {
+  // (★) TODO: ここで「打ったローマ字」をお手本 に反映させる
+  // (「動的差し替え」 は、いったん「後！」)
+  // (まずは「色を変える」 ところから！)
+
+  // (★) 色を変えるロジック（仮）
+  // (Yahoo! がくれたお手本 の「頭」から、打った分だけ「色」をつける)
+  const typedLength = typedDisplayRomaji.value.length;
+  const currentPatternLength = inputBuffer.value.length || 1; // (子音重ね の時、inputBuffer が "p" になってる)
+  const newTypedLength = typedLength + currentPatternLength; // (★) ちょっとロジック が甘いかも！
+
+  // (★) TODO: 「お手本」の「動的差し替え」 をやらないと、
+  // (「sapporosi」と「saxtu」の「文字数」が合わなくて、ここが「破綻（はたん）」するね！)
+
+  // (★) いったん「v7作戦」 の「キモ」だけ！
+  inputBuffer.value = ""; // バッファ を「カラ」に！
+  currentIndex.value++; // 「次」のひらがな へ！
+};
+/**
+ * (★) 「ひらがなIndex」だけを進める「魔法」（子音重ね用）
+ */
+const advanceIndex = () => {
+  currentIndex.value++; // 「次」のひらがな へ！
 };
 
 // --- 4. 「ライフサイクル」 (自動で動く魔法) ---
-
 onMounted(async () => {
-  // 1. 「問題」があるかチェック！
+  // 1. (★) `window` で「見張る」！
+  window.addEventListener("keydown", handleKeydown);
+
+  // 2. 「問題」があるかチェック！
   if (!targetProblem.value) return;
 
-  // 2. (★) Backendの「スーパー翻訳機」を呼び出すよ！
+  // 3. (★) Backendの「スーパー翻訳機」を呼び出すよ！
   try {
     const response = await api.post("/api/convert-ruby", {
-      texts: [targetProblem.value.problem_text], // (★)「配列」で送る
+      texts: [targetProblem.value.problem_text],
     });
 
     const result = response.data.results[0]; // { hiragana, roman }
 
-    // 3. (★) 「答え（ひらがな）」をセット！
-    targetHiragana.value = result.hiragana;
+    // (★) 「答え（ひらがな）」をセット！
+    targetHiragana.value = result.hiragana; // "さっぽろし"
 
-    // 4. (★) 「お手本（ローマ字）」の「初期状態」をセット！
-    // (Yahoo! がくれた `roman` を「初期値」として使うよ！)
-    remainingRomaji.value = result.roman;
-
-    // 5. (★) wanakana ちゃんを「透明な入力ボックス」に「合体♡」！
-    if (typingInputRef.value) {
-      // (★) この「魔法」で、入力が「自動でひらがな」になるんだ！
-      wanakana.bind(typingInputRef.value, { IMEMode: true });
-      // (★) すぐにタイピングできるように「強制フォーカス」！
-      typingInputRef.value.focus();
-    }
+    // (★) 「お手本（ローマ字）」の「初期状態」をセット！
+    displayRomaji.value = result.roman; // "sapporosi"
+    remainingDisplayRomaji.value = result.roman; // (★) 色変わり用
   } catch (error) {
     console.error("問題の読み込みに失敗しちゃった…", error);
     targetHiragana.value = "（エラー）";
   }
 });
 
-// (★) この「部品」が「消える」時に、動くよ！
 onUnmounted(() => {
-  // 「合体♡」をちゃんと解除する（お片付け♡）
-  if (typingInputRef.value) {
-    wanakana.unbind(typingInputRef.value);
-  }
+  // 「見張り番」をちゃんと解除する（お片付け♡）
+  window.removeEventListener("keydown", handleKeydown);
 });
 </script>
 
 <style lang="scss" scoped>
-/* (BEM) ブロック: .typing-core */
 .typing-core {
   border: 2px dashed #ccc;
   padding: 1.5rem;
   font-family: "Courier New", Courier, monospace;
-  cursor: text; /* 「ここ、テキスト入力できるよ」っていう見た目にする */
 
-  /* (BEM) エレメント: .typing-core__problem */
   &__problem {
     h2 {
       font-size: 2rem;
@@ -177,7 +385,6 @@ onUnmounted(() => {
     }
   }
 
-  /* (BEM) エレメント: .typing-core__hiragana (★New!) */
   &__hiragana {
     p {
       font-size: 1.25rem;
@@ -186,45 +393,28 @@ onUnmounted(() => {
     }
   }
 
-  /* (BEM) エレメント: .typing-core__romaji */
   &__romaji {
     font-size: 1.75rem;
     letter-spacing: 2px;
     background-color: #f9f9f9;
     padding: 0.5rem;
     border-radius: 4px;
-    min-height: 1.75rem; /* ガタガタしないように */
+    min-height: 1.75rem;
 
-    /* (BEM) モディファイア: --typed (★打ったところの色！) */
     &--typed {
-      color: #007bff; // (仮の青色)
+      color: #007bff;
       font-weight: bold;
     }
-
-    /* (BEM) モディファイア: --remaining (★これからのところの色) */
     &--remaining {
       color: #aaa;
     }
   }
-
-  /* (BEM) エレメント: .typing-core__hidden-input (★透明ボックス！) */
-  &__hidden-input {
-    /* ぜったいに見えないようにする「おまじない」♡ */
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
-    opacity: 0;
-    width: 0;
-    height: 0;
-    border: none;
-    padding: 0;
-  }
-
-  /* (BEM) エレメント: .typing-core__debug (★デバッグ用) */
   &__debug {
     margin-top: 1rem;
     font-size: 0.9rem;
     color: #999;
+    background-color: #f0f0f0;
+    padding: 0.5rem;
   }
 }
 </style>

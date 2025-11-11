@@ -27,6 +27,11 @@ const router = createRouter({
       name: 'admin',
       component: AdminView
     },
+    {
+      path: '/test-typing',
+      name: 'test-typing',
+      component: () => import('../views/TestTypingView.vue')
+    }
   ]
 });
 
