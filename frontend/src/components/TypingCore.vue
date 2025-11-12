@@ -32,81 +32,166 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from "vue";
+import { useRouter } from "vue-router";
 import api from "../services/api";
 import romaMapData from "@/data/romanTypingParseDictionary.json";
+import { useNotificationStore } from "../stores/notificationStore";
 
-// (★) JSON を「高速なMap」に変換！
+/**
+ * ローマ字マップ(検索用にMapオブジェクトにしておく)
+ */
 const romaMap = new Map(
   romaMapData.map((item) => [item.Pattern, item.TypePattern])
 );
 
-// --- 1. 「外」から受け取る「お仕事リスト」 ---
+/**
+ * router
+ */
+const router = useRouter();
+
+/**
+ * お知らせstore
+ */
+const notificationStore = useNotificationStore();
+
+/**
+ * props
+ */
 const props = defineProps({
+  // 問題配列
   problems: { type: Array, required: true },
+
+  // デバッグ部分の表示・非表示
   showDebug: {
     type: Boolean,
-    default: false, // (★) デフォルトは「無し（見せない）」 だね！
+    default: false, // デフォルトは非表示
   },
 });
 
-// --- 2. 「宝箱」たち (State) ---
+/**
+ * 問題文(日本語文章)
+ */
 const targetProblem = computed(() => props.problems[0] || null);
-const targetHiragana = ref("");
-const parsedProblem = ref([]);
-const unitIndex = ref(0);
-const inputBuffer = ref("");
-const activePatterns = ref([]); // (★) 「答え」のローマ字配列
-const typedRomajiLength = ref(0); // (★) 「色を変える」 長さ
 
-// --- 3. 「計算結果」たち (Computed) ---
+/**
+ * 問題文のひらがな
+ */
+const targetHiragana = ref("");
+
+/**
+ * ひらがなを分割した配列
+ */
+const parsedProblem = ref([]);
+
+/**
+ * 分割のユニットindex
+ */
+const unitIndex = ref(0);
+
+/**
+ * 入力中判定用バッファ
+ */
+const inputBuffer = ref("");
+
+/**
+ * 正解入力パターンのローマ字配列
+ */
+const activePatterns = ref([]);
+
+/**
+ * タイプ済みの文字数 (色を変える長さ)
+ */
+const typedRomajiLength = ref(0);
+
+/**
+ * 現在の（判定中の）ユニット
+ */
 const currentUnit = computed(
   () => parsedProblem.value[unitIndex.value] || null
 );
+
+/**
+ * 現在の（判定中の）ユニットの正解入力パターン配列
+ */
 const currentPatterns = computed(() =>
   currentUnit.value ? currentUnit.value.patterns : []
 );
 
-// (★) お手本ローマ字「全体」 (v9 と同じ！)
+/**
+ * お手本ローマ字(全体)
+ */
 const displayRomaji = computed(() => activePatterns.value.join(""));
-// (★) 「色が変わった」 部分 (v9 と同じ！)
+
+/**
+ * お手本ローマ字の色が変わった部分
+ */
 const typedDisplayRomaji = computed(() => {
   return displayRomaji.value.substring(0, typedRomajiLength.value);
 });
-// (★) 「まだ」の部分 (v9 と同じ！)
+
+/**
+ * お手本ローマ字の未入力部分
+ */
 const remainingDisplayRomaji = computed(() => {
   return displayRomaji.value.substring(typedRomajiLength.value);
 });
 
-// --- 4. 「魔法」たち (Functions) ---
-
 /**
- * (★) 「ひらがな」を「パース（分割）」する「専用エンジン」！ (v8 と同じ！)
+ * 問題文のひらがなを分割する
+ * @param {String} hiragana 問題文のひらがな
  */
 const parseHiragana = (hiragana) => {
-  /* ... (v8 とまったく同じ) ... */
+  // 分割ユニット{hiragana, patterns}の配列
   const units = [];
+
+  // 見本ローマ字表示用のパターン配列
   const defaultPatterns = [];
+
+  // ひらがなの位置
   let cursor = 0;
+
+  // ひらがなの最後の文字まで処理を行う
   while (cursor < hiragana.length) {
+    // romaMapに存在しているかどうか
     let matched = false;
+
+    // 3文字、2文字、1文字といった順番で検索していく
     for (let len = 3; len >= 1; len--) {
+      // 検索対象のひらがな
       const chunk = hiragana.substring(cursor, cursor + len);
+
+      // romaMapに存在する場合
       if (romaMap.has(chunk)) {
+        // 正解入力パターンを取得
         const patterns = romaMap.get(chunk);
+
+        // ユニット配列に追加
         units.push({ hiragana: chunk, patterns: patterns });
+
+        // 見本ローマ字配列に追加（入力パターンの1個目を追加する）
         defaultPatterns.push(patterns[0]);
+
+        // 文字位置を進める
         cursor += len;
+
+        // 検索結果をtrueに
         matched = true;
+
+        // for文を抜ける
         break;
       }
     }
+
+    // もし「1文字」でも romaMap に存在しない文字があった場合
     if (!matched) {
-      console.error(`辞書 にない文字が！: ${hiragana[cursor]}`);
-      units.push({ hiragana: hiragana[cursor], patterns: [hiragana[cursor]] });
-      defaultPatterns.push(hiragana[cursor]);
-      cursor++;
+      const errorChar = hiragana[cursor];
+      console.error(`辞書にない文字が！: ${errorChar}`);
+      throw new Error(
+        `問題文に、辞書にない文字「${errorChar}」が含まれています。`
+      );
     }
   }
+
   return {
     parsedUnits: units,
     defaultActivePatterns: defaultPatterns,
@@ -114,27 +199,25 @@ const parseHiragana = (hiragana) => {
 };
 
 /**
- * (★) (★) (★)
- * 「v10」 の「心臓部」！ `handleKeydown` ！
- * (★) (★) (★)
+ * キー判定処理
  */
 const handleKeydown = (e) => {
-  // 1. 制御キーは「無視」
+  // 制御キーは無視
   if (e.ctrlKey || e.altKey || e.metaKey) return;
 
-  // (★) 「Backspace」と「Shift」は、
-  // 「キー入力（e.key）」としては「無視」するけど、
-  // 「ブラウザの動作（戻る）」は「止めて」ほしい！
+  // タイピング判定はしない、「ブラウザの動作（戻る）」は止める
   if (e.key === "Backspace" || e.key === "Shift") {
     e.preventDefault();
-    return; // (★) でも、タイピング判定は「しない」よ！
+    return;
   }
 
-  // (★) 「1文字」のキー（"a", "S", "/", "?" とか）だけを拾う！
+  // 「1文字」のキーだけ判定を行う
   if (e.key.length !== 1) return;
 
+  // キーのデフォルトの機能を止める
   e.preventDefault();
 
+  // 全てのユニットの判定が終了している場合は何もしない
   if (!currentUnit.value) return;
 
   // (★) (★) (★)
@@ -255,7 +338,16 @@ onMounted(async () => {
 
     typedRomajiLength.value = 0; // (★)「色変わり」 の「初期状態」は 0 ！
   } catch (error) {
-    /* ... */
+    console.error("TypingCoreの準備中にエラー:", error);
+
+    //エラー通知を表示
+    notificationStore.addNotification(
+      error.message || "問題の読み込みに失敗しました…",
+      "error"
+    );
+
+    // TODO 仮に「/（ホーム）」に戻す！）
+    router.push("/");
   }
 });
 
