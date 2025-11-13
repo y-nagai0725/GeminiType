@@ -243,15 +243,57 @@ app.post('/api/admin/genres', authenticateToken, isAdmin, async (req, res) => {
 });
 
 /**
- * [admin] 問題文を全て取得 (GET /api/admin/problems)
+ * [admin] 問題文を「検索＆ページネーション」で取得 (GET /api/admin/problems)
  */
 app.get('/api/admin/problems', authenticateToken, isAdmin, async (req, res) => {
   try {
+    // クエリを受け取る
+    const { page = 1, genreId, search } = req.query;
+
+    // 1ページに表示する個数
+    const pageSize = 10;
+
+    // スキップ数（取得開始index）
+    const skip = (Number(page) - 1) * pageSize;
+
+    // 絞り込み条件（where）
+    const where = {};
+
+    // もし「ジャンルID」のクエリがあったら
+    if (genreId) {
+      where.genre_id = Number(genreId);
+    }
+
+    // もし「検索キーワード」のクエリがあったら
+    if (search) {
+      where.problem_text = {
+        contains: search,
+      };
+    }
+
+    // 条件に合う問題を1ページ分取得
     const problems = await prisma.problem.findMany({
-      orderBy: { id: 'asc' },
-      include: { genre: true },
+      where: where,
+      include: { genre: true }, // ジャンル情報も取得
+      orderBy: { id: 'desc' }, // 新しい順
+      skip: skip, // 取得開始位置
+      take: pageSize, // 取得個数
     });
-    res.json(problems);
+
+    // 条件に合う問題の合計数
+    const totalProblems = await prisma.problem.count({
+      where: where,
+    });
+
+    // 全部のページ数を計算
+    const totalPages = Math.ceil(totalProblems / pageSize);
+
+    // 「今のページのデータ」と「全部のページ数」を返す
+    res.json({
+      problems,
+      totalPages,
+    });
+
   } catch (error) {
     // デバッグ用
     res.status(500).json({ message: SERVER_ERROR_MESSAGE_500, error: error.message });
