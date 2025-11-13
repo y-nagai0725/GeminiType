@@ -21,15 +21,15 @@
     * `/admin/genres` (ジャンルのCRUD) API を作成。
     * `/admin/problems` (問題文のCRUD) API を作成。
 5.  **[Backend] Yahoo! ルビ振り API**
-    * `Yahoo! Web API ルビ振り(v2)` をBackendから安全に呼び出すための、**汎用API**（例: `POST /api/convert-ruby`）を作成する。
-    * これには「日本語の文字列（または配列）」を渡すと、「ローマ字の文字列（または配列）」を返す機能を持たせる。
+    * `Yahoo! Web API ルビ振り(v2)` をBackendから安全に呼び出すための、**汎用API**（例: `POST /api/get-hiragana`）を作成する。
+    * これには「日本語の文字列（または配列）」を渡すと、「ひらがなの文字列（または配列）」を返す機能を持たせる。
 6.  **[Frontend] プロジェクト初期設定**
     * `Vue.js` プロジェクト作成、`vue-router` 基本設定。（レスポンシブ対応の設計も考慮）
 7.  **[Frontend] ユーザー登録画面 (画面2) & ログイン画面 (画面3)**
     * 画面を作成し、`/register`, `/login` API と接続。JWTトークンを保存・管理する処理を実装。
 8.  **[Frontend] (部品化) `TypingCore.vue` の「骨組み」作成**
     * 「管理画面の試し打ち」と「メインのタイピング」で**共通利用**する「タイピング部品」(`TypingCore.vue`) の作成を開始する。
-    * まずは「1問だけ」を対象に、Backendの `POST /api/convert-ruby` API を呼び出し、返ってきたローマ字を使ってキー判定ロジックを実装する。
+    * まずは「1問だけ」を対象に、Backendの `POST /api/get-hiragana` API を呼び出し、返ってきたひらがなを使ってキー判定ロジックを実装する。
 9.  **[Frontend] 管理画面 (画面9)**
     * ジャンル・問題のCRUD画面を作成し、Backend APIと接続。
     * （サブ機能）「試し打ち」ボタンを設置し、`TypingCore.vue` を**モーダル**で呼び出して「1問だけ」試せる機能を実装する。
