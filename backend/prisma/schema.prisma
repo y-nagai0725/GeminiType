@@ -28,7 +28,7 @@ model User {
 // ジャンル (genres)
 model Genre {
   id       Int        @id @default(autoincrement())
-  name     String
+  name     String     @unique
   problems Problem[]  // このジャンルの「問題」たち
   sessions TypingSession[] // このジャンルを使った「まとめ記録」たち
 
@@ -41,6 +41,8 @@ model Problem {
   genre_id     Int
   problem_text String
   genre        Genre   @relation(fields: [genre_id], references: [id]) // ジャンルとの「つながり」
+
+  @@unique([genre_id, problem_text])
 
   @@map("problems")
 }

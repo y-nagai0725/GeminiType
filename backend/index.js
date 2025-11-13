@@ -233,6 +233,12 @@ app.post('/api/admin/genres', authenticateToken, isAdmin, async (req, res) => {
     // 登録成功時、201を返す
     res.status(201).json(newGenre);
   } catch (error) {
+    // ジャンル名の重複エラー
+    if (error.code === 'P2002') {
+      // console.error(error);
+      return res.status(400).json({ message: 'その「ジャンル名」は既に登録されています。' });
+    }
+
     // デバッグ用
     res.status(500).json({ message: SERVER_ERROR_MESSAGE_500, error: error.message });
 
@@ -327,8 +333,11 @@ app.post('/api/admin/problems', authenticateToken, isAdmin, async (req, res) => 
     // 登録成功時、201を返す
     res.status(201).json(newProblem);
   } catch (error) {
-    // 存在しない genre_id を指定した場合、400エラー
-    if (error.code === 'P2003') {
+    if (error.code === 'P2002') {
+      // 「問題文」「ジャンルID」の複合ユニークエラーの場合、400エラー
+      return res.status(400).json({ message: 'その「問題文」は、その「ジャンル」に既に登録されています。' });
+    } else if (error.code === 'P2003') {
+      // 存在しない genre_id を指定した場合、400エラー
       return res.status(400).json({ message: '存在しないジャンルが指定されています。' });
     } else {
       // デバッグ用
