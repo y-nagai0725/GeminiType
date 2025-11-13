@@ -94,7 +94,7 @@ const unitIndex = ref(0);
 const inputBuffer = ref("");
 
 /**
- * 正解入力パターンのローマ字配列
+ * 見本ローマ字を構成するための、入力パターンのローマ字配列
  */
 const activePatterns = ref([]);
 
@@ -118,19 +118,19 @@ const currentPatterns = computed(() =>
 );
 
 /**
- * お手本ローマ字(全体)
+ * 見本ローマ字(全体)
  */
 const displayRomaji = computed(() => activePatterns.value.join(""));
 
 /**
- * お手本ローマ字の色が変わった部分
+ * 見本ローマ字の入力済み部分（文字色が変わった部分）
  */
 const typedDisplayRomaji = computed(() => {
   return displayRomaji.value.substring(0, typedRomajiLength.value);
 });
 
 /**
- * お手本ローマ字の未入力部分
+ * 見本ローマ字の未入力部分
  */
 const remainingDisplayRomaji = computed(() => {
   return displayRomaji.value.substring(typedRomajiLength.value);
@@ -220,123 +220,114 @@ const handleKeydown = (e) => {
   // 全てのユニットの判定が終了している場合は何もしない
   if (!currentUnit.value) return;
 
-  // (★) (★) (★)
-  // 「.toLowerCase()」を「削除」する！
-  // (★) (★) (★)
+  // 入力バッファ
   const newBuffer = inputBuffer.value + e.key;
 
-  // 1. (★) 「完全一致」？
+  // 入力パターンと「完全一致」かどうか
   const perfectMatch = currentPatterns.value.find(
     (pattern) => pattern === newBuffer
   );
+
+  // 「完全一致」の場合
   if (perfectMatch) {
-    advanceUnit(perfectMatch); // (★)「次」のユニットへ！
+    // 次のユニットへ進む
+    advanceUnit(perfectMatch);
     return;
   }
 
-  // 2. (★) 「前方一致」？
+  // 入力パターンと「前方一致」かどうか
   const partialMatch = currentPatterns.value.find((pattern) =>
     pattern.startsWith(newBuffer)
   );
+
+  // 「前方一致」の場合
   if (partialMatch) {
-    // (★) (★) (★)
-    // お兄ちゃんの「もう一声」 を、ここで「魔法」にするよ！
-    // (★) (★) (★)
+    // 「前方一致」による見本ローマ字の更新、入力済み部分の更新
     handlePartialMatch(partialMatch, newBuffer);
     return;
   }
 
-  // 3. (★) 「ん」の特別ルール（v8 と同じ！）
-  if (currentUnit.value.hiragana === "ん" && inputBuffer.value === "n") {
-    const nextUnit = parsedProblem.value[unitIndex.value + 1];
-    const nextFirstChar = nextUnit ? nextUnit.patterns[0][0] : null;
-    if (
-      nextFirstChar &&
-      !["a", "i", "u", "e", "o", "n", "y"].includes(nextFirstChar)
-    ) {
-      advanceUnit("n");
-      handleKeydown(e);
-      return;
-    }
-  }
+  // TODO ミスタイプ時の処理
   console.log("ミスタイプ！");
 };
 
 /**
- * (★) 「前方一致」 の「途中」の時の「魔法」
- * @param {string} partialPattern - 新しく「採用」されたローマ字 (例: "xtu")
- * @param {string} newBuffer - 「今」のバッファ (例: "x")
+ * 「前方一致」判定の時の処理
+ * @param {string} partialPattern 前方一致した入力パターン
+ * @param {string} newBuffer 今のバッファ
  */
 const handlePartialMatch = (partialPattern, newBuffer) => {
-  // 1. (★) お手本 が違うパターン だったら「差し替える」！
+  // 見本のローマ字パターンと違う場合は、差し替える
   if (activePatterns.value[unitIndex.value] !== partialPattern) {
     activePatterns.value[unitIndex.value] = partialPattern;
   }
-  // 2. (★) バッファ を更新
+
+  // バッファを更新
   inputBuffer.value = newBuffer;
 
-  // 3. (★) 「色」 を更新！
-  updateHighlightingLength(); // (★) 魔法を呼ぶ！
+  // 入力済み部分の文字色を更新
+  updateHighlightingLength();
 };
 
 /**
- * (★) 判定を「クリア」して「次」の「ユニット」に進む「魔法」
- * @param {string} matchedPattern - 成立したローマ字 (例: "shi", "xtu")
+ * 判定をクリアして、次のユニットに進む
+ * @param {string} matchedPattern パターンとマッチしたローマ字文字列
  */
 const advanceUnit = (matchedPattern) => {
-  // 1. (★)「答え」配列を「確定」させる
+  // 見本ローマ字配列を確定させる
   activePatterns.value[unitIndex.value] = matchedPattern;
 
-  // 2. (★) バッファ を「カラ」にして「次」のユニットへ！
+  // バッファを空にして次のユニットへ
   inputBuffer.value = "";
   unitIndex.value++;
 
-  // 3. (★)「色」 を更新！
-  updateHighlightingLength(); // (★) 魔法を呼ぶ！
+  // 入力済み部分の文字色を更新
+  updateHighlightingLength();
 };
 
 /**
- * (★) (★) (★)
- * 「色を変える」「長さ」を「再計算」する「魔法」！
- * (★) (★) (★)
+ * 文字色を変える長さを再計算
  */
 const updateHighlightingLength = () => {
   let newLength = 0;
 
-  // 1. (★)「ぜんぶ『完成』した」ユニットの「長さ」を足す
+  // 入力済み（判定済み）ユニットの長さを足す
   for (let i = 0; i < unitIndex.value; i++) {
     newLength += activePatterns.value[i].length;
   }
 
-  // 2. (★)「今、打ってる『途中』」のバッファ の「長さ」を足す
+  // 入力途中のバッファの長さを足す
   newLength += inputBuffer.value.length;
 
-  // 3. (★)「色変わり」 の「長さ」を、ぜんぶ「更新」！
+  // タイプ済みの文字数(色を変える長さ)を更新
   typedRomajiLength.value = newLength;
 };
 
-// --- 5. 「ライフサイクル」 (自動で動く魔法) ---
 onMounted(async () => {
+  // keydownイベントに処理を設定
   window.addEventListener("keydown", handleKeydown);
 
+  // 問題文が存在しない場合は何もしない
   if (!targetProblem.value) return;
+
   try {
-    const response = await api.post("/api/convert-ruby", {
+    // 問題文からひらがなを取得
+    const response = await api.post("/api/get-hiragana", {
       texts: [targetProblem.value.problem_text],
     });
-    const result = response.data.results[0];
+    const hiragana = response.data.hiraganas[0];
 
-    targetHiragana.value = result.hiragana;
+    // ひらがなをセットする
+    targetHiragana.value = hiragana;
 
-    // (★) 「v10エンジン」 の「起動」！
-    const { parsedUnits, defaultActivePatterns } = parseHiragana(
-      result.hiragana
-    );
+    // ひらがなを分割
+    const { parsedUnits, defaultActivePatterns } = parseHiragana(hiragana);
 
+    // ひらがな分割配列
     parsedProblem.value = parsedUnits;
-    activePatterns.value = defaultActivePatterns; // (★)「デフォルトのお手本」 配列をセット！
 
-    typedRomajiLength.value = 0; // (★)「色変わり」 の「初期状態」は 0 ！
+    // 見本ローマ字を構成するパターンをセットする
+    activePatterns.value = defaultActivePatterns;
   } catch (error) {
     console.error("TypingCoreの準備中にエラー:", error);
 
@@ -352,7 +343,8 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeydown); // お片付け♡
+  // keydownに設定した処理を削除しておく
+  window.removeEventListener("keydown", handleKeydown);
 });
 </script>
 
