@@ -379,6 +379,11 @@ app.put('/api/admin/genres/:id', authenticateToken, isAdmin, async (req, res) =>
     if (error.code === 'P2025') {
       return res.status(404).json({ message: 'ジャンルが見つかりませんでした。' });
     }
+
+    // 重複エラー、400エラー
+    if (error.code === 'P2002') {
+      return res.status(400).json({ message: 'その「ジャンル名」は、既に登録されています。' });
+    }
     // デバッグ用
     res.status(500).json({ message: SERVER_ERROR_MESSAGE_500, error: error.message });
 
@@ -460,6 +465,11 @@ app.put('/api/admin/problems/:id', authenticateToken, isAdmin, async (req, res) 
     // 存在しない「genre_id」を指定した場合、400エラー
     if (error.code === 'P2003') {
       return res.status(400).json({ message: '存在しないジャンルが指定されています。' });
+    }
+
+    // 「問題文」「ジャンルID」の複合ユニークのエラー、400エラー
+    if (error.code === 'P2002') {
+      return res.status(400).json({ message: 'その「問題文」は、その「ジャンル」に既に登録されています。' });
     }
 
     // デバッグ用
