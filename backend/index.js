@@ -451,9 +451,9 @@ app.delete('/api/admin/problems/:id', authenticateToken, isAdmin, async (req, re
 });
 
 /**
- * 「日本語の文字列」を受け取って、「{ひらがな, ローマ字}」を返す
+ * 「日本語の文字列」を受け取って、「ひらがなの文字列」を返す
  * @param {String} japaneseText 日本語の文字列
- * @returns {object} ひらがな、ローマ字のオブジェクト
+ * @returns {String} ひらがなの文字列
  */
 const getRubyFromYahoo = async (japaneseText) => {
   // .envからClientIdを読み込む
@@ -490,31 +490,26 @@ const getRubyFromYahoo = async (japaneseText) => {
       throw new Error(`Yahoo! API エラー: ${response.data.error.message}`);
     }
 
-    // ひらがな配列
+    // ひらがなの単語の配列を取得
     const hiraganaWords = response.data.result.word.map(word => word.furigana || word.surface);
 
-    // ローマ字配列
-    const romanWords = response.data.result.word.map(word => word.roman);
-
-    // 配列をつなげて文字列にする
+    // 配列を結合して文字列にする
     const hiragana = hiraganaWords.join('');
-    const roman = romanWords.join('');
 
-    // 完成したひらがなとローマ字を返す
-    return { hiragana, roman };
-
+    // ひらがな文字列を返す
+    return hiragana;
   } catch (error) {
     // axios の通信エラーやYahoo! API のエラー
     console.error('Yahoo! API との通信に失敗しました。', error);
-    // このエラーを「呼び出し元（/api/convert-ruby）」に伝える
+    // このエラーを「呼び出し元（/api/get-hiragana）」に伝える
     throw new Error('Yahoo! API との通信に失敗しました。');
   }
 };
 
 /**
- * Yahoo! ルビ振り汎用 API (POST /api/convert-ruby)
+ * Yahoo! ルビ振り API (POST /api/get-hiragana)
  */
-app.post('/api/convert-ruby', authenticateToken, async (req, res) => {
+app.post('/api/get-hiragana', authenticateToken, async (req, res) => {
   try {
     // 「日本語の『配列』」を受け取る
     const { texts } = req.body;
@@ -525,12 +520,12 @@ app.post('/api/convert-ruby', authenticateToken, async (req, res) => {
     }
 
     // Promise.allで全てを並列処理し、完了まで待機
-    const results = await Promise.all(
+    const hiraganas = await Promise.all(
       texts.map(text => getRubyFromYahoo(text))
     );
 
-    // 「ひらがな・ローマ字のオブジェクトの『配列』」を返す
-    res.json({ results });
+    // 「ひらがなの『配列』」を返す
+    res.json({ hiraganas });
 
   } catch (error) {
     // デバッグ用
