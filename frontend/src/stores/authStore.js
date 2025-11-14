@@ -48,10 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       // メインメニューへ遷移
       router.push('/');
-
     } catch (error) {
-      console.error('ログイン処理（authStore）でエラー:', error);
-
       // 呼び出し元へエラーを投げる
       throw error;
     }
@@ -63,13 +60,12 @@ export const useAuthStore = defineStore('auth', () => {
   const fetchUser = async () => {
     if (token.value) { // トークンがある時だけ実行
       try {
+        // ユーザー情報を取得
         const response = await api.get('/api/me');
 
         // 取得したユーザー情報をstateにセットする
         user.value = response.data.user;
       } catch (error) {
-        console.error('/api/me でエラー:', error);
-
         // エラー時はトークンとユーザー情報を空にする
         token.value = null;
         user.value = null;
