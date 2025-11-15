@@ -47,8 +47,7 @@ export const useAdminStore = defineStore('admin', () => {
       const response = await api.get('/api/admin/genres');
       genres.value = response.data;
     } catch (error) {
-      console.error('ジャンルの取得に失敗…', error);
-      notificationStore.addNotification('ジャンルの取得に失敗しました…', 'error');
+      notificationStore.addNotification('ジャンルの取得に失敗しました。', 'error');
     }
   };
 
@@ -60,17 +59,23 @@ export const useAdminStore = defineStore('admin', () => {
       // --- 検索用クエリ作成 ---
       const params = new URLSearchParams();
 
-      // 表示するページ
-      params.append('page', currentPage.value);
-
-      // 絞り込むジャンル
-      if (filterGenreId.value) {
-        params.append('genreId', filterGenreId.value);
+      // 「page」のバリデーション
+      const pageNum = parseInt(currentPage.value, 10);
+      if (!isNaN(pageNum) && pageNum > 0) {
+        params.append('page', pageNum);
+      } else {
+        params.append('page', 1);
       }
 
-      // 検索キーワード
-      if (filterSearchText.value) {
-        params.append('search', filterSearchText.value);
+      // 「genreId」のバリデーション
+      const genreIdNum = parseInt(filterGenreId.value, 10);
+      if (!isNaN(genreIdNum) && genreIdNum > 0) {
+        params.append('genreId', genreIdNum);
+      }
+
+      // 「search」のバリデーション
+      if (filterSearchText.value && filterSearchText.value.trim() !== '') {
+        params.append('search', filterSearchText.value.trim());
       }
 
       // 検索条件に合う問題取得
@@ -82,8 +87,7 @@ export const useAdminStore = defineStore('admin', () => {
       // 合計ページ数
       totalPages.value = response.data.totalPages;
     } catch (error) {
-      console.error('問題文の取得に失敗…', error);
-      notificationStore.addNotification('問題文の取得に失敗しました…', 'error');
+      notificationStore.addNotification('問題文の取得に失敗しました。', 'error');
     }
   };
 
