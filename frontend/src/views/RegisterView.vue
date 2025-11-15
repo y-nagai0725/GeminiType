@@ -1,8 +1,12 @@
 <template>
   <div class="register-view">
-    <h1 class="register-view__title">ユーザー登録 (画面2)</h1>
+    <h1 class="register-view__title">ユーザー登録</h1>
 
-    <form class="register-view__form" @submit.prevent="handleRegister">
+    <form
+      class="register-view__form"
+      @submit.prevent="handleRegister"
+      novalidate
+    >
       <div class="register-view__group">
         <label for="name" class="register-view__label"
           >ユーザー名 (10文字以内)</label
@@ -11,7 +15,7 @@
           type="text"
           id="name"
           class="register-view__input"
-          v-model="name"
+          v-model.trim="name"
           required
         />
       </div>
@@ -22,7 +26,7 @@
           type="email"
           id="email"
           class="register-view__input"
-          v-model="email"
+          v-model.trim="email"
           required
         />
       </div>
@@ -70,10 +74,11 @@ import { ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import api from "../services/api";
 import { useNotificationStore } from "../stores/notificationStore";
+import { useAuthStore } from "../stores/authStore";
 
 const router = useRouter();
-
 const notificationStore = useNotificationStore();
+const authStore = useAuthStore();
 
 const name = ref("");
 const email = ref("");
@@ -84,35 +89,85 @@ const passwordConfirm = ref("");
  * ユーザー登録処理
  */
 const handleRegister = async () => {
+  // パスワード確認チェック
   if (password.value !== passwordConfirm.value) {
     notificationStore.addNotification(
-      "パスワードと、確認用パスワードが一致しないよ！",
+      "パスワードと、確認用パスワードが一致しません。",
+      "error"
+    );
+    return;
+  }
+
+  // ユーザー名の空白チェック
+  if (name.value === "") {
+    notificationStore.addNotification("ユーザー名を入力して下さい。", "error");
+    return;
+  }
+
+  // メールアドレスの空白チェック
+  if (email.value === "") {
+    notificationStore.addNotification(
+      "メールアドレスを入力して下さい。",
+      "error"
+    );
+    return;
+  }
+
+  // パスワードの空白チェック
+  if (!password.value) {
+    notificationStore.addNotification("パスワードを入力して下さい。", "error");
+    return;
+  }
+
+  // ユーザー名チェック (10文字以内)
+  if (name.value.length > 10) {
+    notificationStore.addNotification(
+      "ユーザー名は10文字以内にして下さい。",
+      "error"
+    );
+    return;
+  }
+
+  // メールアドレスの形式チェック
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.value)) {
+    notificationStore.addNotification(
+      "メールアドレスの形式が正しくありません。",
+      "error"
+    );
+    return;
+  }
+
+  // パスワードチェック (4文字以上)
+  if (password.value.length < 4) {
+    notificationStore.addNotification(
+      "パスワードは4文字以上にして下さい。",
       "error"
     );
     return;
   }
 
   try {
+    // ユーザー登録
     await api.post("/api/register", {
       name: name.value,
       email: email.value,
       password: password.value,
     });
 
+    // 登録＆ログイン通知
     notificationStore.addNotification(
-      "登録完了だよ、 \nログイン画面に移動するね！",
+      "登録完了しました。自動でログインします。",
       "success"
     );
 
-    router.push("/login");
+    // ログイン処理を実行
+    await authStore.login(email.value, password.value);
   } catch (error) {
-    console.error("登録失敗…", error);
-
-    if (error.response && error.response.data && error.response.data.message) {
-      notificationStore.addNotification(error.response.data.message, "error");
-    } else {
-      notificationStore.addNotification("ごめんね、登録中にエラーが…", "error");
-    }
+    notificationStore.addNotification(
+      error.response?.data?.message || "登録または自動ログインに失敗しました。",
+      "error"
+    );
   }
 };
 </script>
