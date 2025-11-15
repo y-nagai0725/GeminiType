@@ -1,15 +1,15 @@
 <template>
   <div class="login-view">
-    <h1 class="login-view__title">ログイン (画面3)</h1>
+    <h1 class="login-view__title">ログイン</h1>
 
-    <form class="login-view__form" @submit.prevent="handleLogin">
+    <form class="login-view__form" @submit.prevent="handleLogin" novalidate>
       <div class="login-view__group">
         <label for="email" class="login-view__label">メールアドレス</label>
         <input
           type="email"
           id="email"
           class="login-view__input"
-          v-model="email"
+          v-model.trim="email"
           required
         />
       </div>
@@ -43,31 +43,56 @@ import { RouterLink } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
 
+/**
+ * 認証store
+ */
 const authStore = useAuthStore();
+
+/**
+ * お知らせstore
+ */
 const notificationStore = useNotificationStore();
 
+/**
+ * メールアドレス
+ */
 const email = ref("");
+
+/**
+ * パスワード
+ */
 const password = ref("");
 
 /**
  * ログイン処理
  */
 const handleLogin = async () => {
+  // メールアドレスの空白チェック
+  if (email.value === "") {
+    notificationStore.addNotification(
+      "メールアドレスを入力して下さい。",
+      "error"
+    );
+    return;
+  }
+
+  // パスワードの空白チェック
+  if (!password.value) {
+    notificationStore.addNotification("パスワードを入力して下さい。", "error");
+    return;
+  }
+
   try {
+    // ログイン
     await authStore.login(email.value, password.value);
 
-    notificationStore.addNotification("おかえりなさい！", "success");
+    // ログイン通知
+    notificationStore.addNotification("ログインしました。", "success");
   } catch (error) {
-    console.error("ログイン失敗…", error);
-
-    if (error.response && error.response.data && error.response.data.message) {
-      notificationStore.addNotification(error.response.data.message, "error");
-    } else {
-      notificationStore.addNotification(
-        "ごめんね、ログイン中にエラーが…",
-        "error"
-      );
-    }
+    notificationStore.addNotification(
+      error.response?.data?.message || "ログインに失敗しました。",
+      "error"
+    );
   }
 };
 </script>
