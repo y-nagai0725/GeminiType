@@ -76,13 +76,39 @@ import api from "../services/api";
 import { useNotificationStore } from "../stores/notificationStore";
 import { useAuthStore } from "../stores/authStore";
 
+/**
+ * router
+ */
 const router = useRouter();
+
+/**
+ * お知らせstore
+ */
 const notificationStore = useNotificationStore();
+
+/**
+ * 認証store
+ */
 const authStore = useAuthStore();
 
+/**
+ * ユーザー名
+ */
 const name = ref("");
+
+/**
+ * メールアドレス
+ */
 const email = ref("");
+
+/**
+ * パスワード
+ */
 const password = ref("");
+
+/**
+ * 確認用パスワード
+ */
 const passwordConfirm = ref("");
 
 /**
