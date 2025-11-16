@@ -1,14 +1,8 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import api from '../services/api';
-import { useNotificationStore } from './notificationStore';
 
 export const useAdminStore = defineStore('admin', () => {
-  /**
-   * お知らせstore
-   */
-  const notificationStore = useNotificationStore();
-
   /**
    * ジャンル一覧
    */
@@ -47,7 +41,7 @@ export const useAdminStore = defineStore('admin', () => {
       const response = await api.get('/api/admin/genres');
       genres.value = response.data;
     } catch (error) {
-      notificationStore.addNotification('ジャンルの取得に失敗しました。', 'error');
+      throw error;
     }
   };
 
@@ -87,12 +81,13 @@ export const useAdminStore = defineStore('admin', () => {
       // 合計ページ数
       totalPages.value = response.data.totalPages;
     } catch (error) {
-      notificationStore.addNotification('問題文の取得に失敗しました。', 'error');
+      throw error;
     }
   };
 
   /**
    * 「ページ」を変える時の処理
+   * @param {Number} newPage 表示するページ番号
    */
   const setPage = (newPage) => {
     if (1 <= newPage && newPage <= totalPages.value) {
@@ -114,84 +109,84 @@ export const useAdminStore = defineStore('admin', () => {
 
   /**
    * 新しいジャンルを登録する
+   * @param {String} name ジャンル名
    */
   const addGenre = async (name) => {
     try {
+      // ジャンル登録
       await api.post('/api/admin/genres', { name });
-      notificationStore.addNotification('ジャンルを追加したよ!', 'success');
 
       // ジャンル一覧表示を更新
       await fetchGenres();
     } catch (error) {
-      console.error('ジャンルの追加に失敗…', error);
-      notificationStore.addNotification(error.response?.data?.message || 'ジャンルの追加に失敗…', 'error');
+      throw error;
     }
   };
 
   /**
    * 新しい問題文を登録する
+   * @param {Number} genre_id ジャンルid
+   * @param {String} problem_text 問題文
    */
   const addProblem = async (genre_id, problem_text) => {
     try {
+      // 問題文登録
       await api.post('/api/admin/problems', { genre_id, problem_text });
-      notificationStore.addNotification('問題文を追加したよ！', 'success');
 
       // 問題一覧表示を更新(現在表示ページが最新になる)
       await fetchProblems();
     } catch (error) {
-      console.error('問題文の追加に失敗…', error);
-      notificationStore.addNotification(error.response?.data?.message || '問題文の追加に失敗…', 'error');
+      throw error;
     }
   };
 
   /**
    * ジャンルを削除する
+   * @param {Number} id 削除対象のid
    */
   const deleteGenre = async (id) => {
     try {
       // ジャンルを削除
       await api.delete(`/api/admin/genres/${id}`);
-      notificationStore.addNotification('ジャンルを削除したよ！', 'success');
 
       // ジャンル一覧を更新
       await fetchGenres();
 
       // もし、絞り込み中のジャンルを削除した場合、問題一覧も更新
-      if (filterGenreId.value === id) {
+      if (filterGenreId.value === String(id)) {
         filterGenreId.value = '';
         await applyFilters();
       }
     } catch (error) {
-      console.error('ジャンルの削除に失敗…', error);
-      notificationStore.addNotification(error.response?.data?.message || 'ジャンルの削除に失敗…', 'error');
+      throw error;
     }
   }
 
   /**
    * 問題文を削除する
+   * @param {Number} id 削除対象のid
    */
   const deleteProblem = async (id) => {
     try {
       // 問題文の削除
       await api.delete(`/api/admin/problems/${id}`);
-      notificationStore.addNotification('問題文を削除したよ！', 'success');
 
       // 問題一覧表示を更新(現在表示ページが最新になる)
       await fetchProblems();
     } catch (error) {
-      console.error('問題文の削除に失敗…', error);
-      notificationStore.addNotification(error.response?.data?.message || '問題文の削除に失敗…', 'error');
+      throw error;
     }
   }
 
   /**
    * ジャンルを更新する
+   * @param {Number} id 更新対象のid
+   * @param {String} name ジャンル名
    */
   const updateGenre = async (id, name) => {
     try {
       // ジャンルを更新する
       await api.put(`/api/admin/genres/${id}`, { name });
-      notificationStore.addNotification('ジャンルを更新したよ！', 'success');
 
       // ジャンル一覧を更新
       await fetchGenres();
@@ -199,30 +194,24 @@ export const useAdminStore = defineStore('admin', () => {
       // 問題一覧更新
       await fetchProblems();
     } catch (error) {
-      console.error('ジャンルの更新に失敗…', error);
-      notificationStore.addNotification(error.response?.data?.message || 'ジャンルの更新に失敗…', 'error');
-
-      // (★) エラーを「投げて」、モーダル を「閉じない」ようにする
       throw error;
     }
   };
 
   /**
    * 問題文を更新する
+   * @param {Number} id 更新対象のid
+   * @param {Number} genre_id ジャンルid
+   * @param {String} problem_text 問題文
    */
   const updateProblem = async (id, genre_id, problem_text) => {
     try {
       // 問題を更新する
       await api.put(`/api/admin/problems/${id}`, { genre_id, problem_text });
-      notificationStore.addNotification('問題文を更新したよ！', 'success');
 
       // 問題一覧更新
       await fetchProblems();
     } catch (error) {
-      console.error('問題文の更新に失敗…', error);
-      notificationStore.addNotification(error.response?.data?.message || '問題文の更新に失敗…', 'error');
-
-      // (★) こっちもエラーを「投げる」
       throw error;
     }
   }
