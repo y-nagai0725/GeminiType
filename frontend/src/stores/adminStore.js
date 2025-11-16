@@ -89,22 +89,22 @@ export const useAdminStore = defineStore('admin', () => {
    * 「ページ」を変える時の処理
    * @param {Number} newPage 表示するページ番号
    */
-  const setPage = (newPage) => {
+  const setPage = async (newPage) => {
     if (1 <= newPage && newPage <= totalPages.value) {
       currentPage.value = newPage;
 
       // ページを変えたら、もう一回「問題文」を取り直す
-      fetchProblems();
+      await fetchProblems();
     }
   };
 
   /**
    * 「検索」ボタンが押された時の処理
    */
-  const applyFilters = () => {
+  const applyFilters = async () => {
     // 検索実行時は、「1ページ目」に戻す
     currentPage.value = 1;
-    fetchProblems();
+    await fetchProblems();
   };
 
   /**
