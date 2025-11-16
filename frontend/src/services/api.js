@@ -1,17 +1,17 @@
 import axios from 'axios';
 
 const api = axios.create({
-  // .env.local からベースURLを読み込む
+  // .env.localからベースURLを読み込む
   baseURL: import.meta.env.VITE_API_BASE_URL
 });
 
 // リクエストインターセプター
 api.interceptors.request.use(
   (config) => {
-    // ローカルストレージからトークン取得
+    // ローカルストレージからトークンを取得
     const token = localStorage.getItem('token');
 
-    // トークンがある場合、リクエストヘッダーにトークン付与('Bearer トークン'の形式)
+    // トークンがある場合は、リクエストヘッダーに'Bearer "token"'の形式で付与する
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -25,23 +25,32 @@ api.interceptors.request.use(
 // レスポンスインターセプター
 api.interceptors.response.use(
   (response) => {
+    // 「成功」レスポンスは、そのまま通す
     return response;
   },
-  (error) => {
-    // 200番台「以外」の「失敗」レスポンスが来たら…
+  async (error) => {
+    // エラーが起きたAPIの「URL」と「ステータスコード」を取得
+    const originalRequestUrl = error.config.url;
+    const status = error.response ? error.response.status : null;
 
-    // (★) ここが「トークン切れで自動ログアウト」の「骨組み」だよ！
-    if (error.response && error.response.status === 401) {
-      // 401エラー（認証エラー）がBackendから返ってきたら…
-      console.error('401エラー（トークン切れか、認証失敗）を検知！');
+    // 「401エラー（トークン切れ）」且つ「ログインAPI」ではない場合
+    if (status === 401 && originalRequestUrl !== '/api/login') {
+      // 認証storeとお知らせstoreを用意
+      const { useAuthStore } = await import('../stores/authStore');
+      const { useNotificationStore } = await import('../stores/notificationStore');
+      const authStore = useAuthStore();
+      const notificationStore = useNotificationStore();
 
-      // TODO: (★) ここに「自動ログアウト処理」を書くんだよね！
-      // (例) localStorage.removeItem('token');
-      // (例) alert('セッションが切れました。もう一度ログインしてください。');
-      // (例) window.location.href = '/login'; // 強制的にログイン画面に戻す！
+      // セッション切れの通知を表示
+      notificationStore.addNotification(
+        'セッションが期限切れです。もう一度ログインして下さい。',
+        'error'
+      );
+
+      // ログアウト(ログイン画面への強制遷移含む)
+      authStore.logout();
     }
 
-    // 401以外のエラーも、ちゃんと「エラーだよ」って返してあげる
     return Promise.reject(error);
   }
 );
