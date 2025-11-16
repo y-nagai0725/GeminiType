@@ -587,7 +587,6 @@ const getRubyFromYahoo = async (japaneseText) => {
         method: 'jlp.furiganaservice.furigana',
         params: {
           q: japaneseText, // 日本語の文字列
-          grade: 1,
         },
       },
       {
