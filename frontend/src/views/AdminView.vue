@@ -1,6 +1,6 @@
 <template>
   <div class="admin-view">
-    <h1 class="admin-view__title">管理画面 (画面9)</h1>
+    <h1 class="admin-view__title">管理画面</h1>
 
     <div v-if="authStore.user">
       <p>こんにちは、{{ authStore.user.name }} さん！</p>
@@ -30,7 +30,11 @@
             </button>
           </li>
         </ul>
-        <form class="admin-view__form" @submit.prevent="handleAddGenre">
+        <form
+          class="admin-view__form"
+          @submit.prevent="handleAddGenre"
+          novalidate
+        >
           <input
             type="text"
             placeholder="新しいジャンル名"
@@ -45,7 +49,11 @@
 
       <section class="admin-view__section">
         <h2 class="admin-view__subtitle">問題文 検索</h2>
-        <form class="admin-view__form" @submit.prevent="handleSearch">
+        <form
+          class="admin-view__form"
+          @submit.prevent="handleSearch"
+          novalidate
+        >
           <select v-model="localFilterGenreId">
             <option value="">（すべてのジャンル）</option>
             <option
@@ -68,7 +76,11 @@
       <section class="admin-view__section">
         <h2 class="admin-view__subtitle">問題文管理</h2>
 
-        <form class="admin-view__form" @submit.prevent="handleAddProblem">
+        <form
+          class="admin-view__form"
+          @submit.prevent="handleAddProblem"
+          novalidate
+        >
           <select v-model="newProblemGenreId" required>
             <option value="" disabled>（ジャンルを選択）</option>
             <option
@@ -96,7 +108,7 @@
               'admin-view__page-button--active':
                 page === adminStore.currentPage,
             }"
-            @click="adminStore.setPage(page)"
+            @click="handleSetPage(page)"
           >
             {{ page }}
           </button>
@@ -148,33 +160,35 @@
               'admin-view__page-button--active':
                 page === adminStore.currentPage,
             }"
-            @click="adminStore.setPage(page)"
+            @click="handleSetPage(page)"
           >
             {{ page }}
           </button>
         </div>
       </section>
     </div>
-    <div
-      v-if="isModalOpen"
-      class="admin-view__modal-overlay"
-      @click="closeTryModal"
-    >
-      <div class="admin-view__modal-content" @click.stop>
-        <h3>試し打ち♡</h3>
-        <p>（ESCキーでも閉じれるよ！）</p>
+    <Transition name="modal-fade">
+      <div
+        v-if="isTryModalOpen"
+        class="admin-view__modal-overlay"
+        @click="closeTryModal"
+      >
+        <div class="admin-view__modal-content" @click.stop>
+          <h3>試し打ち♡</h3>
+          <p>（ESCキーでも閉じれるよ！）</p>
 
-        <TypingCore
-          v-if="problemToTry"
-          :problems="[problemToTry]"
-          :showDebug="true"
-        />
+          <TypingCore
+            v-if="problemToTry"
+            :problems="[problemToTry]"
+            :showDebug="true"
+          />
 
-        <button @click="closeTryModal" class="admin-view__modal-close">
-          閉じる
-        </button>
+          <button @click="closeTryModal" class="admin-view__modal-close">
+            閉じる
+          </button>
+        </div>
       </div>
-    </div>
+    </Transition>
     <ConfirmModal
       :show="isConfirmOpen"
       :title="confirmTitle"
@@ -259,37 +273,103 @@ import { useNotificationStore } from "../stores/notificationStore";
 import TypingCore from "../components/TypingCore.vue";
 import ConfirmModal from "../components/ConfirmModal.vue";
 
+/**
+ * 認証store
+ */
 const authStore = useAuthStore();
+
+/**
+ * 管理store
+ */
 const adminStore = useAdminStore();
+
+/**
+ * お知らせstore
+ */
 const notificationStore = useNotificationStore();
+
+/**
+ * router
+ */
 const router = useRouter();
 
+/**
+ * (登録用)新しいジャンル名
+ */
 const newGenreName = ref("");
+
+/**
+ * (登録用)新しい問題のジャンルid
+ */
 const newProblemGenreId = ref("");
+
+/**
+ * (登録用)新しい問題文
+ */
 const newProblemText = ref("");
 
+/**
+ * 検索用設定: ジャンルid
+ */
 const localFilterGenreId = ref("");
+
+/**
+ * 検索用設定: 検索キーワード
+ */
 const localFilterSearchText = ref("");
 
-const isModalOpen = ref(false);
+/**
+ * 試し打ちモーダルの表示・非表示
+ */
+const isTryModalOpen = ref(false);
+
+/**
+ * 試し打ちの問題
+ */
 const problemToTry = ref(null);
 
+/**
+ * 確認モーダルの表示・非表示
+ */
 const isConfirmOpen = ref(false);
+
+/**
+ * 確認モーダルのタイトル
+ */
 const confirmTitle = ref("");
+
+/**
+ * 確認モーダルのメッセージ
+ */
 const confirmMessage = ref("");
+
+/**
+ * 確認了承時の処理
+ */
 const onConfirmAction = ref(null);
 
+/**
+ * 編集モーダルの表示・非表示
+ */
 const isEditModalOpen = ref(false);
-const editType = ref("genre"); // 'genre' と 'problem' を切り替えるよ！
+
+/**
+ * 編集の種類('genre' と 'problem' を切り替える)
+ */
+const editType = ref("genre");
+
+/**
+ * 編集フォーム
+ */
 const editForm = reactive({
-  id: null,
-  name: "", // (ジャンル 用)
-  genre_id: "", // (問題文 用)
-  problem_text: "", // (問題文 用)
+  id: null, // 対象のid
+  name: "", // (ジャンル用)ジャンル名
+  genre_id: "", // (問題用)ジャンルid
+  problem_text: "", // (問題用)問題文
 });
 
 /**
- *
+ * マウント時処理
  */
 onMounted(async () => {
   // ログインしていない場合
@@ -307,11 +387,25 @@ onMounted(async () => {
 
   // 管理権限がある場合
   if (authStore.isAdmin) {
-    // ジャンルを取得
-    await adminStore.fetchGenres();
+    try {
+      // ジャンルを取得
+      await adminStore.fetchGenres();
+    } catch (error) {
+      notificationStore.addNotification(
+        error.response?.data?.message || "ジャンルの取得に失敗しました。",
+        "error"
+      );
+    }
 
-    // 問題文（1ページ目）を取得
-    await adminStore.fetchProblems();
+    try {
+      // 問題文（1ページ目）を取得
+      await adminStore.fetchProblems();
+    } catch (error) {
+      notificationStore.addNotification(
+        error.response?.data?.message || "問題文の取得に失敗しました。",
+        "error"
+      );
+    }
   }
 });
 
@@ -319,22 +413,40 @@ onMounted(async () => {
  * 「ジャンル追加」ボタンが押された時の処理
  */
 const handleAddGenre = async () => {
-  if (!newGenreName.value) {
+  // バリデーション
+  if (!newGenreName.value || newGenreName.value.trim() === "") {
     notificationStore.addNotification("ジャンル名を入力して下さい。", "error");
     return;
   }
 
   try {
+    // ジャンル登録
     await adminStore.addGenre(newGenreName.value);
+
+    // 成功通知
+    notificationStore.addNotification("ジャンルを追加しました。", "success");
+
+    // ジャンル名を空にする
     newGenreName.value = "";
-  } catch (error) {}
+  } catch (error) {
+    // エラー通知
+    notificationStore.addNotification(
+      error.response?.data?.message || "ジャンルの追加に失敗しました。",
+      "error"
+    );
+  }
 };
 
 /**
  * 「問題文追加」ボタンが押された時の処理
  */
 const handleAddProblem = async () => {
-  if (!newProblemGenreId.value || !newProblemText.value) {
+  // バリデーション
+  if (
+    !newProblemGenreId.value ||
+    !newProblemText.value ||
+    newProblemText.value.trim() === ""
+  ) {
     notificationStore.addNotification(
       "ジャンルを選択して、問題文を入力して下さい。",
       "error"
@@ -343,26 +455,65 @@ const handleAddProblem = async () => {
   }
 
   try {
+    // 問題文登録
     await adminStore.addProblem(newProblemGenreId.value, newProblemText.value);
+
+    // 成功通知
+    notificationStore.addNotification("問題文を追加しました。", "success");
+
+    // ジャンルIDと問題文を空にする
     newProblemGenreId.value = "";
     newProblemText.value = "";
-  } catch (error) {}
+  } catch (error) {
+    // エラー通知
+    notificationStore.addNotification(
+      error.response?.data?.message || "問題文の追加に失敗しました。",
+      "error"
+    );
+  }
 };
 
 /**
  * 「検索」ボタンが押された時の処理
  */
-const handleSearch = () => {
-  // 入力されてる検索条件をセットする
-  adminStore.filterGenreId = localFilterGenreId.value;
-  adminStore.filterSearchText = localFilterSearchText.value;
+const handleSearch = async () => {
+  try {
+    // 入力されてる検索条件をセットする
+    adminStore.filterGenreId = localFilterGenreId.value;
+    adminStore.filterSearchText = localFilterSearchText.value;
 
-  // 検索実行
-  adminStore.applyFilters();
+    // 検索実行
+    await adminStore.applyFilters();
+  } catch (error) {
+    // エラー通知
+    notificationStore.addNotification(
+      error.response?.data?.message || "検索に失敗しました。",
+      "error"
+    );
+  }
 };
 
 /**
- * 「ジャンル削除」ボタンが押された時
+ * 「ページネーション」ボタンが押された時の処理
+ * @param {Number} newPage 表示するページ番号
+ */
+const handleSetPage = async (newPage) => {
+  try {
+    // newPageのページを表示する
+    await adminStore.setPage(newPage);
+  } catch (error) {
+    // エラー通知
+    notificationStore.addNotification(
+      error.response?.data?.message || "ページの取得に失敗しました。",
+      "error"
+    );
+  }
+};
+
+/**
+ * 「ジャンル削除」ボタンが押された時の処理
+ * @param {Number} id 削除対象id
+ * @param {String} name ジャンル名
  */
 const handleDeleteGenre = (id, name) => {
   // 確認モーダルのタイトル
@@ -379,7 +530,9 @@ const handleDeleteGenre = (id, name) => {
 };
 
 /**
- * 「問題文削除」ボタンが押された時
+ * 「問題文削除」ボタンが押された時の処理
+ * @param {Number} id 削除対象id
+ * @param {String} text 問題文
  */
 const handleDeleteProblem = (id, text) => {
   // 確認モーダルのタイトル
@@ -398,10 +551,22 @@ const handleDeleteProblem = (id, text) => {
 /**
  * 確認モーダルで「削除する」を押したときの処理
  */
-const handleConfirmDelete = () => {
+const handleConfirmDelete = async () => {
   // セットされている処理を実行
   if (onConfirmAction.value) {
-    onConfirmAction.value();
+    try {
+      // 処理実行
+      await onConfirmAction.value();
+
+      // 成功通知
+      notificationStore.addNotification("削除しました。", "success");
+    } catch (error) {
+      // エラー通知
+      notificationStore.addNotification(
+        error.response?.data?.message || "削除に失敗しました。",
+        "error"
+      );
+    }
   }
 
   // 確認モーダルを閉じる
@@ -422,29 +587,41 @@ const closeConfirmModal = () => {
 };
 
 /**
- * (★) 「編集」 ボタンが押された時
+ * 「編集」ボタンが押された時の処理
+ * @param {*} item 問題オブジェクト
+ * @param {String} type 'genre' か 'problem'
  */
 const openEditModal = (item, type) => {
-  editType.value = type; // (★) 'genre' か 'problem' かを「覚える」
+  // 'genre' か 'problem'をセットする
+  editType.value = type;
 
-  // (★) 「編集フォーム」 に「今のデータ」をぜんぶ「コピー」する
+  // 編集モーダルのフォームに選択したデータの値をコピーする
   editForm.id = item.id;
   if (type === "genre") {
+    // ---ジャンル編集の場合---
+    // ジャンル名
     editForm.name = item.name;
   } else {
+    // ---問題文編集の場合---
+    // ジャンルID
     editForm.genre_id = item.genre_id;
+
+    // 問題文
     editForm.problem_text = item.problem_text;
   }
 
-  isEditModalOpen.value = true; // (★) モーダル を「開く」！
+  // モーダルを開く
+  isEditModalOpen.value = true;
 };
 
 /**
- * (★) 「編集モーダル」 を「閉じる」時
+ * 編集モーダルを閉じる
  */
 const closeEditModal = () => {
+  // モーダルを閉じる
   isEditModalOpen.value = false;
-  // (★) フォームの中身を「お片付け」
+
+  // フォームの中身を空にする
   editForm.id = null;
   editForm.name = "";
   editForm.genre_id = "";
@@ -452,17 +629,39 @@ const closeEditModal = () => {
 };
 
 /**
- * (★) 「編集モーダル」 の「更新」 ボタンが押された時
+ * 編集モーダルの「更新」ボタンが押された時の処理
  */
 const handleUpdateItem = async () => {
   try {
     if (editType.value === "genre") {
-      // (★) 「ジャンル更新」 の「魔法」 を呼ぶ！
-      if (!editForm.name) return; // (カラっぽはダメ♡)
+      // ---ジャンル編集の場合---
+      // ジャンル名のバリデーション
+      if (!editForm.name || editForm.name.trim() === "") {
+        notificationStore.addNotification(
+          "ジャンル名を入力して下さい。",
+          "error"
+        );
+        return;
+      }
+
+      // ジャンル更新
       await adminStore.updateGenre(editForm.id, editForm.name);
     } else {
-      // (★) 「問題文更新」 の「魔法」 を呼ぶ！
-      if (!editForm.genre_id || !editForm.problem_text) return;
+      // ---問題文編集の場合---
+      // ジャンルと問題文のバリデーション
+      if (
+        !editForm.genre_id ||
+        !editForm.problem_text ||
+        editForm.problem_text.trim() === ""
+      ) {
+        notificationStore.addNotification(
+          "ジャンルを選択して、問題文を入力して下さい。",
+          "error"
+        );
+        return;
+      }
+
+      // 問題文更新
       await adminStore.updateProblem(
         editForm.id,
         editForm.genre_id,
@@ -470,25 +669,29 @@ const handleUpdateItem = async () => {
       );
     }
 
-    // (★) 成功したら、モーダル を「閉じる」！
+    // 成功通知
+    notificationStore.addNotification("更新しました。", "success");
+
+    // モーダルを閉じる
     closeEditModal();
   } catch (error) {
-    // (★) もし「重複エラー」 とかで失敗したら、
-    // store が「エラーを投げて」 くれるから、
-    // 「モーダル」 は「閉じない」！（賢い！）
-    console.error("更新に失敗…", error);
+    notificationStore.addNotification(
+      error.response?.data?.message || "更新に失敗しました。",
+      "error"
+    );
   }
 };
 
 /**
  * 「試し打ち」ボタンが押された時の処理
+ * @param {*} problem 問題オブジェクト
  */
 const openTryModal = (problem) => {
   // 「試し打ち」の問題をセット
   problemToTry.value = problem;
 
   // モーダルを開く
-  isModalOpen.value = true;
+  isTryModalOpen.value = true;
 
   // ESCキーで閉じられるようにイベントをセット
   window.addEventListener("keydown", handleEscClose);
@@ -499,7 +702,7 @@ const openTryModal = (problem) => {
  */
 const closeTryModal = () => {
   // モーダルを閉じる
-  isModalOpen.value = false;
+  isTryModalOpen.value = false;
 
   // 「試し打ち」してた問題をリセット
   problemToTry.value = null;
@@ -510,6 +713,7 @@ const closeTryModal = () => {
 
 /**
  * ESCキーが押された時の処理
+ * @param {KeyboardEvent} e キーボードイベントオブジェクト
  */
 const handleEscClose = (e) => {
   if (e.key === "Escape") {
@@ -768,6 +972,25 @@ const handleEscClose = (e) => {
     &:hover {
       background-color: #0056b3;
     }
+  }
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+
+  .admin-view__modal-content {
+    transform: translateY(-20px);
+  }
+}
+
+/* (★) 「入ってる『間』」と「出ていってる『間』」の「アニメーション」の「設定」 */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.2s ease;
+
+  .admin-view__modal-content {
+    transition: transform 0.2s ease;
   }
 }
 </style>
