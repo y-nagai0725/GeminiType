@@ -70,6 +70,7 @@ const props = defineProps({
 
 /**
  * 問題文(日本語文章)
+ * TODO 今は問題を1問だけにしています
  */
 const targetProblem = computed(() => props.problems[0] || null);
 
@@ -185,7 +186,6 @@ const parseHiragana = (hiragana) => {
     // もし「1文字」でも romaMap に存在しない文字があった場合
     if (!matched) {
       const errorChar = hiragana[cursor];
-      console.error(`辞書にない文字が！: ${errorChar}`);
       throw new Error(
         `問題文に、辞書にない文字「${errorChar}」が含まれています。`
       );
@@ -200,6 +200,7 @@ const parseHiragana = (hiragana) => {
 
 /**
  * キー判定処理
+ * @param {KeyboardEvent} e キーボードイベントオブジェクト
  */
 const handleKeydown = (e) => {
   // 制御キーは無視
@@ -254,7 +255,7 @@ const handleKeydown = (e) => {
 /**
  * 「前方一致」判定の時の処理
  * @param {string} partialPattern 前方一致した入力パターン
- * @param {string} newBuffer 今のバッファ
+ * @param {string} newBuffer 最新のバッファ
  */
 const handlePartialMatch = (partialPattern, newBuffer) => {
   // 見本のローマ字パターンと違う場合は、差し替える
@@ -303,6 +304,9 @@ const updateHighlightingLength = () => {
   typedRomajiLength.value = newLength;
 };
 
+/**
+ * マウント時処理
+ */
 onMounted(async () => {
   // keydownイベントに処理を設定
   window.addEventListener("keydown", handleKeydown);
@@ -329,11 +333,9 @@ onMounted(async () => {
     // 見本ローマ字を構成するパターンをセットする
     activePatterns.value = defaultActivePatterns;
   } catch (error) {
-    console.error("TypingCoreの準備中にエラー:", error);
-
-    //エラー通知を表示
+    //エラー通知
     notificationStore.addNotification(
-      error.message || "問題の読み込みに失敗しました…",
+      error.response?.data?.message || "問題の読み込みに失敗しました。",
       "error"
     );
 
@@ -342,6 +344,9 @@ onMounted(async () => {
   }
 });
 
+/**
+ * アンマウント時処理
+ */
 onUnmounted(() => {
   // keydownに設定した処理を削除しておく
   window.removeEventListener("keydown", handleKeydown);
