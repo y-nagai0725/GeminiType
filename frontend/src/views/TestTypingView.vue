@@ -1,42 +1,39 @@
 <template>
   <div class="test-view">
-    <h1 class="test-view__title">(★) TypingCore.vue 単体テスト「砂場」 (★)</h1>
-    <p class="test-view__description">
-      ここで「透明な入力ボックス」 がうまく動くか、
-      「`saxtu`」みたいな判定がうまくいくか、
-      心ゆくまでテストしてね、お兄ちゃん！♡
-    </p>
+    <h1 class="test-view__title">TypingCore (v11) 連続＆計測テスト</h1>
 
     <TypingCore
-      v-if="dummyProblem"
-      :problems="[dummyProblem]"
+      v-if="dummyProblems.length > 0"
+      :problems="dummyProblems"
       :showDebug="true"
+      @complete="handleComplete"
     />
-    <p v-else>
-      ダミーの問題文を準備中… (5秒後に `TypingCore` が「生まれる」よ！)
-    </p>
+
+    <p v-else>読み込み中...</p>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
-// (★) 「心臓部（部品）」をインポート！
 import TypingCore from "../components/TypingCore.vue";
 
-// (★) 試し打ち 用の「ダミーの問題文」を「1個」用意するよ！
-const dummyProblem = ref(null);
+const dummyProblems = ref([]);
 
-// (★) このページが「生まれた」時に動くよ
+// (★) 結果を受け取る「魔法」
+const handleComplete = (results) => {
+  console.log("🎉 全問終了！結果が届いたよ！", results);
+  //alert("全問終了！コンソールを見てね♡");
+};
+
 onMounted(() => {
-  // (★) わざと「5秒」待ってから、問題文をセットするよ！
-  // (これは、TypingCore.vue の onMounted が
-  //  ちゃんと「あとから」動くかテストするためのおまじない♡)
+  // (★) テスト用に「複数」の問題を用意！
   setTimeout(() => {
-    dummyProblem.value = {
-      // (★) お兄ちゃんがテストしたい「問題文」をここに書いてね！
-      problem_text: "test:;'\"",
-    };
-  }, 5000); // 5秒
+    dummyProblems.value = [
+      { problem_text: "テスト" },
+      { problem_text: "札幌市" },
+      { problem_text: "プログラミング" },
+    ];
+  }, 1000);
 });
 </script>
 
@@ -47,16 +44,11 @@ onMounted(() => {
   margin: 2rem auto;
   padding: 2rem;
   font-family: sans-serif;
-  border: 4px solid #f44336; /* (★) 「テスト中！」ってわかるように赤い枠！ */
+  border: 4px solid #28a745; /* v11だから緑枠にしとくね♡ */
 
   &__title {
-    color: #f44336;
-  }
-
-  &__description {
-    background-color: #fdf;
-    padding: 1rem;
-    border-radius: 4px;
+    color: #28a745;
+    margin-bottom: 1rem;
   }
 }
 </style>

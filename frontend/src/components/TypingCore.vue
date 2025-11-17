@@ -1,31 +1,51 @@
 <template>
   <div class="typing-core">
-    <div class="typing-core__problem">
-      <h2 v-if="targetProblem">{{ targetProblem.problem_text }}</h2>
+    <div v-if="isLoading" class="typing-core__loading">準備中...</div>
+
+    <div v-else-if="isCompleted" class="typing-core__completed">
+      <h2>Finish!</h2>
+      <p>お疲れ様でした！♡</p>
+      <p>少々お待ちください...</p>
     </div>
 
-    <div class="typing-core__hiragana">
-      <p v-if="targetHiragana">{{ targetHiragana }}</p>
-    </div>
+    <div v-else class="typing-core__playing">
+      <div class="typing-core__progress">
+        Problem: {{ currentProblemIndex + 1 }} / {{ problems.length }}
+      </div>
 
-    <div class="typing-core__romaji">
-      <span class="typing-core__romaji--typed">
-        {{ typedDisplayRomaji }}
-      </span>
-      <span class="typing-core__romaji--remaining">
-        {{ remainingDisplayRomaji }}
-      </span>
-    </div>
+      <div class="typing-core__problem">
+        <h2 v-if="targetProblem">{{ targetProblem.problem_text }}</h2>
+      </div>
 
-    <div class="typing-core__debug" v-if="props.showDebug && currentUnit">
-      <p>
-        ひらがなIndex: {{ unitIndex }} (「{{ currentUnit.hiragana }}」を判定中)
-      </p>
-      <p>入力バッファ: [ {{ inputBuffer }} ]</p>
-      <p>
-        （「{{ currentUnit.hiragana }}」のパターン:
-        {{ currentUnit.patterns.join(", ") }}）
-      </p>
+      <div class="typing-core__hiragana">
+        <p v-if="targetHiragana">{{ targetHiragana }}</p>
+      </div>
+
+      <div class="typing-core__romaji">
+        <span class="typing-core__romaji--typed">
+          {{ typedDisplayRomaji }}
+        </span>
+        <span class="typing-core__romaji--remaining">
+          {{ remainingDisplayRomaji }}
+        </span>
+      </div>
+
+      <div class="typing-core__stats">
+        WPM: {{ currentWpm }} | Accuracy: {{ currentAccuracy }}%
+      </div>
+
+      <div class="typing-core__debug" v-if="props.showDebug && currentUnit">
+        <p>
+          ひらがなIndex: {{ unitIndex }} (「{{
+            currentUnit.hiragana
+          }}」を判定中)
+        </p>
+        <p>入力バッファ: [ {{ inputBuffer }} ]</p>
+        <p>
+          （「{{ currentUnit.hiragana }}」のパターン:
+          {{ currentUnit.patterns.join(", ") }}）
+        </p>
+      </div>
     </div>
   </div>
 </template>
@@ -36,27 +56,19 @@ import { useRouter } from "vue-router";
 import api from "../services/api";
 import romaMapData from "@/data/romanTypingParseDictionary.json";
 import { useNotificationStore } from "../stores/notificationStore";
+import { useSettingsStore } from "../stores/settingsStore"; // (★) 設定ストアを追加
 
-/**
- * ローマ字マップ(検索用にMapオブジェクトにしておく)
- */
+// --- 設定＆辞書 ---
+const settingsStore = useSettingsStore();
 const romaMap = new Map(
   romaMapData.map((item) => [item.Pattern, item.TypePattern])
 );
 
-/**
- * router
- */
+// --- Router & Store ---
 const router = useRouter();
-
-/**
- * お知らせstore
- */
 const notificationStore = useNotificationStore();
 
-/**
- * props
- */
+// --- Props & Emits ---
 const props = defineProps({
   // 問題配列
   problems: { type: Array, required: true },
@@ -64,126 +76,99 @@ const props = defineProps({
   // デバッグ部分の表示・非表示
   showDebug: {
     type: Boolean,
-    default: false, // デフォルトは非表示
+    default: false,
   },
 });
+const emit = defineEmits(["complete"]); // (★) 全問終わったら親に知らせる！
 
-/**
- * 問題文(日本語文章)
- * TODO 今は問題を1問だけにしています
- */
-const targetProblem = computed(() => props.problems[0] || null);
+// --- 状態 (State) ---
+const isLoading = ref(true); // (★) 初期ロード中
+const isCompleted = ref(false); // (★) 全問完了フラグ
 
-/**
- * 問題文のひらがな
- */
-const targetHiragana = ref("");
+// 問題管理
+const hiraganaList = ref([]); // (★) 全問分のひらがなリスト
+const currentProblemIndex = ref(0); // (★) 今何問目？
+const targetProblem = computed(
+  () => props.problems[currentProblemIndex.value] || null
+);
+const targetHiragana = computed(
+  () => hiraganaList.value[currentProblemIndex.value] || ""
+); // (★) computedに変更
 
-/**
- * ひらがなを分割した配列
- */
+// エンジン用 (v10.3と同じ)
 const parsedProblem = ref([]);
-
-/**
- * 分割のユニットindex
- */
 const unitIndex = ref(0);
-
-/**
- * 入力中判定用バッファ
- */
 const inputBuffer = ref("");
-
-/**
- * 見本ローマ字を構成するための、入力パターンのローマ字配列
- */
 const activePatterns = ref([]);
-
-/**
- * タイプ済みの文字数 (色を変える長さ)
- */
 const typedRomajiLength = ref(0);
 
-/**
- * 現在の（判定中の）ユニット
- */
+// 計測用 (★New!)
+const problemStartTime = ref(0); // 1問ごとの開始時間
+const correctKeyCount = ref(0); // 正解キー数
+const missKeyCount = ref(0); // ミスタイプ数
+const sessionResults = ref([]); // 全問の結果をためる配列
+
+// --- Computed (エンジン用) ---
 const currentUnit = computed(
   () => parsedProblem.value[unitIndex.value] || null
 );
-
-/**
- * 現在の（判定中の）ユニットの正解入力パターン配列
- */
 const currentPatterns = computed(() =>
   currentUnit.value ? currentUnit.value.patterns : []
 );
-
-/**
- * 見本ローマ字(全体)
- */
 const displayRomaji = computed(() => activePatterns.value.join(""));
-
-/**
- * 見本ローマ字の入力済み部分（文字色が変わった部分）
- */
 const typedDisplayRomaji = computed(() => {
   return displayRomaji.value.substring(0, typedRomajiLength.value);
 });
-
-/**
- * 見本ローマ字の未入力部分
- */
 const remainingDisplayRomaji = computed(() => {
   return displayRomaji.value.substring(typedRomajiLength.value);
 });
 
+// --- Computed (リアルタイム表示用) ---
+const currentWpm = computed(() => {
+  if (!problemStartTime.value || correctKeyCount.value === 0) return 0;
+  const durationMin = (Date.now() - problemStartTime.value) / 1000 / 60;
+  return Math.round(correctKeyCount.value / durationMin);
+});
+const currentAccuracy = computed(() => {
+  const total = correctKeyCount.value + missKeyCount.value;
+  if (total === 0) return 100;
+  return Math.round((correctKeyCount.value / total) * 100);
+});
+
+// --- 効果音 ---
+const playSound = (type) => {
+  // 設定でOFFなら鳴らさない
+  if (type === "type" && !settingsStore.soundEnabled) return;
+  if (type === "miss" && !settingsStore.missSoundEnabled) return;
+
+  const audio = new Audio(`/sounds/${type}.mp3`); // public/sounds/type.mp3
+  audio.volume = 0.5;
+  audio.currentTime = 0;
+  audio.play().catch(() => {}); // ファイルがない等のエラーは無視
+};
+
+// --- エンジン処理 (v10.3ベース) ---
+
 /**
- * 問題文のひらがなを分割する
- * @param {String} hiragana 問題文のひらがな
+ * 問題文のひらがなを分割する (v10.3)
  */
 const parseHiragana = (hiragana) => {
-  // 分割ユニット{hiragana, patterns}の配列
   const units = [];
-
-  // 見本ローマ字表示用のパターン配列
   const defaultPatterns = [];
-
-  // ひらがなの位置
   let cursor = 0;
-
-  // ひらがなの最後の文字まで処理を行う
   while (cursor < hiragana.length) {
-    // romaMapに存在しているかどうか
     let matched = false;
-
-    // 3文字、2文字、1文字といった順番で検索していく
     for (let len = 3; len >= 1; len--) {
-      // 検索対象のひらがな
       const chunk = hiragana.substring(cursor, cursor + len);
-
-      // romaMapに存在する場合
       if (romaMap.has(chunk)) {
-        // 正解入力パターンを取得
         const patterns = romaMap.get(chunk);
-
-        // ユニット配列に追加
         units.push({ hiragana: chunk, patterns: patterns });
-
-        // 見本ローマ字配列に追加（入力パターンの1個目を追加する）
         defaultPatterns.push(patterns[0]);
-
-        // 文字位置を進める
         cursor += len;
-
-        // 検索結果をtrueに
         matched = true;
-
-        // for文を抜ける
         break;
       }
     }
-
-    // もし「1文字」でも romaMap に存在しない文字があった場合
     if (!matched) {
       const errorChar = hiragana[cursor];
       throw new Error(
@@ -191,7 +176,6 @@ const parseHiragana = (hiragana) => {
       );
     }
   }
-
   return {
     parsedUnits: units,
     defaultActivePatterns: defaultPatterns,
@@ -199,147 +183,167 @@ const parseHiragana = (hiragana) => {
 };
 
 /**
- * キー判定処理
- * @param {KeyboardEvent} e キーボードイベントオブジェクト
+ * キー判定処理 (v10.3 + 計測＆音)
  */
 const handleKeydown = (e) => {
-  // 制御キーは無視
-  if (e.ctrlKey || e.altKey || e.metaKey) return;
+  if (isLoading.value || isCompleted.value) return; // (★) プレイ中以外は無視
 
-  // タイピング判定はしない、「ブラウザの動作（戻る）」は止める
+  if (e.ctrlKey || e.altKey || e.metaKey) return;
   if (e.key === "Backspace" || e.key === "Shift") {
     e.preventDefault();
     return;
   }
-
-  // 「1文字」のキーだけ判定を行う
   if (e.key.length !== 1) return;
 
-  // キーのデフォルトの機能を止める
   e.preventDefault();
 
-  // 全てのユニットの判定が終了している場合は何もしない
+  // (★) 開始時間が未設定なら今セット（最初の1打）
+  if (problemStartTime.value === 0) {
+    problemStartTime.value = Date.now();
+  }
+
   if (!currentUnit.value) return;
 
-  // 入力バッファ
-  const newBuffer = inputBuffer.value + e.key;
+  const newBuffer = inputBuffer.value + e.key; // (★) 大文字対応済みなのでそのまま！
 
-  // 入力パターンと「完全一致」かどうか
+  // 1. 完全一致
   const perfectMatch = currentPatterns.value.find(
     (pattern) => pattern === newBuffer
   );
-
-  // 「完全一致」の場合
   if (perfectMatch) {
-    // 次のユニットへ進む
+    playSound("type"); // (★) 正解音
+    correctKeyCount.value++; // (★) カウント
     advanceUnit(perfectMatch);
     return;
   }
 
-  // 入力パターンと「前方一致」かどうか
+  // 2. 前方一致
   const partialMatch = currentPatterns.value.find((pattern) =>
     pattern.startsWith(newBuffer)
   );
-
-  // 「前方一致」の場合
   if (partialMatch) {
-    // 「前方一致」による見本ローマ字の更新、入力済み部分の更新
+    playSound("type"); // (★) 正解音
+    correctKeyCount.value++; // (★) カウント
     handlePartialMatch(partialMatch, newBuffer);
     return;
   }
 
-  // TODO ミスタイプ時の処理
+  // ミスタイプ
+  playSound("miss"); // (★) ミス音
+  missKeyCount.value++; // (★) ミスカウント
   console.log("ミスタイプ！");
 };
 
 /**
- * 「前方一致」判定の時の処理
- * @param {string} partialPattern 前方一致した入力パターン
- * @param {string} newBuffer 最新のバッファ
+ * 「前方一致」判定の時の処理 (v10.3)
  */
 const handlePartialMatch = (partialPattern, newBuffer) => {
-  // 見本のローマ字パターンと違う場合は、差し替える
   if (activePatterns.value[unitIndex.value] !== partialPattern) {
     activePatterns.value[unitIndex.value] = partialPattern;
   }
-
-  // バッファを更新
   inputBuffer.value = newBuffer;
-
-  // 入力済み部分の文字色を更新
   updateHighlightingLength();
 };
 
 /**
- * 判定をクリアして、次のユニットに進む
- * @param {string} matchedPattern パターンとマッチしたローマ字文字列
+ * 判定をクリアして、次のユニットに進む (v10.3 + 全問終了判定)
  */
 const advanceUnit = (matchedPattern) => {
-  // 見本ローマ字配列を確定させる
   activePatterns.value[unitIndex.value] = matchedPattern;
-
-  // バッファを空にして次のユニットへ
   inputBuffer.value = "";
   unitIndex.value++;
-
-  // 入力済み部分の文字色を更新
   updateHighlightingLength();
+
+  // (★) もし全ユニット終わったら？ -> 次の問題へ！
+  if (unitIndex.value >= parsedProblem.value.length) {
+    finishCurrentProblem();
+  }
 };
 
 /**
- * 文字色を変える長さを再計算
+ * 文字色を変える長さを再計算 (v10.3)
  */
 const updateHighlightingLength = () => {
   let newLength = 0;
-
-  // 入力済み（判定済み）ユニットの長さを足す
   for (let i = 0; i < unitIndex.value; i++) {
     newLength += activePatterns.value[i].length;
   }
-
-  // 入力途中のバッファの長さを足す
   newLength += inputBuffer.value.length;
-
-  // タイプ済みの文字数(色を変える長さ)を更新
   typedRomajiLength.value = newLength;
+};
+
+// --- 問題切り替え処理 (★New!) ---
+
+// 1問終了時の処理
+const finishCurrentProblem = () => {
+  // 結果を記録
+  const result = {
+    problem_text: targetProblem.value.problem_text,
+    wpm: currentWpm.value,
+    accuracy: currentAccuracy.value,
+    missed_keys: {}, // (★) キーごとのミス集計は今回は省略（TODO）
+  };
+  sessionResults.value.push(result);
+
+  // 次の問題へ
+  if (currentProblemIndex.value < props.problems.length - 1) {
+    // 少し待ってから次へ（余韻）
+    setTimeout(() => {
+      currentProblemIndex.value++;
+      setupCurrentProblem(); // 次の問題をセットアップ
+    }, 200);
+  } else {
+    // 全問終了！
+    isCompleted.value = true;
+    emit("complete", sessionResults.value); // 親に結果を渡す
+  }
+};
+
+// 現在の問題のセットアップ（初期化）
+const setupCurrentProblem = () => {
+  // 各種カウンタのリセット
+  unitIndex.value = 0;
+  inputBuffer.value = "";
+  typedRomajiLength.value = 0;
+  problemStartTime.value = 0; // タイマーは最初のキーを押したときに開始
+  correctKeyCount.value = 0;
+  missKeyCount.value = 0;
+
+  // v10.3エンジンの起動
+  const hiragana = hiraganaList.value[currentProblemIndex.value];
+  const { parsedUnits, defaultActivePatterns } = parseHiragana(hiragana);
+  parsedProblem.value = parsedUnits;
+  activePatterns.value = defaultActivePatterns;
 };
 
 /**
  * マウント時処理
  */
 onMounted(async () => {
-  // keydownイベントに処理を設定
   window.addEventListener("keydown", handleKeydown);
 
   // 問題文が存在しない場合は何もしない
-  if (!targetProblem.value) return;
+  if (!props.problems || props.problems.length === 0) return;
 
   try {
-    // 問題文からひらがなを取得
+    // (★) 全問分の「ひらがな」を一括取得！
+    const texts = props.problems.map((p) => p.problem_text);
     const response = await api.post("/api/get-hiragana", {
-      texts: [targetProblem.value.problem_text],
+      texts: texts,
     });
-    const hiragana = response.data.hiraganas[0];
 
-    // ひらがなをセットする
-    targetHiragana.value = hiragana;
+    hiraganaList.value = response.data.hiraganas; // 全問分のひらがな保持
 
-    // ひらがなを分割
-    const { parsedUnits, defaultActivePatterns } = parseHiragana(hiragana);
+    // 1問目をセットアップ
+    setupCurrentProblem();
 
-    // ひらがな分割配列
-    parsedProblem.value = parsedUnits;
-
-    // 見本ローマ字を構成するパターンをセットする
-    activePatterns.value = defaultActivePatterns;
+    isLoading.value = false; // 準備完了！
   } catch (error) {
-    //エラー通知
     notificationStore.addNotification(
       error.response?.data?.message || "問題の読み込みに失敗しました。",
       "error"
     );
-
-    // TODO 仮に「/（ホーム）」に戻す！）
+    // TODO 仮に「/（ホーム）」に戻す！
     router.push("/");
   }
 });
@@ -348,34 +352,49 @@ onMounted(async () => {
  * アンマウント時処理
  */
 onUnmounted(() => {
-  // keydownに設定した処理を削除しておく
   window.removeEventListener("keydown", handleKeydown);
 });
 </script>
 
 <style lang="scss" scoped>
+/* 基本スタイルは同じ */
 .typing-core {
-  border: 2px dashed #ccc;
-  padding: 1.5rem;
-  font-family: "Courier New", Courier, monospace;
+  /* ... */
+  border: 2px solid #eee;
+  padding: 2rem;
+  text-align: center;
 
-  &__problem {
-    h2 {
-      font-size: 2rem;
-      font-weight: bold;
-      margin: 0;
-      color: #333;
-    }
+  &__loading,
+  &__completed {
+    font-size: 1.5rem;
+    color: #555;
+    padding: 2rem;
   }
 
-  &__hiragana {
-    p {
-      font-size: 1.25rem;
-      color: #555;
-      margin: 0.5rem 0;
-    }
+  &__progress {
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 1rem;
   }
 
+  &__stats {
+    margin-top: 2rem;
+    font-weight: bold;
+    color: #007bff;
+  }
+
+  /* ... 既存のスタイル ... */
+  &__problem h2 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+    color: #333;
+  }
+  &__hiragana p {
+    font-size: 1.2rem;
+    color: #666;
+    margin: 0.5rem 0;
+  }
   &__romaji {
     font-size: 1.75rem;
     letter-spacing: 2px;

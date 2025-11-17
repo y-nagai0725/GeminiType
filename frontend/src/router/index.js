@@ -2,7 +2,10 @@ import { createRouter, createWebHistory } from 'vue-router';
 import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
 import AdminView from '../views/AdminView.vue';
-import HomeView from '../views/HomeView.vue';
+import MainMenuView from '../views/MainMenuView.vue';
+import TypingSetupView from '../views/TypingSetupView.vue';
+import TypingGameView from '../views/TypingGameView.vue';
+import TypingResultView from '../views/TypingResultView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -10,7 +13,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView
+      component: MainMenuView
     },
     {
       path: '/login',
@@ -26,6 +29,21 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: AdminView
+    },
+    {
+      path: '/typing/setup',
+      name: 'typing-setup',
+      component: TypingSetupView
+    },
+    {
+      path: '/typing/play',
+      name: 'typing-play',
+      component: TypingGameView
+    },
+    {
+      path: '/typing/result',
+      name: 'typing-result',
+      component: TypingResultView
     },
     {
       path: '/test-typing',
