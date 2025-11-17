@@ -620,9 +620,9 @@ const getRubyFromYahoo = async (japaneseText) => {
 };
 
 /**
- * Yahoo! ルビ振り API (POST /api/get-hiragana)
+ * [public] Yahoo! ルビ振り API (POST /api/get-hiragana)
  */
-app.post('/api/get-hiragana', authenticateToken, async (req, res) => {
+app.post('/api/get-hiragana', async (req, res) => {
   try {
     // 日本語の「配列」を受け取る
     const { texts } = req.body;
