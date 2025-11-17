@@ -650,6 +650,24 @@ app.post('/api/get-hiragana', authenticateToken, async (req, res) => {
 });
 
 /**
+ * [public] ジャンルを全て取得 (GET /api/genres)
+ */
+app.get('/api/genres', async (req, res) => {
+  try {
+    const genres = await prisma.genre.findMany({
+      orderBy: { id: 'asc' },
+    });
+    res.json(genres);
+  } catch (error) {
+    console.error('API Error (GET /api/genres):', error);
+    res.status(500).json({
+      message: SERVER_ERROR_MESSAGE_500,
+      error: error.message // TODO 本番環境では消す
+    });
+  }
+});
+
+/**
  * [public] タイピング用・DB問題取得 (GET /api/typing/db)
  */
 app.get('/api/typing/db', async (req, res) => {
