@@ -26,34 +26,44 @@
 </template>
 
 <script setup>
-// --- 1. 「外」から受け取る「お仕事リスト」 ---
+/**
+ * props定義
+ */
 const props = defineProps({
   show: {
-    // (★) 見えるか・隠れるか
+    // 表示・非表示
     type: Boolean,
     required: true,
   },
   title: {
-    // (★) 「何を」しますか？ (例: "ジャンル の削除")
+    // モーダルのタイトル
     type: String,
     required: true,
   },
   message: {
-    // (★) 「本当に」いいですか？ (例: "本当に「JS」を消す？")
+    // モーダルのメッセージ
     type: String,
     required: true,
   },
 });
 
-// --- 2. 「外」に「叫ぶ（emit）」お仕事リスト ---
+/**
+ * emit定義
+ */
 const emit = defineEmits(["confirm", "cancel"]);
 
-// --- 3. 「魔法」たち ---
+/**
+ * confirm
+ */
 const handleConfirm = () => {
-  emit("confirm"); // (★) 「OK」が押されたよ！って叫ぶ！
+  emit("confirm");
 };
+
+/**
+ * キャンセル
+ */
 const handleCancel = () => {
-  emit("cancel"); // (★) 「キャンセル」が押されたよ！って叫ぶ！
+  emit("cancel");
 };
 </script>
 
