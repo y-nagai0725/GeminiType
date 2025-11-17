@@ -4,6 +4,7 @@ const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
 
 const prisma = new PrismaClient();
@@ -641,6 +642,194 @@ app.post('/api/get-hiragana', authenticateToken, async (req, res) => {
   } catch (error) {
     // 500エラー
     console.error('API Error (POST /api/get-hiragana):', error);
+    res.status(500).json({
+      message: SERVER_ERROR_MESSAGE_500,
+      error: error.message // TODO 本番環境では消す
+    });
+  }
+});
+
+/**
+ * [public] タイピング用・DB問題取得 (GET /api/typing/db)
+ */
+app.get('/api/typing/db', async (req, res) => {
+  try {
+    // クエリを受け取る (count: 問題数, genreId: ジャンル絞り込み)
+    const { count, genreId } = req.query;
+
+    // バリデーション (count)
+    let limit = parseInt(count, 10);
+    if (isNaN(limit) || limit < 1) {
+      limit = 10; // 指定がなければデフォルト「10問」
+    }
+    // 最大「100問」制限
+    if (limit > 100) limit = 100;
+
+    // 検索条件 (where)
+    const where = {};
+
+    // genreId が指定されていれば条件に追加
+    if (genreId) {
+      const gId = parseInt(genreId, 10);
+      if (!isNaN(gId)) {
+        where.genre_id = gId;
+      }
+    }
+
+    // 「ID」だけを全部取得
+    const allIds = await prisma.problem.findMany({
+      where: where,
+      select: { id: true } // IDのみ
+    });
+
+    // 問題が1個もない場合
+    if (allIds.length === 0) {
+      return res.json([]); // 空の配列を返す
+    }
+
+    // シャッフル
+    const shuffled = allIds.sort(() => 0.5 - Math.random());
+
+    // 指定数だけ取り出す (IDの配列を作る)
+    const selectedIds = shuffled.slice(0, limit).map(item => item.id);
+
+    // 選ばれたIDの「詳細データ」を取得
+    const problems = await prisma.problem.findMany({
+      where: {
+        id: { in: selectedIds } // このIDリストに該当するもの
+      },
+      include: { genre: true } // ジャンル名も含める
+    });
+
+    // 問題データを返す
+    res.json(problems);
+
+  } catch (error) {
+    console.error('API Error (GET /api/typing/db):', error);
+    res.status(500).json({
+      message: SERVER_ERROR_MESSAGE_500,
+      error: error.message // TODO 本番環境では消す
+    });
+  }
+});
+
+/**
+ * [public] Geminiによる問題生成 (GET /api/typing/gemini)
+ */
+app.get('/api/typing/gemini', async (req, res) => {
+  try {
+    const { count, prompt } = req.query;
+
+    // バリデーション
+    if (!prompt || prompt.trim() === '') {
+      return res.status(400).json({ message: 'どんな問題を作ってほしいか（お題）を入力して下さい。' });
+    }
+
+    // 問題数
+    let limit = parseInt(count, 10);
+    if (isNaN(limit) || limit < 1) limit = 5; // デフォルト5問
+    if (limit > 10) limit = 10; // 最大10問
+
+    // Gemini
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+    // .env からモデル名を取得
+    const modelName = process.env.GEMINI_MODEL_NAME || "gemini-2.5-flash-preview-05-20";
+
+    // model
+    const model = genAI.getGenerativeModel({ model: modelName });
+
+    // プロンプト作成
+    const promptText = `
+      あなたはタイピング練習ゲームの問題作成係です。
+      ユーザーの指定したテーマ「${prompt}」に基づいて、
+      短めの日本語の文章または単語（テーマによってはアルファベットの文章や単語のみ）を ${limit} 個作成してください。
+
+      【条件】
+      - 難しい漢字や記号はなるべく避けて、読みやすい文章にすること。
+      - 句読点（、や。）はたまに含めること。
+      - 1文は20文字以内が目安。
+      - 箇条書きの記号（・や1.など）は付けないこと。
+      - 結果は、各文章を「改行」で区切って出力すること。
+      - 余計な挨拶や説明は一切不要。問題文だけを出力すること。
+    `;
+
+    // Geminiによる問題生成
+    const result = await model.generateContent(promptText);
+    const responseText = result.response.text();
+
+    // 結果を加工する (改行で分割、空白を除去、空行を消す)
+    const sentences = responseText
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line !== '');
+
+    // オブジェクトの配列に変換
+    const problems = sentences.map(text => ({
+      problem_text: text
+    }));
+
+    // 作成した問題オブジェクト配列を返す
+    res.json(problems);
+  } catch (error) {
+    console.error('API Error (GET /api/typing/gemini):', error);
+    res.status(500).json({
+      message: SERVER_ERROR_MESSAGE_500,
+      error: error.message // TODO 本番環境では消す
+    });
+  }
+});
+
+/**
+ * タイピング結果の保存 (POST /api/typing/result)
+ */
+app.post('/api/typing/result', authenticateToken, async (req, res) => {
+  try {
+    const {
+      session_type,   // 'db' or 'gemini'
+      genre_id,       // DBモードの場合
+      gemini_prompt,  // Geminiモードの場合
+      average_wpm,
+      average_accuracy,
+      most_missed_key, // まだロジックないけど、一旦受け取る枠だけ！
+      total_types,
+      problem_results // 各問題の詳細結果（配列）
+    } = req.body;
+
+    // バリデーション (最低限)
+    if (!session_type || !problem_results || !Array.isArray(problem_results)) {
+      return res.status(400).json({ message: '不正なリクエストデータです。' });
+    }
+
+    // DBに保存 (トランザクション)
+    // 親(typing_sessions)と子(session_problems)を一度に登録
+    const newSession = await prisma.typingSession.create({
+      data: {
+        user_id: req.user.userId, // トークンから取得したID
+        session_type,
+        genre_id: genre_id ? parseInt(genre_id, 10) : null,
+        gemini_prompt,
+        average_wpm: parseFloat(average_wpm),
+        average_accuracy: parseFloat(average_accuracy),
+        most_missed_key: most_missed_key || '', // nullなら空文字
+        total_types: parseInt(total_types, 10),
+
+        // 子テーブル (session_problems) も登録
+        session_problems: {
+          create: problem_results.map(p => ({
+            problem_text: p.problem_text,
+            wpm: parseFloat(p.wpm),
+            accuracy: parseFloat(p.accuracy),
+            missed_keys: JSON.stringify(p.missed_keys || {}) // JSON文字列として保存
+          }))
+        }
+      }
+    });
+
+    // 結果保存成功時、201を返す
+    res.status(201).json({ message: '結果を保存しました！', sessionId: newSession.id });
+  } catch (error) {
+    console.error('API Error (POST /api/typing/result):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
       error: error.message // TODO 本番環境では消す
