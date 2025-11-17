@@ -786,47 +786,113 @@ app.get('/api/typing/gemini', async (req, res) => {
 app.post('/api/typing/result', authenticateToken, async (req, res) => {
   try {
     const {
-      session_type,   // 'db' or 'gemini'
-      genre_id,       // DBモードの場合
-      gemini_prompt,  // Geminiモードの場合
+      session_type,
+      genre_id,
+      gemini_prompt,
       average_wpm,
       average_accuracy,
-      most_missed_key, // まだロジックないけど、一旦受け取る枠だけ！
+      most_missed_key,
       total_types,
-      problem_results // 各問題の詳細結果（配列）
+      problem_results
     } = req.body;
 
-    // バリデーション (最低限)
-    if (!session_type || !problem_results || !Array.isArray(problem_results)) {
-      return res.status(400).json({ message: '不正なリクエストデータです。' });
+    //---親データ(typing_sessionsテーブル)のバリデーション---
+
+    // session_typeは、'db' or 'gemini'かどうか
+    if (session_type !== 'db' && session_type !== 'gemini') {
+      return res.status(400).json({ message: 'session_type は "db" か "gemini" を指定して下さい。' });
     }
 
-    // DBに保存 (トランザクション)
-    // 親(typing_sessions)と子(session_problems)を一度に登録
+    // genre_idは、session_typeが'db'の時は、数字かどうか
+    if (session_type === 'db') {
+      if (typeof genre_id !== 'number' || isNaN(genre_id)) {
+        return res.status(400).json({ message: 'DBモードの時は、genre_id(数字)が必要です。' });
+      }
+    }
+
+    // gemini_promptは、session_typeが'gemini'の時は、空ではない事
+    if (session_type === 'gemini') {
+      if (!gemini_prompt || typeof gemini_prompt !== 'string' || gemini_prompt.trim() === '') {
+        return res.status(400).json({ message: 'Geminiモードの時は、gemini_prompt(文字)が必要です。' });
+      }
+    }
+
+    // average_wpmは、数字かどうか
+    if (typeof average_wpm !== 'number' || isNaN(average_wpm)) {
+      return res.status(400).json({ message: 'average_wpm は数字にして下さい。' });
+    }
+
+    // average_accuracyは、数字かどうか
+    if (typeof average_accuracy !== 'number' || isNaN(average_accuracy)) {
+      return res.status(400).json({ message: 'average_accuracy は数字にして下さい。' });
+    }
+
+    // total_typesは、数字（整数）かどうか
+    if (!Number.isInteger(total_types)) {
+      return res.status(400).json({ message: 'total_types は整数にして下さい。' });
+    }
+
+    // most_missed_keyは、文字列であるかどうか (空文字はOKとする)
+    if (most_missed_key !== null && most_missed_key !== undefined) {
+      if (typeof most_missed_key !== 'string') {
+        return res.status(400).json({ message: 'most_missed_key は文字列にして下さい。' });
+      }
+    }
+
+    // ---子データ(session_problemsテーブル)のバリデーション---
+
+    // problem_resultsは、配列である、且つ、長さが0ではないこと
+    if (!Array.isArray(problem_results) || problem_results.length === 0) {
+      return res.status(400).json({ message: 'problem_results は配列である必要があります。' });
+    }
+
+    // 結果配列の中身のチェック
+    for (const p of problem_results) {
+      // problem_textは、空ではない事
+      if (!p.problem_text || typeof p.problem_text !== 'string') {
+        return res.status(400).json({ message: '個別の結果には problem_text が必要です。' });
+      }
+
+      // wpmは、数字かどうか
+      if (typeof p.wpm !== 'number' || isNaN(p.wpm)) {
+        return res.status(400).json({ message: '個別の結果の wpm は数字にして下さい。' });
+      }
+
+      // accuracyは、数字かどうか
+      if (typeof p.accuracy !== 'number' || isNaN(p.accuracy)) {
+        return res.status(400).json({ message: '個別の結果の accuracy は数字にして下さい。' });
+      }
+
+      // missed_keysは、JSONオブジェクトかどうか
+      if (typeof p.missed_keys !== 'object' || p.missed_keys === null || Array.isArray(p.missed_keys)) {
+        return res.status(400).json({ message: 'missed_keys はオブジェクト形式 例: {"k": 1} にして下さい。' });
+      }
+    }
+
+    // 登録
     const newSession = await prisma.typingSession.create({
       data: {
-        user_id: req.user.userId, // トークンから取得したID
+        user_id: req.user.userId,
         session_type,
         genre_id: genre_id ? parseInt(genre_id, 10) : null,
         gemini_prompt,
         average_wpm: parseFloat(average_wpm),
         average_accuracy: parseFloat(average_accuracy),
-        most_missed_key: most_missed_key || '', // nullなら空文字
+        most_missed_key: most_missed_key || '',
         total_types: parseInt(total_types, 10),
 
-        // 子テーブル (session_problems) も登録
         session_problems: {
           create: problem_results.map(p => ({
             problem_text: p.problem_text,
             wpm: parseFloat(p.wpm),
             accuracy: parseFloat(p.accuracy),
-            missed_keys: JSON.stringify(p.missed_keys || {}) // JSON文字列として保存
+            missed_keys: JSON.stringify(p.missed_keys || {}) // ここで文字列化
           }))
         }
       }
     });
 
-    // 結果保存成功時、201を返す
+    // 登録成功時、201を返す
     res.status(201).json({ message: '結果を保存しました！', sessionId: newSession.id });
   } catch (error) {
     console.error('API Error (POST /api/typing/result):', error);
