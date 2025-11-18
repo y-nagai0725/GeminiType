@@ -108,6 +108,8 @@ const correctKeyCount = ref(0); // 正解キー数
 const missKeyCount = ref(0); // ミスタイプ数
 const sessionResults = ref([]); // 全問の結果をためる配列
 
+const currentMissedKeys = ref({});
+
 // --- Computed (エンジン用) ---
 const currentUnit = computed(
   () => parsedProblem.value[unitIndex.value] || null
@@ -232,6 +234,22 @@ const handleKeydown = (e) => {
   playSound("miss"); // (★) ミス音
   missKeyCount.value++; // (★) ミスカウント
   console.log("ミスタイプ！");
+
+  const currentActivePattern = activePatterns.value[unitIndex.value]
+
+  // 今のバッファの長さの場所にある文字が「打つべきキー」！
+  // (例: inputBufferが "s" (1文字) なら、次は pattern[1] の文字)
+  if (currentActivePattern && currentActivePattern.length > inputBuffer.value.length) {
+    const expectedKey = currentActivePattern[inputBuffer.value.length];
+
+    // 集計箱にカウントアップ！
+    if (!currentMissedKeys.value[expectedKey]) {
+      currentMissedKeys.value[expectedKey] = 0;
+    }
+    currentMissedKeys.value[expectedKey]++;
+
+    console.log(`惜しい！次は「${expectedKey}」だよ！`); // デバッグ用
+  }
 };
 
 /**
@@ -281,7 +299,7 @@ const finishCurrentProblem = () => {
     problem_text: targetProblem.value.problem_text,
     wpm: currentWpm.value,
     accuracy: currentAccuracy.value,
-    missed_keys: {}, // (★) キーごとのミス集計は今回は省略（TODO）
+    missed_keys: { ...currentMissedKeys.value },
   };
   sessionResults.value.push(result);
 
@@ -308,6 +326,7 @@ const setupCurrentProblem = () => {
   problemStartTime.value = 0; // タイマーは最初のキーを押したときに開始
   correctKeyCount.value = 0;
   missKeyCount.value = 0;
+  currentMissedKeys.value = {};
 
   // v10.3エンジンの起動
   const hiragana = hiraganaList.value[currentProblemIndex.value];

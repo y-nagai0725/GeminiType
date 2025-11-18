@@ -113,9 +113,37 @@ const handleComplete = async (results) => {
   const avgWpm = results.reduce((sum, r) => sum + r.wpm, 0) / totalProblems;
   const avgAccuracy =
     results.reduce((sum, r) => sum + r.accuracy, 0) / totalProblems;
+
+  // (★) (★) (★)
+  // お兄ちゃんがやりたかった「ミスキー集計」 ロジック！
+  // (★) (★) (★)
+
+  // 1. 全問題のミスを「1つの箱」にまとめる
+  const totalMissedKeys = {};
+  results.forEach(result => {
+    const keys = result.missed_keys || {};
+    for (const [key, count] of Object.entries(keys)) {
+      totalMissedKeys[key] = (totalMissedKeys[key] || 0) + count;
+    }
+  })
+
+  // 2. 「一番多いやつ」を探す！
+  let mostMissedKey = '';
+  let maxMissCount = 0;
+
+  for (const [key, count] of Object.entries(totalMissedKeys)) {
+    if (count > maxMissCount) {
+      maxMissCount = count;
+      mostMissedKey = key;
+    }
+  }
+
+  // (デバッグ用：コンソールで確認してみてね♡)
+  console.log('集計結果:', { totalMissedKeys, mostMissedKey })
+
   // total_types は概算（WPMから逆算もできるけど、今回は簡易的に文字数合計とかでもOK。一旦0にしておくね！）
   // ※本当は TypingCore から総タイプ数も送ってもらうと正確だよ！
-  const totalTypes = 0;
+  const totalTypes = 0 // (今回は0のままでOK)
 
   // (★) ログインしているなら、結果をDBに保存！
   if (authStore.isLoggedIn) {
@@ -126,7 +154,7 @@ const handleComplete = async (results) => {
         gemini_prompt: prompt.value || null,
         average_wpm: avgWpm,
         average_accuracy: avgAccuracy,
-        most_missed_key: "", // TODO: ミスキー集計ロジック
+        most_missed_key: mostMissedKey,
         total_types: totalTypes,
         problem_results: results,
       });
