@@ -7,7 +7,11 @@
         <h2>🤖 AI生成モード</h2>
         <p>好きなテーマを入力して、AIに問題を作ってもらおう！</p>
 
-        <form @submit.prevent="handleStartAiMode" class="main-menu__form" novalidate>
+        <form
+          @submit.prevent="handleStartAiMode"
+          class="main-menu__form"
+          novalidate
+        >
           <input
             type="text"
             v-model.trim="aiPrompt"
@@ -50,16 +54,33 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, RouterLink } from "vue-router";
 import api from "../services/api";
 import { useNotificationStore } from "../stores/notificationStore";
 
+/**
+ * router
+ */
 const router = useRouter();
+
+/**
+ * お知らせstore
+ */
 const notificationStore = useNotificationStore();
 
-// データ
+/**
+ * ジャンル一覧
+ */
 const genres = ref([]);
+
+/**
+ * ローディング中かどうか
+ */
 const isLoading = ref(false);
+
+/**
+ * AI生成モードのお題
+ */
 const aiPrompt = ref("");
 
 /**
@@ -68,12 +89,13 @@ const aiPrompt = ref("");
 onMounted(async () => {
   isLoading.value = true;
   try {
-    // (★) さっき作った「公開API」を呼ぶ！
+    // ジャンルを取得
     const response = await api.get("/api/genres");
     genres.value = response.data;
   } catch (error) {
+    // エラー通知
     notificationStore.addNotification(
-      "ジャンルの読み込みに失敗しました…",
+      error.response?.data?.message || "ジャンルの読み込みに失敗しました。",
       "error"
     );
   } finally {
@@ -85,31 +107,43 @@ onMounted(async () => {
  * AIモードで次へ（設定画面へ）
  */
 const handleStartAiMode = () => {
-  if (!aiPrompt.value) {
-    notificationStore.addNotification("お題を入力してね！", "error");
+  // バリデーション: 空チェック
+  if (aiPrompt.value === "") {
+    notificationStore.addNotification("お題を入力して下さい。", "error");
     return;
   }
 
-  // (★) 次の「設定画面(画面11)」 に情報を渡しながら遷移したい！
-  // 一旦、クエリパラメータで渡す形にするね！
+  // 設定画面へ遷移
   router.push({
-    path: "/typing/setup", // (★) 次作る画面！
+    path: "/typing/setup",
     query: { mode: "gemini", prompt: aiPrompt.value },
   });
 };
 
 /**
  * DBモードで次へ（設定画面へ）
+ * @param {Number} genreId 選択されたジャンルID
  */
 const handleStartDbMode = (genreId) => {
+  // バリデーション: IDが空または数字ではない場合は止める
+  if (!genreId || typeof genreId !== "number") {
+    notificationStore.addNotification(
+      "ジャンルが正しく選択されていません。",
+      "error"
+    );
+    return;
+  }
+
+  // 設定画面へ遷移
   router.push({
-    path: "/typing/setup", // (★) 次作る画面！
-    query: { mode: "db", genreId: genreId },
+    path: "/typing/setup",
+    query: { mode: "db", genreId },
   });
 };
 </script>
 
 <style lang="scss" scoped>
+/* スタイルは変更なし！ */
 .main-menu {
   max-width: 800px;
   margin: 0 auto;
@@ -122,7 +156,6 @@ const handleStartDbMode = (genreId) => {
     gap: 2rem;
     margin-top: 2rem;
 
-    /* PC版なら横並びにする？ */
     @media (min-width: 768px) {
       flex-direction: row;
       align-items: flex-start;
