@@ -15,7 +15,7 @@
           <label class="setup-view__label">問題数</label>
           <div class="setup-view__radios">
             <label
-              v-for="count in [5, 10, 20, 30]"
+              v-for="count in problemCounts"
               :key="count"
               class="setup-view__radio"
             >
@@ -54,39 +54,102 @@
     </div>
   </div>
 </template>
-
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { useRoute, useRouter, RouterLink } from "vue-router";
 import { useSettingsStore } from "../stores/settingsStore";
+import { useNotificationStore } from "../stores/notificationStore";
 
+/**
+ * route
+ */
 const route = useRoute();
+
+/**
+ * router
+ */
 const router = useRouter();
+
+/**
+ * 設定store
+ */
 const settingsStore = useSettingsStore();
 
-// URLクエリからパラメータを受け取る
+/**
+ * お知らせstore
+ */
+const notificationStore = useNotificationStore();
+
+/**
+ * 選択可能な問題数リスト
+ */
+const problemCounts = [5, 10, 20, 30];
+
+/**
+ * URLクエリから取得: モード ('db' or 'gemini')
+ */
 const mode = computed(() => route.query.mode);
+
+/**
+ * URLクエリから取得: AIお題
+ */
 const prompt = computed(() => route.query.prompt);
+
+/**
+ * URLクエリから取得: ジャンルID
+ */
 const genreId = computed(() => route.query.genreId);
 
+/**
+ * 画面表示時のチェック処理
+ */
+onMounted(() => {
+  // モードがない、または不正な場合
+  if (!mode.value || (mode.value !== "db" && mode.value !== "gemini")) {
+    notificationStore.addNotification(
+      "不正なアクセスです。メインメニューから操作してください。",
+      "error"
+    );
+    router.push("/");
+    return;
+  }
+
+  // DBモードなのにジャンルIDがない場合
+  if (mode.value === "db" && !genreId.value) {
+    notificationStore.addNotification(
+      "ジャンルが選択されていません。",
+      "error"
+    );
+    router.push("/");
+    return;
+  }
+
+  // Geminiモードなのにお題がない場合
+  if (mode.value === "gemini" && !prompt.value) {
+    notificationStore.addNotification("お題が入力されていません。", "error");
+    router.push("/");
+    return;
+  }
+});
+
+/**
+ * タイピング開始処理
+ */
 const handleStart = () => {
-  // 1. 設定をlocalStorageに保存
+  // 設定をlocalStorageに保存
   settingsStore.saveSettings();
 
-  // 2. タイピング実行画面へ遷移！ (Task 14)
-  // 必要な情報を全部クエリに乗せて運ぶよ！
+  // タイピング実行画面へ遷移
   router.push({
-    path: "/typing/play", // (★) 次作る画面！
+    path: "/typing/play",
     query: {
       mode: mode.value,
       prompt: prompt.value,
       genreId: genreId.value,
-      // 設定もStoreにあるけど、念のため渡す？いや、StoreがあるからStoreを見ればOKだね！
     },
   });
 };
 </script>
-
 <style lang="scss" scoped>
 .setup-view {
   max-width: 600px;
