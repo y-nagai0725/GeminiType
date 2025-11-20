@@ -21,36 +21,79 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute, useRouter, RouterLink } from "vue-router";
 import api from "../services/api";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import TypingCore from "../components/TypingCore.vue";
 
+/**
+ * route
+ */
 const route = useRoute();
+
+/**
+ * router
+ */
 const router = useRouter();
+
+/**
+ * 設定store
+ */
 const settingsStore = useSettingsStore();
+
+/**
+ * 認証store
+ */
 const authStore = useAuthStore();
+
+/**
+ * お知らせstore
+ */
 const notificationStore = useNotificationStore();
 
-// --- 状態 ---
+/**
+ * ローディング中かどうか
+ */
 const isLoading = ref(true);
+
+/**
+ * ローディングメッセージ
+ */
 const loadingMessage = ref("");
+
+/**
+ * エラーメッセージ
+ */
 const errorMessage = ref("");
+
+/**
+ * 問題リスト
+ */
 const problems = ref([]);
 
-// --- URLクエリから設定を取得 ---
-const mode = computed(() => route.query.mode); // 'db' or 'gemini'
+/**
+ * モード ('db' or 'gemini')
+ */
+const mode = computed(() => route.query.mode);
+
+/**
+ * ジャンルID (DBモード用)
+ */
 const genreId = computed(() => route.query.genreId);
+
+/**
+ * お題 (Geminiモード用)
+ */
 const prompt = computed(() => route.query.prompt);
 
 /**
- * 画面が表示されたら問題をロード！
+ * 画面が表示されたら問題をロードする
  */
 onMounted(async () => {
-  // バリデーション: モード指定がなければ戻す
-  if (!mode.value) {
+  // 不正なアクセスなら戻す
+  if (!validateQuery()) {
     router.push("/");
     return;
   }
@@ -59,41 +102,75 @@ onMounted(async () => {
 });
 
 /**
- * APIから問題を取得する魔法
+ * クエリパラメータのバリデーション
+ * @returns {boolean} 正しいアクセスなら true
+ */
+const validateQuery = () => {
+  // モードがない、または不正な場合
+  if (!mode.value || (mode.value !== "db" && mode.value !== "gemini")) {
+    notificationStore.addNotification(
+      "不正なアクセスです。メニューから操作してください。",
+      "error"
+    );
+    return false;
+  }
+
+  // DBモードなのにジャンルIDがない場合
+  if (mode.value === "db" && !genreId.value) {
+    notificationStore.addNotification(
+      "ジャンルが選択されていません。",
+      "error"
+    );
+    return false;
+  }
+
+  // Geminiモードなのにお題がない場合
+  if (mode.value === "gemini" && !prompt.value) {
+    notificationStore.addNotification("お題が入力されていません。", "error");
+    return false;
+  }
+
+  return true;
+};
+
+/**
+ * APIから問題を取得する
  */
 const loadProblems = async () => {
   isLoading.value = true;
   errorMessage.value = "";
 
   try {
-    // 1. DBモードの場合
+    // DBモードの場合
     if (mode.value === "db") {
       loadingMessage.value = "データベースから問題を抽出中...";
-      const response = await api.get("/api/typing/db", {
-        params: {
-          count: settingsStore.problemCount, // 設定した問題数
-          genreId: genreId.value,
-        },
-      });
+
+      // クエリパラメータの作成
+      const params = new URLSearchParams();
+      params.append("count", settingsStore.problemCount);
+      if (genreId.value) params.append("genreId", genreId.value);
+
+      const response = await api.get(`/api/typing/db?${params.toString()}`);
       problems.value = response.data;
     }
-    // 2. Geminiモードの場合
+    // Geminiモードの場合
     else if (mode.value === "gemini") {
-      loadingMessage.value = "AIが問題を生成中... (ちょっと待ってね♡)";
-      const response = await api.get("/api/typing/gemini", {
-        params: {
-          count: settingsStore.problemCount, // 設定した問題数
-          prompt: prompt.value,
-        },
-      });
+      loadingMessage.value = "AIが問題を生成中... (少々お待ちください。)";
+
+      const params = new URLSearchParams();
+      params.append("count", settingsStore.problemCount);
+      if (prompt.value) params.append("prompt", prompt.value);
+
+      const response = await api.get(`/api/typing/gemini?${params.toString()}`);
       problems.value = response.data;
     }
 
     // 問題が取れなかった場合
     if (problems.value.length === 0) {
-      throw new Error("問題が見つかりませんでした。条件を変えて試してみてね！");
+      throw new Error("問題が見つかりませんでした。条件を変えて試して下さい。");
     }
   } catch (error) {
+    // エラー通知
     console.error("問題取得エラー:", error);
     errorMessage.value =
       error.response?.data?.message ||
@@ -106,31 +183,29 @@ const loadProblems = async () => {
 
 /**
  * タイピング終了時（TypingCoreから呼ばれる）
+ * @param {Array} results 各問題の結果配列
  */
 const handleComplete = async (results) => {
-  // (★) 集計処理（WPMなどの平均を計算）
+  // 集計処理
   const totalProblems = results.length;
-  const avgWpm = results.reduce((sum, r) => sum + r.wpm, 0) / totalProblems;
-  const avgAccuracy =
-    results.reduce((sum, r) => sum + r.accuracy, 0) / totalProblems;
+  const avgWpm = Math.round(
+    results.reduce((sum, r) => sum + r.wpm, 0) / totalProblems
+  );
+  const avgAccuracy = Math.round(
+    results.reduce((sum, r) => sum + r.accuracy, 0) / totalProblems
+  );
 
-  // (★) (★) (★)
-  // お兄ちゃんがやりたかった「ミスキー集計」 ロジック！
-  // (★) (★) (★)
-
-  // 1. 全問題のミスを「1つの箱」にまとめる
+  // ミスキー集計
   const totalMissedKeys = {};
-  results.forEach(result => {
+  results.forEach((result) => {
     const keys = result.missed_keys || {};
     for (const [key, count] of Object.entries(keys)) {
       totalMissedKeys[key] = (totalMissedKeys[key] || 0) + count;
     }
-  })
+  });
 
-  // 2. 「一番多いやつ」を探す！
-  let mostMissedKey = '';
+  let mostMissedKey = "";
   let maxMissCount = 0;
-
   for (const [key, count] of Object.entries(totalMissedKeys)) {
     if (count > maxMissCount) {
       maxMissCount = count;
@@ -138,19 +213,14 @@ const handleComplete = async (results) => {
     }
   }
 
-  // (デバッグ用：コンソールで確認してみてね♡)
-  console.log('集計結果:', { totalMissedKeys, mostMissedKey })
+  const totalTypes = 0; // TODO: 総タイプ数は後で対応！
 
-  // total_types は概算（WPMから逆算もできるけど、今回は簡易的に文字数合計とかでもOK。一旦0にしておくね！）
-  // ※本当は TypingCore から総タイプ数も送ってもらうと正確だよ！
-  const totalTypes = 0 // (今回は0のままでOK)
-
-  // (★) ログインしているなら、結果をDBに保存！
+  // ログインしているなら、結果をDBに保存
   if (authStore.isLoggedIn) {
     try {
       await api.post("/api/typing/result", {
         session_type: mode.value,
-        genre_id: parseInt(genreId.value, 10) || null,
+        genre_id: genreId.value ? parseInt(genreId.value, 10) : null,
         gemini_prompt: prompt.value || null,
         average_wpm: avgWpm,
         average_accuracy: avgAccuracy,
@@ -160,11 +230,15 @@ const handleComplete = async (results) => {
       });
       notificationStore.addNotification("結果を保存しました！", "success");
     } catch (error) {
+      // 保存失敗は通知するけど、画面遷移は止めない
       console.error("保存エラー:", error);
-      notificationStore.addNotification(
-        "結果の保存に失敗しました（プレイデータは残ります）",
-        "error"
-      );
+      // (401の時は、インターセプター が「セッション切れ」通知をしてくれる為)
+      if (!error.response || error.response.status !== 401) {
+        notificationStore.addNotification(
+          "結果の保存に失敗しました（プレイデータは残ります）",
+          "error"
+        );
+      }
     }
   } else {
     // ゲストユーザーへの通知
@@ -174,20 +248,7 @@ const handleComplete = async (results) => {
     );
   }
 
-  // (★) 次の画面（結果画面）へ！ (Task 15)
-  // 一旦、結果データを localStorage に一時保存して渡すのが簡単かも！
-  // （URLクエリだとデータ量が多すぎるからね）
-  localStorage.setItem(
-    "last_session_result",
-    JSON.stringify({
-      stats: { wpm: avgWpm, accuracy: avgAccuracy },
-      results: results,
-    })
-  );
-
-  // (★) (★) (★)
-  // ここに追加！「もう一度やる！」ボタンのために、今回の設定を覚えておくよ！
-  // (★) (★) (★)
+  // 次回の「もう一度やる！」のために設定を保存
   localStorage.setItem(
     "last_session_config",
     JSON.stringify({
@@ -197,6 +258,16 @@ const handleComplete = async (results) => {
     })
   );
 
+  // 結果データを保存
+  localStorage.setItem(
+    "last_session_result",
+    JSON.stringify({
+      stats: { wpm: avgWpm, accuracy: avgAccuracy },
+      results: results,
+    })
+  );
+
+  // 結果画面へ遷移
   router.push("/typing/result");
 };
 </script>
