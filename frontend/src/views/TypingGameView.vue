@@ -213,7 +213,12 @@ const handleComplete = async (results) => {
     }
   }
 
-  const totalTypes = 0; // TODO: 総タイプ数は後で対応！
+  // TypingCore が送ってくれた「正解数 + ミス数」を全部足し算
+  const totalTypes = results.reduce((sum, r) => {
+    // correct_key_count と miss_key_count を使う
+    const count = (r.correct_key_count || 0) + (r.miss_key_count || 0);
+    return sum + count;
+  }, 0);
 
   // ログインしているなら、結果をDBに保存
   if (authStore.isLoggedIn) {
