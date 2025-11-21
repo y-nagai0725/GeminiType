@@ -8,6 +8,12 @@
       <p>集計中...</p>
     </div>
 
+    <div v-else-if="!isStarted" class="typing-core__ready" @click="startGame">
+      <h2>Ready?</h2>
+      <p>スペースキーを押してスタート！</p>
+      <p class="typing-core__sub-text">（または画面をクリック）</p>
+    </div>
+
     <div v-else class="typing-core__playing">
       <div class="typing-core__progress">
         Problem: {{ currentProblemIndex + 1 }} / {{ problems.length }}
@@ -110,6 +116,11 @@ const isLoading = ref(true);
  * 全問完了フラグ
  */
 const isCompleted = ref(false);
+
+/**
+ * (★) スタートしたかどうか (待機画面用)
+ */
+const isStarted = ref(false);
 
 /**
  * 全問分のひらがなリスト
@@ -230,7 +241,7 @@ const remainingDisplayRomaji = computed(() =>
 const currentWpm = computed(() => {
   if (!problemStartTime.value || correctKeyCount.value === 0) return 0;
   const durationMin = (Date.now() - problemStartTime.value) / 1000 / 60;
-  return Math.round(correctKeyCount.value / durationMin);
+  return Math.round(correctKeyCount.value / 5 / durationMin);
 });
 
 /**
@@ -258,6 +269,14 @@ const playSound = (type) => {
   audio.play().catch(() => {
     // 音声ファイルがない、再生ポリシーでブロックされた等は無視
   });
+};
+
+/**
+ * (★) ゲームスタート処理
+ */
+const startGame = () => {
+  isStarted.value = true;
+  // 最初の問題のタイマー開始は、実際にキーを打った時（handleKeydown内）に行う
 };
 
 /**
@@ -304,6 +323,18 @@ const parseHiragana = (hiragana) => {
 const handleKeydown = (e) => {
   // ロード中や完了時は操作を受け付けない
   if (isLoading.value || isCompleted.value) return;
+
+  // (★) まだスタートしてない時
+  if (!isStarted.value) {
+    // スペースキーが押されたらスタート！
+    if (e.code === "Space") {
+      e.preventDefault(); // スクロール防止
+      startGame();
+    }
+    return; // 他のキーは無視、タイピング判定もしない
+  }
+
+  // --- ここから下はプレイ中の判定 ---
 
   // 制御キーは無視
   if (e.ctrlKey || e.altKey || e.metaKey) return;
@@ -421,7 +452,6 @@ const updateHighlightingLength = () => {
  * 1問終了時の処理
  */
 const finishCurrentProblem = () => {
-  // 総タイプ数計算用に正解数とミス数を記録！
   const result = {
     problem_text: targetProblem.value.problem_text,
     wpm: currentWpm.value,
@@ -506,15 +536,36 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .typing-core {
-  border: 2px solid #eee;
-  padding: 2rem;
+  border: 2px dashed #ccc;
+  padding: 1.5rem;
+  font-family: "Courier New", Courier, monospace;
   text-align: center;
 
+  /* ローディング・完了・待機画面の共通スタイル */
   &__loading,
-  &__completed {
+  &__completed,
+  &__ready {
     font-size: 1.5rem;
     color: #555;
-    padding: 2rem;
+    padding: 3rem 0;
+    cursor: default;
+  }
+
+  /* (★) 待機画面特有のスタイル */
+  &__ready {
+    cursor: pointer; /* クリックできる感 */
+
+    h2 {
+      font-size: 2.5rem;
+      color: #007bff;
+      margin-bottom: 1rem;
+    }
+
+    .typing-core__sub-text {
+      font-size: 1rem;
+      color: #888;
+      margin-top: 0.5rem;
+    }
   }
 
   &__progress {
@@ -543,7 +594,6 @@ onUnmounted(() => {
   }
 
   &__romaji {
-    font-family: "Courier New", Courier, monospace;
     font-size: 1.75rem;
     letter-spacing: 2px;
     background-color: #f9f9f9;
