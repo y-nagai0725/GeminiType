@@ -193,6 +193,7 @@ const handleStartDbMode = (genreId) => {
     margin-bottom: 1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
+    text-align: left;
   }
 
   &__button {
