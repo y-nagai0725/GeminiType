@@ -807,7 +807,7 @@ app.post('/api/typing/result', authenticateToken, async (req, res) => {
       session_type,
       genre_id,
       gemini_prompt,
-      average_wpm,
+      average_kpm,
       average_accuracy,
       most_missed_key,
       total_types,
@@ -835,9 +835,9 @@ app.post('/api/typing/result', authenticateToken, async (req, res) => {
       }
     }
 
-    // average_wpmは、数字かどうか
-    if (typeof average_wpm !== 'number' || isNaN(average_wpm)) {
-      return res.status(400).json({ message: 'average_wpm は数字にして下さい。' });
+    // average_kpmは、数字かどうか
+    if (typeof average_kpm !== 'number' || isNaN(average_kpm)) {
+      return res.status(400).json({ message: 'average_kpm は数字にして下さい。' });
     }
 
     // average_accuracyは、数字かどうか
@@ -871,9 +871,9 @@ app.post('/api/typing/result', authenticateToken, async (req, res) => {
         return res.status(400).json({ message: '個別の結果には problem_text が必要です。' });
       }
 
-      // wpmは、数字かどうか
-      if (typeof p.wpm !== 'number' || isNaN(p.wpm)) {
-        return res.status(400).json({ message: '個別の結果の wpm は数字にして下さい。' });
+      // kpmは、数字かどうか
+      if (typeof p.kpm !== 'number' || isNaN(p.kpm)) {
+        return res.status(400).json({ message: '個別の結果の kpm は数字にして下さい。' });
       }
 
       // accuracyは、数字かどうか
@@ -894,7 +894,7 @@ app.post('/api/typing/result', authenticateToken, async (req, res) => {
         session_type,
         genre_id: genre_id ? parseInt(genre_id, 10) : null,
         gemini_prompt,
-        average_wpm: parseFloat(average_wpm),
+        average_kpm: parseFloat(average_kpm),
         average_accuracy: parseFloat(average_accuracy),
         most_missed_key: most_missed_key || '',
         total_types: parseInt(total_types, 10),
@@ -902,7 +902,7 @@ app.post('/api/typing/result', authenticateToken, async (req, res) => {
         session_problems: {
           create: problem_results.map(p => ({
             problem_text: p.problem_text,
-            wpm: parseFloat(p.wpm),
+            kpm: parseFloat(p.kpm),
             accuracy: parseFloat(p.accuracy),
             missed_keys: JSON.stringify(p.missed_keys || {}) // ここで文字列化
           }))

@@ -54,7 +54,7 @@ model TypingSession {
   session_type      String    // "db" か "gemini" が入る
   genre_id          Int?
   gemini_prompt     String?
-  average_wpm       Float
+  average_kpm       Float
   average_accuracy  Float
   most_missed_key   String
   total_types       Int
@@ -72,7 +72,7 @@ model SessionProblem {
   id           Int      @id @default(autoincrement())
   session_id   Int
   problem_text String
-  wpm          Float
+  kpm          Float
   accuracy     Float
   missed_keys  String   // ここは「JSON文字列」で保存する
 

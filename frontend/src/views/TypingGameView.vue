@@ -188,8 +188,8 @@ const loadProblems = async () => {
 const handleComplete = async (results) => {
   // 集計処理
   const totalProblems = results.length;
-  const avgWpm = Math.round(
-    results.reduce((sum, r) => sum + r.wpm, 0) / totalProblems
+  const avgKpm = Math.round(
+    results.reduce((sum, r) => sum + r.kpm, 0) / totalProblems
   );
   const avgAccuracy = Math.round(
     results.reduce((sum, r) => sum + r.accuracy, 0) / totalProblems
@@ -227,7 +227,7 @@ const handleComplete = async (results) => {
         session_type: mode.value,
         genre_id: genreId.value ? parseInt(genreId.value, 10) : null,
         gemini_prompt: prompt.value || null,
-        average_wpm: avgWpm,
+        average_kpm: avgKpm,
         average_accuracy: avgAccuracy,
         most_missed_key: mostMissedKey,
         total_types: totalTypes,
@@ -267,7 +267,7 @@ const handleComplete = async (results) => {
   localStorage.setItem(
     "last_session_result",
     JSON.stringify({
-      stats: { wpm: avgWpm, accuracy: avgAccuracy },
+      stats: { kpm: avgKpm, accuracy: avgAccuracy },
       results: results,
     })
   );

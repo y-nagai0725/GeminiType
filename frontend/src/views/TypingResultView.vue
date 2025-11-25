@@ -5,8 +5,8 @@
     <div v-if="resultData" class="result-view__content">
       <div class="result-view__score-board">
         <div class="result-view__score-item">
-          <span class="label">WPM</span>
-          <span class="value">{{ Math.round(resultData.stats.wpm) }}</span>
+          <span class="label">KPM</span>
+          <span class="value">{{ Math.round(resultData.stats.kpm) }}</span>
         </div>
         <div class="result-view__score-item">
           <span class="label">Accuracy</span>
@@ -34,14 +34,14 @@
           <thead>
             <tr>
               <th>問題</th>
-              <th>WPM</th>
+              <th>KPM</th>
               <th>Acc.</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="(problem, index) in resultData.results" :key="index">
               <td class="text-left">{{ problem.problem_text }}</td>
-              <td>{{ Math.round(problem.wpm) }}</td>
+              <td>{{ Math.round(problem.kpm) }}</td>
               <td>{{ Math.round(problem.accuracy) }}%</td>
             </tr>
           </tbody>
@@ -63,16 +63,16 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 const resultData = ref(null);
 
-// (★) 簡易ランク判定ロジック
+// ランク判定ロジック
 const rank = computed(() => {
   if (!resultData.value) return "-";
-  const wpm = resultData.value.stats.wpm;
+  const kpm = resultData.value.stats.kpm;
   const acc = resultData.value.stats.accuracy;
 
   if (acc < 80) return "C"; // 正確率が低いとランクダウン
-  if (wpm >= 200) return "S";
-  if (wpm >= 150) return "A";
-  if (wpm >= 100) return "B";
+  if (kpm >= 300) return "S"; // TODO ランク基準は後で再検討
+  if (kpm >= 200) return "A";
+  if (kpm >= 100) return "B";
   return "C";
 });
 

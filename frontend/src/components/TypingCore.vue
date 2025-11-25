@@ -37,7 +37,7 @@
       </div>
 
       <div class="typing-core__stats">
-        WPM: {{ currentWpm }} | Accuracy: {{ currentAccuracy }}%
+        KPM: {{ currentKpm }} | Accuracy: {{ currentAccuracy }}%
       </div>
 
       <div class="typing-core__debug" v-if="props.showDebug && currentUnit">
@@ -236,12 +236,12 @@ const remainingDisplayRomaji = computed(() =>
 );
 
 /**
- * 現在のWPM (リアルタイム)
+ * 現在のKPM (リアルタイム)
  */
-const currentWpm = computed(() => {
+const currentKpm = computed(() => {
   if (!problemStartTime.value || correctKeyCount.value === 0) return 0;
   const durationMin = (Date.now() - problemStartTime.value) / 1000 / 60;
-  return Math.round(correctKeyCount.value / 5 / durationMin);
+  return Math.round(correctKeyCount.value / durationMin);
 });
 
 /**
@@ -454,7 +454,7 @@ const updateHighlightingLength = () => {
 const finishCurrentProblem = () => {
   const result = {
     problem_text: targetProblem.value.problem_text,
-    wpm: currentWpm.value,
+    kpm: currentKpm.value,
     accuracy: currentAccuracy.value,
     missed_keys: { ...currentMissedKeys.value },
     correct_key_count: correctKeyCount.value,
