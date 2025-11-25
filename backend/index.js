@@ -798,6 +798,60 @@ app.get('/api/typing/gemini', async (req, res) => {
   }
 });
 
+// backend/index.js
+
+/**
+ * [public] Geminiによる結果へのコメント生成 (POST /api/typing/ai-comment)
+ */
+app.post('/api/typing/ai-comment', async (req, res) => {
+  try {
+    const { kpm, accuracy, missedKeys } = req.body;
+
+    // Geminiの準備
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const modelName = process.env.GEMINI_MODEL_NAME || "gemini-2.5-flash";
+    const model = genAI.getGenerativeModel({ model: modelName });
+
+    // 苦手キーの情報を整理（Top 3くらいを教える）
+    // missedKeys は { "a": 2, "k": 1 } みたいなオブジェクト
+    const missedKeyText = Object.entries(missedKeys || {})
+      .sort((a, b) => b[1] - a[1]) // 回数多い順
+      .slice(0, 3) // Top 3
+      .map(([key, count]) => `${key}(${count}回)`)
+      .join(', ');
+
+    // プロンプト作成
+    const promptText = `
+      あなたはタイピング練習ゲームの「専属美少女コーチ」です。
+      プレイヤーの今回の成績に対して、短くて元気が出るコメント（アドバイスや称賛）をください。
+
+      【今回の成績】
+      - KPM (1分間の打鍵数): ${kpm}
+      - 正確率: ${accuracy}%
+      - よくミスしたキー: ${missedKeyText || 'なし（完璧！）'}
+
+      【条件】
+      - 100文字以内で簡潔に。
+      - 口調は「〜だね！」「〜だよ！」のように親しみやすく、敬語は使いすぎないこと。
+      - KPMが300以上なら手放しで褒める。
+      - 正確率が95%未満なら、正確さを意識するようアドバイスする。
+      - ミスしたキーがあれば、具体的な練習のアドバイスを含める。
+      - 絵文字を1〜2個使って可愛くすること。
+    `;
+
+    // Geminiでコメント生成
+    const result = await model.generateContent(promptText);
+    const comment = result.response.text();
+
+    res.json({ comment });
+
+  } catch (error) {
+    console.error('API Error (POST /api/typing/ai-comment):', error);
+    // エラーの時は、固定の励ましメッセージを返す（クライアントを止めないため）
+    res.json({ comment: 'お疲れ様！ すごい集中力だったね！次もがんばろう！🤖' });
+  }
+});
+
 /**
  * タイピング結果の保存 (POST /api/typing/result)
  */
