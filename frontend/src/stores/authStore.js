@@ -47,7 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
       await fetchUser();
 
       // メインメニューへ遷移
-      router.push('/');
+      router.push('/menu');
     } catch (error) {
       // 呼び出し元へエラーを投げる
       throw error;

@@ -10,7 +10,7 @@
     <div v-else-if="errorMessage" class="game-view__error">
       <p>エラーが発生しました</p>
       <p>{{ errorMessage }}</p>
-      <RouterLink to="/" class="game-view__button">メニューに戻る</RouterLink>
+      <RouterLink to="/menu" class="game-view__button">メニューに戻る</RouterLink>
     </div>
 
     <div v-else class="game-view__core">
@@ -94,7 +94,7 @@ const prompt = computed(() => route.query.prompt);
 onMounted(async () => {
   // 不正なアクセスなら戻す
   if (!validateQuery()) {
-    router.push("/");
+    router.push("/menu");
     return;
   }
 

@@ -49,7 +49,7 @@
       </form>
 
       <div class="setup-view__back">
-        <RouterLink to="/">メニューに戻る</RouterLink>
+        <RouterLink to="/menu">メニューに戻る</RouterLink>
       </div>
     </div>
   </div>
@@ -110,7 +110,7 @@ onMounted(() => {
       "不正なアクセスです。メインメニューから操作してください。",
       "error"
     );
-    router.push("/");
+    router.push("/menu");
     return;
   }
 
@@ -120,14 +120,14 @@ onMounted(() => {
       "ジャンルが選択されていません。",
       "error"
     );
-    router.push("/");
+    router.push("/menu");
     return;
   }
 
   // Geminiモードなのにお題がない場合
   if (mode.value === "gemini" && !prompt.value) {
     notificationStore.addNotification("お題が入力されていません。", "error");
-    router.push("/");
+    router.push("/menu");
     return;
   }
 });

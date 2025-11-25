@@ -522,7 +522,7 @@ onMounted(async () => {
       error.response?.data?.message || "問題の読み込みに失敗しました。",
       "error"
     );
-    router.push("/");
+    router.push("/menu");
   }
 });
 

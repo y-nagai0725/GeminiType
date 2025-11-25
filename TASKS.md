@@ -72,7 +72,7 @@
 16. **[Frontend] トップページ (画面1)**
     * LP（紹介ページ）を作成。「お試し」「登録」「ログイン」への導線を配置。
 17. **[Backend] マイページ用 API**
-    * `/mypage/stats` ( `typing_sessions` から **`総タイプ数(SUM)`** と **`総合平均WPM(AVG)`** を計算) API を作成。
+    * `/mypage/stats` ( `typing_sessions` から **`総タイプ数(SUM)`** と **`総合平均KPM(AVG)`** を計算) API を作成。
     * `/mypage/sessions` ( `typing_sessions` の一覧を取得) API を作成。
     * `/mypage/sessions/:id` ( `session_problems` の詳細を取得) API を作成。
 18. **[Frontend] マイページ (画面8)**

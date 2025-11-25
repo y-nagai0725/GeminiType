@@ -6,13 +6,19 @@ import MainMenuView from '../views/MainMenuView.vue';
 import TypingSetupView from '../views/TypingSetupView.vue';
 import TypingGameView from '../views/TypingGameView.vue';
 import TypingResultView from '../views/TypingResultView.vue';
+import TopView from '../views/TopView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      name: 'home',
+      name: 'top',
+      component: TopView
+    },
+    {
+      path: '/menu',
+      name: 'menu',
       component: MainMenuView
     },
     {

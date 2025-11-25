@@ -28,7 +28,7 @@
           もう一度やる！
         </button>
         <RouterLink
-          to="/"
+          to="/menu"
           class="result-view__button result-view__button--menu"
         >
           メニューに戻る
@@ -110,7 +110,7 @@ onMounted(() => {
     resultData.value = JSON.parse(savedResult);
   } else {
     // データがない場合はトップへ戻す
-    router.push("/");
+    router.push("/menu");
   }
 });
 
@@ -134,7 +134,7 @@ const handleRetry = () => {
     });
   } else {
     // 設定がなければメニューへ
-    router.push("/");
+    router.push("/menu");
   }
 };
 
