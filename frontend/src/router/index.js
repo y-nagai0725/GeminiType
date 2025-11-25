@@ -7,6 +7,8 @@ import TypingSetupView from '../views/TypingSetupView.vue';
 import TypingGameView from '../views/TypingGameView.vue';
 import TypingResultView from '../views/TypingResultView.vue';
 import TopView from '../views/TopView.vue';
+import MyPageView from '../views/MyPageView.vue';
+import SessionDetailView from '../views/SessionDetailView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -50,6 +52,16 @@ const router = createRouter({
       path: '/typing/result',
       name: 'typing-result',
       component: TypingResultView
+    },
+    {
+      path: '/mypage',
+      name: 'mypage',
+      component: MyPageView
+    },
+    {
+      path: '/mypage/session/:id',
+      name: 'session-detail',
+      component: SessionDetailView
     },
     {
       path: '/test-typing',

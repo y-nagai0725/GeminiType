@@ -20,6 +20,18 @@
         </div>
       </div>
 
+      <div class="result-view__ai-comment">
+        <div class="ai-icon">🤖</div>
+        <div class="ai-bubble">
+          <p v-if="isCommentLoading" class="ai-loading">
+            コーチがコメントを考えています...
+          </p>
+          <p v-else class="ai-text">
+            {{ aiComment }}
+          </p>
+        </div>
+      </div>
+
       <div class="result-view__actions">
         <button
           class="result-view__button result-view__button--retry"
@@ -70,6 +82,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
+import api from "../services/api"; // (★) APIを使うのでインポート！
 
 /**
  * router
@@ -82,18 +95,20 @@ const router = useRouter();
 const resultData = ref(null);
 
 /**
+ * AIコメントの状態
+ */
+const aiComment = ref("");
+const isCommentLoading = ref(false);
+
+/**
  * ランク判定ロジック
- * (S, A, B, C)
  */
 const rank = computed(() => {
   if (!resultData.value) return "-";
   const kpm = resultData.value.stats.kpm;
   const acc = resultData.value.stats.accuracy;
 
-  // 正確率が低いとランクダウン
   if (acc < 80) return "C";
-
-  // TODO KPM基準 (仮)
   if (kpm >= 300) return "S";
   if (kpm >= 200) return "A";
   if (kpm >= 100) return "B";
@@ -103,27 +118,61 @@ const rank = computed(() => {
 /**
  * マウント時処理
  */
-onMounted(() => {
+onMounted(async () => {
   // 1. localStorageから結果を読み込む
   const savedResult = localStorage.getItem("last_session_result");
   if (savedResult) {
     resultData.value = JSON.parse(savedResult);
+
+    // (★) データがあったら、AIコメントを取得しにいく！
+    await fetchAiComment();
   } else {
-    // データがない場合はトップへ戻す
-    router.push("/menu");
+    router.push("/");
   }
 });
+
+/**
+ * (★) AIコメントを取得する魔法
+ */
+const fetchAiComment = async () => {
+  if (!resultData.value) return;
+
+  isCommentLoading.value = true;
+  try {
+    // 1. 全問題のミスキーを集計して、APIに渡す形（オブジェクト）にする
+    // (TypingGameView.vue でやったのと同じロジックだね！)
+    const totalMissedKeys = {};
+    resultData.value.results.forEach((result) => {
+      const keys = result.missed_keys || {};
+      for (const [key, count] of Object.entries(keys)) {
+        totalMissedKeys[key] = (totalMissedKeys[key] || 0) + count;
+      }
+    });
+
+    // 2. APIを叩く！
+    const response = await api.post("/api/typing/ai-comment", {
+      kpm: Math.round(resultData.value.stats.kpm),
+      accuracy: Math.round(resultData.value.stats.accuracy),
+      missedKeys: totalMissedKeys,
+    });
+
+    aiComment.value = response.data.comment;
+  } catch (error) {
+    console.error("AIコメント取得エラー:", error);
+    aiComment.value =
+      "お疲れ様！ (AIコメントの取得に失敗しちゃったけど、応援してるよ！)";
+  } finally {
+    isCommentLoading.value = false;
+  }
+};
 
 /**
  * 「もう一度やる！」ボタン処理
  */
 const handleRetry = () => {
-  // 1. 保存しておいた設定を読み込む
   const savedConfig = localStorage.getItem("last_session_config");
-
   if (savedConfig) {
     const config = JSON.parse(savedConfig);
-    // 2. 設定を持ってゲーム画面へ遷移
     router.push({
       path: "/typing/play",
       query: {
@@ -133,23 +182,17 @@ const handleRetry = () => {
       },
     });
   } else {
-    // 設定がなければメニューへ
-    router.push("/menu");
+    router.push("/");
   }
 };
 
 /**
- * ミスキーオブジェクトを文字列に変換する魔法
- * 例: { a: 2, k: 1 } -> "a(2), k(1)"
- * @param {Object} missedKeys
- * @returns {String}
+ * ミスキー情報をフォーマット
  */
 const formatMissedKeys = (missedKeys) => {
   if (!missedKeys || Object.keys(missedKeys).length === 0) {
-    return "-"; // ミスなし！優秀！
+    return "-";
   }
-
-  // "キー(回数)" の形にして、カンマ区切りにするよ
   return Object.entries(missedKeys)
     .map(([key, count]) => `${key}(${count})`)
     .join(", ");
@@ -184,7 +227,6 @@ const formatMissedKeys = (missedKeys) => {
   &__score-item {
     display: flex;
     flex-direction: column;
-
     .label {
       font-size: 1rem;
       color: #666;
@@ -202,7 +244,6 @@ const formatMissedKeys = (missedKeys) => {
     justify-content: center;
     font-size: 1.5rem;
     font-weight: bold;
-
     .rank-S {
       color: #ffc107;
       font-size: 3rem;
@@ -219,6 +260,53 @@ const formatMissedKeys = (missedKeys) => {
     .rank-C {
       color: #6c757d;
       font-size: 3rem;
+    }
+  }
+
+  /* (★) AIコメントエリアのスタイル */
+  &__ai-comment {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+
+    .ai-icon {
+      font-size: 3rem;
+      background: #e6f2ff;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ai-bubble {
+      background: #e6f2ff;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      border-top-left-radius: 0; /* 吹き出しっぽく */
+      text-align: left;
+      color: #333;
+      position: relative;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      flex: 1;
+
+      .ai-loading {
+        color: #666;
+        font-style: italic;
+      }
+      .ai-text {
+        line-height: 1.5;
+        font-weight: bold;
+      }
     }
   }
 
@@ -290,14 +378,11 @@ const formatMissedKeys = (missedKeys) => {
     .text-left {
       text-align: left;
     }
-
-    /* (★) ミスキー列は赤文字で目立たせる？ */
     .text-miss {
       color: #dc3545;
       font-size: 0.9rem;
     }
 
-    /* 列幅の調整 */
     .col-problem {
       width: 50%;
     }

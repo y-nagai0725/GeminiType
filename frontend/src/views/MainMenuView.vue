@@ -47,7 +47,8 @@
 
     <div class="main-menu__links">
       <RouterLink to="/login">ログイン画面へ</RouterLink> |
-      <RouterLink to="/admin">管理画面へ</RouterLink>
+      <RouterLink to="/admin">管理画面へ</RouterLink> |
+      <RouterLink to="/mypage">マイページへ</RouterLink>
     </div>
   </div>
 </template>
