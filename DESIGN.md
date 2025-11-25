@@ -111,7 +111,7 @@
     * `session_type` (Enum: `db`, `gemini`)
     * `genre_id` (nullable)(ジャンルid)
     * `gemini_prompt` (nullable)(Geminiの生成のお題)
-    * `average_wpm` (平均WPM)
+    * `average_kpm` (平均KPM)
     * `average_accuracy` (平均正確率)
     * `most_missed_key` (一番ミスしたキー)
     * `total_types` (Integer, このセッションの総タイプ数)
@@ -120,7 +120,7 @@
     * `id` (主キー)
     * `session_id` (外部キー: `typing_sessions.id`)
     * `problem_text` (実際に打ったお題の日本語文)
-    * `wpm` (この1問のWPM)
+    * `kpm` (この1問のKPM)
     * `accuracy` (この1問の正確率)
     * `missed_keys` (この1問でミスしたキー（JSON形式）)
 
