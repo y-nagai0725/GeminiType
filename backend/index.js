@@ -922,6 +922,160 @@ app.post('/api/typing/result', authenticateToken, async (req, res) => {
 });
 
 /**
+ * マイページ統計情報取得 (GET /api/mypage/stats)
+ */
+app.get('/api/mypage/stats', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // 統計データ（総タイプ数、平均KPM、平均正確率）を集計
+    const aggregations = await prisma.typingSession.aggregate({
+      where: { user_id: userId },
+      _sum: {
+        total_types: true, // 総タイプ数の合計
+      },
+      _avg: {
+        average_kpm: true, // KPMの平均
+        average_accuracy: true, // 正確率の平均
+      },
+    });
+
+    // ユーザーの「全て」のセッションの「詳細データ(session_problems)」から
+    // 「missed_keys」だけを全部取得
+    const allProblems = await prisma.sessionProblem.findMany({
+      where: {
+        session: {
+          user_id: userId // 親(session)を経由してユーザーを特定
+        }
+      },
+      select: {
+        missed_keys: true // JSON文字列だけ取得
+      }
+    });
+
+    // ミスキーを集計する
+    const totalMissedKeys = {};
+    allProblems.forEach(problem => {
+      // DBには文字列で入ってるから、オブジェクトに戻す
+      const keys = problem.missed_keys ? JSON.parse(problem.missed_keys) : {};
+
+      for (const [key, count] of Object.entries(keys)) {
+        totalMissedKeys[key] = (totalMissedKeys[key] || 0) + count;
+      }
+    });
+
+    // ランキング作成 (回数が多い順に並べて、Top 5を抽出)
+    const missedKeysRanking = Object.entries(totalMissedKeys)
+      .map(([key, count]) => ({ key, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // レスポンス作成
+    res.json({
+      total_types: aggregations._sum.total_types || 0,
+      average_kpm: Math.round(aggregations._avg.average_kpm || 0), // 整数に丸める
+      average_accuracy: Math.round(aggregations._avg.average_accuracy || 0), // 整数に丸める
+      missed_keys_ranking: missedKeysRanking
+    });
+
+  } catch (error) {
+    console.error('API Error (GET /api/mypage/stats):', error);
+    res.status(500).json({
+      message: SERVER_ERROR_MESSAGE_500,
+      error: error.message // TODO 本番環境では消す
+    });
+  }
+});
+
+/**
+ * マイページ履歴一覧取得 (GET /api/mypage/sessions)
+ */
+app.get('/api/mypage/sessions', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { page = 1 } = req.query;
+
+    const pageSize = 10; // 1ページ10件
+
+    // ページ番号のバリデーション
+    let pageNum = parseInt(page, 10);
+    if (isNaN(pageNum) || pageNum < 1) pageNum = 1;
+    const skip = (pageNum - 1) * pageSize;
+
+    // 履歴を取得
+    const sessions = await prisma.typingSession.findMany({
+      where: { user_id: userId },
+      include: { genre: true }, // ジャンル名も含める
+      orderBy: { created_at: 'desc' }, // 新しい順
+      skip: skip,
+      take: pageSize,
+    });
+
+    // 総件数を取得 (ページネーション用)
+    const totalCount = await prisma.typingSession.count({
+      where: { user_id: userId },
+    });
+
+    const totalPages = Math.ceil(totalCount / pageSize);
+
+    res.json({
+      sessions,
+      totalPages,
+      currentPage: pageNum
+    });
+
+  } catch (error) {
+    console.error('API Error (GET /api/mypage/sessions):', error);
+    res.status(500).json({
+      message: SERVER_ERROR_MESSAGE_500,
+      error: error.message // TODO 本番環境では消す
+    });
+  }
+});
+
+/**
+ * マイページ履歴詳細取得 (GET /api/mypage/sessions/:id)
+ */
+app.get('/api/mypage/sessions/:id', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const sessionId = parseInt(req.params.id, 10);
+
+    if (isNaN(sessionId)) {
+      return res.status(400).json({ message: 'セッションIDが不正です。' });
+    }
+
+    // セッションを取得
+    const session = await prisma.typingSession.findUnique({
+      where: { id: sessionId },
+      include: {
+        genre: true,
+        session_problems: true // 子データ（内訳）も取得
+      }
+    });
+
+    // 存在チェック
+    if (!session) {
+      return res.status(404).json({ message: 'データが見つかりませんでした。' });
+    }
+
+    // 他人のデータを見れないように、持ち主を確認する
+    if (session.user_id !== userId) {
+      return res.status(403).json({ message: 'このデータを見る権限がありません。' });
+    }
+
+    res.json(session);
+
+  } catch (error) {
+    console.error('API Error (GET /api/mypage/sessions/:id):', error);
+    res.status(500).json({
+      message: SERVER_ERROR_MESSAGE_500,
+      error: error.message // TODO 本番環境では消す
+    });
+  }
+});
+
+/**
  * サーバー起動
  */
 app.listen(PORT, () => {
