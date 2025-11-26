@@ -52,13 +52,6 @@ import { RouterLink } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 
 const authStore = useAuthStore();
-
-// 画面に来たらユーザー情報を確認しておく（セッション有効確認のため）
-onMounted(async () => {
-  if (authStore.isLoggedIn && !authStore.user) {
-    await authStore.fetchUser();
-  }
-});
 </script>
 
 <style lang="scss" scoped>

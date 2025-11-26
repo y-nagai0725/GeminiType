@@ -9,6 +9,7 @@ import TypingResultView from '../views/TypingResultView.vue';
 import TopView from '../views/TopView.vue';
 import MyPageView from '../views/MyPageView.vue';
 import SessionDetailView from '../views/SessionDetailView.vue';
+import { useAuthStore } from '../stores/authStore';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -69,6 +70,33 @@ const router = createRouter({
       component: () => import('../views/TestTypingView.vue')
     }
   ]
+});
+
+/**
+ * グローバルガード
+ */
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore();
+
+  // ログイン状態の復元チェック
+  // (トークンがあるのにユーザー情報がない場合、サーバーから取得する)
+  if (authStore.isLoggedIn && !authStore.user) {
+    try {
+      await authStore.fetchUser();
+    } catch (error) {
+      // トークンが無効だった場合などは、ログアウト扱いにする
+      console.warn('セッションの復元に失敗しました:', error);
+      authStore.logout();
+    }
+  }
+
+  // TODO ログインが必要なページへのアクセス制御 (もし必要ならここに追加)
+  // if (to.meta.requiresAuth && !authStore.isLoggedIn) {
+  //   next('/login');
+  //   return;
+  // }
+
+  next(); // 次のページへ進む
 });
 
 export default router;
