@@ -30,6 +30,63 @@
         </div>
 
         <div class="setup-view__group">
+          <label class="setup-view__label">ゲームモード</label>
+          <div class="setup-view__radios">
+            <label class="setup-view__radio">
+              <input
+                type="radio"
+                value="normal"
+                v-model="settingsStore.gameMode"
+              />
+              通常
+            </label>
+            <label class="setup-view__radio">
+              <input
+                type="radio"
+                value="time_limit"
+                v-model="settingsStore.gameMode"
+              />
+              ⏱️ 時間制限
+            </label>
+            <label class="setup-view__radio">
+              <input
+                type="radio"
+                value="sudden_death"
+                v-model="settingsStore.gameMode"
+              />
+              💀 ミス制限
+            </label>
+          </div>
+
+          <div
+            v-if="settingsStore.gameMode === 'time_limit'"
+            class="setup-view__sub-settings"
+          >
+            <label>制限時間:</label>
+            <select v-model.number="settingsStore.timeLimit">
+              <option :value="30">30秒</option>
+              <option :value="60">60秒</option>
+              <option :value="90">90秒</option>
+              <option :value="120">120秒</option>
+            </select>
+          </div>
+
+          <div
+            v-if="settingsStore.gameMode === 'sudden_death'"
+            class="setup-view__sub-settings"
+          >
+            <label>許容ミス数:</label>
+            <select v-model.number="settingsStore.missLimit">
+              <option :value="0">0回 (即終了！)</option>
+              <option :value="1">1回</option>
+              <option :value="3">3回</option>
+              <option :value="5">5回</option>
+              <option :value="10">10回</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setup-view__group">
           <label class="setup-view__label">サウンド</label>
           <div class="setup-view__checkboxes">
             <label class="setup-view__checkbox">
@@ -230,6 +287,37 @@ const handleStart = () => {
       &:hover {
         text-decoration: underline;
       }
+    }
+  }
+
+  &__sub-settings {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #fff;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    animation: fadeIn 0.3s ease;
+
+    select {
+      padding: 0.3rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 }

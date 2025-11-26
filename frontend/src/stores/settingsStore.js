@@ -42,6 +42,24 @@ export const useSettingsStore = defineStore('settings', () => {
   const missSoundEnabled = ref(getSavedValue('settings_missSoundEnabled', false));
 
   /**
+   * ゲームモード
+   * 'normal': 通常
+   * 'time_limit': 制限時間
+   * 'sudden_death': ミス制限
+   */
+  const gameMode = ref(getSavedValue('settings_gameMode', 'normal'));
+
+  /**
+   * 制限時間 (秒) - デフォルト60秒
+   */
+  const timeLimit = ref(getSavedValue('settings_timeLimit', 60));
+
+  /**
+   * ミス許容回数 - デフォルト0回 (即終了)
+   */
+  const missLimit = ref(getSavedValue('settings_missLimit', 0));
+
+  /**
    * 設定を保存する
    */
   const saveSettings = () => {
@@ -49,6 +67,9 @@ export const useSettingsStore = defineStore('settings', () => {
       localStorage.setItem('settings_problemCount', JSON.stringify(problemCount.value));
       localStorage.setItem('settings_soundEnabled', JSON.stringify(soundEnabled.value));
       localStorage.setItem('settings_missSoundEnabled', JSON.stringify(missSoundEnabled.value));
+      localStorage.setItem('settings_gameMode', JSON.stringify(gameMode.value));
+      localStorage.setItem('settings_timeLimit', JSON.stringify(timeLimit.value));
+      localStorage.setItem('settings_missLimit', JSON.stringify(missLimit.value));
     } catch (error) {
       // 保存失敗も、ユーザー操作をブロックするほどではないのでログのみ。
       console.error('設定の保存に失敗しました:', error);
@@ -62,6 +83,9 @@ export const useSettingsStore = defineStore('settings', () => {
     problemCount.value = 10;
     soundEnabled.value = false;
     missSoundEnabled.value = false;
+    gameMode.value = 'normal';
+    timeLimit.value = 60;
+    missLimit.value = 0;
     saveSettings();
   };
 
@@ -69,6 +93,9 @@ export const useSettingsStore = defineStore('settings', () => {
     problemCount,
     soundEnabled,
     missSoundEnabled,
+    gameMode,
+    timeLimit,
+    missLimit,
     saveSettings,
     resetSettings
   };
