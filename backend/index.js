@@ -29,6 +29,44 @@ const PORT = process.env.PORT || 3002;
 const SERVER_ERROR_MESSAGE_500 = 'サーバーにてエラーが発生しています。時間を空けてもう一度試してください。';
 
 /**
+ * 漢数字・大字などをひらがなに一括置換する関数
+ * (Yahoo! APIが苦手な単独の漢数字などを補完)
+ */
+const replaceKanjiNumbers = (text) => {
+  // 置換したい漢字と読みの対応表
+  const kanjiMap = {
+    '〇': 'ぜろ',
+    '一': 'いち',
+    '二': 'に',
+    '三': 'さん',
+    '四': 'よん',
+    '五': 'ご',
+    '六': 'ろく',
+    '七': 'なな',
+    '八': 'はち',
+    '九': 'きゅう',
+    '十': 'じゅう',
+    '百': 'ひゃく',
+    '千': 'せん',
+    '万': 'まん',
+    '億': 'おく',
+    '兆': 'ちょう',
+
+    // 大字（だいじ）
+    '壱': 'いち',
+    '弐': 'に',
+    '参': 'さん',
+    '拾': 'じゅう',
+    '零': 'ぜろ',
+  };
+
+  // 正規表現で対象の文字を探して、対応表の読みに置き換える
+  return text.replace(/[〇一二三四五六七八九十百千万億兆壱弐参拾零]/g, (match) => {
+    return kanjiMap[match];
+  });
+};
+
+/**
  * JWT認証 (ミドルウェア)
  */
 const authenticateToken = (req, res, next) => {
@@ -606,11 +644,9 @@ const getRubyFromYahoo = async (japaneseText) => {
     // ひらがなの単語の配列を取得
     const hiraganaWords = response.data.result.word.map(word => word.furigana || word.surface);
 
-    // 配列を結合して文字列にする
-    const hiragana = hiraganaWords.join('');
-
-    // ひらがな文字列を返す
-    return hiragana;
+    // 結合した文字列に対して、漢数字の置換を行う
+    const rawHiragana = hiraganaWords.join('');
+    return replaceKanjiNumbers(rawHiragana);
   } catch (error) {
     // axios の通信エラーやYahoo! API のエラー
     console.error('Yahoo! API との通信に失敗しました。', error);
