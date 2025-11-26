@@ -91,6 +91,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import api from "../services/api";
+import { formatMissedKeys } from "../utils/formatters";
 
 const router = useRouter();
 const resultData = ref(null);
@@ -166,16 +167,6 @@ const handleRetry = () => {
   } else {
     router.push("/");
   }
-};
-
-// --- ミスキーフォーマット ---
-const formatMissedKeys = (missedKeys) => {
-  if (!missedKeys || Object.keys(missedKeys).length === 0) {
-    return "-";
-  }
-  return Object.entries(missedKeys)
-    .map(([key, count]) => `${key}(${count})`)
-    .join(", ");
 };
 </script>
 

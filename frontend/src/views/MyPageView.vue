@@ -78,7 +78,7 @@
                     📚 {{ session.genre ? session.genre.name : "削除済" }}
                   </span>
                   <span v-else>
-                    🤖 AI: {{ formatPrompt(session.gemini_prompt) }}
+                    🤖 AI: {{ truncateText(session.gemini_prompt, 10) }}
                   </span>
                 </td>
                 <td class="text-bold">{{ Math.round(session.average_kpm) }}</td>
@@ -124,6 +124,7 @@ import api from "../services/api";
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import GrowthChart from "../components/GrowthChart.vue";
+import { formatDate, truncateText } from "../utils/formatters";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -192,30 +193,6 @@ const fetchSessions = async (page) => {
  */
 const handlePageChange = (page) => {
   fetchSessions(page);
-};
-
-// --- ヘルパー関数 ---
-
-/**
- * 日付フォーマット (YYYY/MM/DD HH:mm)
- */
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleString("ja-JP", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
-/**
- * 長いお題を省略表示
- */
-const formatPrompt = (prompt) => {
-  if (!prompt) return "-";
-  return prompt.length > 10 ? prompt.substring(0, 10) + "..." : prompt;
 };
 </script>
 

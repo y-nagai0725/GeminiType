@@ -24,7 +24,7 @@
               📚 {{ session.genre ? session.genre.name : "削除済" }}
             </span>
             <span v-else>
-              🤖 AI: {{ formatPrompt(session.gemini_prompt) }}
+              🤖 AI: {{ truncateText(session.gemini_prompt, 20) }}
             </span>
           </span>
         </div>
@@ -103,6 +103,7 @@
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter, RouterLink } from "vue-router";
 import api from "../services/api";
+import { formatDate, truncateText, formatMissedKeys } from "../utils/formatters";
 
 /**
  * route
@@ -153,54 +154,6 @@ onMounted(async () => {
     isLoading.value = false;
   }
 });
-
-// --- ヘルパー関数 ---
-
-/**
- * 日付フォーマット (YYYY/MM/DD HH:mm)
- */
-const formatDate = (dateString) => {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
-  return date.toLocaleString("ja-JP", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
-/**
- * AIプロンプトの省略表示
- */
-const formatPrompt = (prompt) => {
-  if (!prompt) return "-";
-  return prompt.length > 20 ? prompt.substring(0, 20) + "..." : prompt;
-};
-
-/**
- * ミスキー情報のフォーマット (JSON文字列をパースして表示)
- * 例: "a(2), k(1)"
- */
-const formatMissedKeys = (missedKeysJson) => {
-  if (!missedKeysJson) return "-";
-
-  try {
-    // DBにはJSON文字列で入ってるからパースする
-    const missedKeys = JSON.parse(missedKeysJson);
-
-    if (Object.keys(missedKeys).length === 0) {
-      return "-";
-    }
-
-    return Object.entries(missedKeys)
-      .map(([key, count]) => `${key}(${count})`)
-      .join(", ");
-  } catch (e) {
-    return "Parse Error";
-  }
-};
 </script>
 
 <style lang="scss" scoped>
