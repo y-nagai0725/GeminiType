@@ -8274,5 +8274,61 @@
     "TypePattern": [
       "~"
     ]
+  },
+  {
+    "Pattern": "？",
+    "TypePattern": [
+      "?"
+    ]
+  },
+  {
+    "Pattern": "！",
+    "TypePattern": [
+      "!"
+    ]
+  },
+  {
+    "Pattern": "（",
+    "TypePattern": [
+      "("
+    ]
+  },
+  {
+    "Pattern": "）",
+    "TypePattern": [
+      ")"
+    ]
+  },
+  {
+    "Pattern": "「",
+    "TypePattern": [
+      "["
+    ]
+  },
+  {
+    "Pattern": "」",
+    "TypePattern": [
+      "]"
+    ]
+  },
+  {
+    "Pattern": "〜",
+    "TypePattern": [
+      "~",
+      "-"
+    ]
+  },
+  {
+    "Pattern": "…",
+    "TypePattern": [
+      ".",
+      "..."
+    ]
+  },
+  {
+    "Pattern": "　",
+    "TypePattern": [
+      " "
+    ]
   }
 ]
