@@ -49,26 +49,34 @@
 
       <div class="result-view__details">
         <h3>詳細結果</h3>
-        <table class="result-view__table">
-          <thead>
-            <tr>
-              <th class="col-problem">問題</th>
-              <th class="col-kpm">KPM</th>
-              <th class="col-acc">Acc.</th>
-              <th class="col-miss">Missed Keys</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(problem, index) in resultData.results" :key="index">
-              <td class="text-left">{{ problem.problem_text }}</td>
-              <td>{{ Math.round(problem.kpm) }}</td>
-              <td>{{ Math.round(problem.accuracy) }}%</td>
-              <td class="text-miss">
-                {{ formatMissedKeys(problem.missed_keys) }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="result-view__table-wrapper">
+          <table class="result-view__table">
+            <thead>
+              <tr>
+                <th class="col-problem">問題</th>
+                <th class="col-romaji">ローマ字</th>
+                <th class="col-kpm">KPM</th>
+                <th class="col-acc">Acc.</th>
+                <th class="col-miss-count">Miss</th>
+                <th class="col-miss-keys">Missed Keys</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(problem, index) in resultData.results" :key="index">
+                <td class="text-left">{{ problem.problem_text }}</td>
+                <td class="text-left text-romaji">
+                  {{ problem.romaji_text || "-" }}
+                </td>
+                <td class="text-bold">{{ Math.round(problem.kpm) }}</td>
+                <td class="text-bold">{{ Math.round(problem.accuracy) }}%</td>
+                <td class="text-miss">{{ problem.miss_count }}</td>
+                <td class="text-miss-keys">
+                  {{ formatMissedKeys(problem.missed_keys) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -82,27 +90,14 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
-import api from "../services/api"; // (★) APIを使うのでインポート！
+import api from "../services/api";
 
-/**
- * router
- */
 const router = useRouter();
-
-/**
- * 結果データ (localStorageから読み込む)
- */
 const resultData = ref(null);
-
-/**
- * AIコメントの状態
- */
 const aiComment = ref("");
 const isCommentLoading = ref(false);
 
-/**
- * ランク判定ロジック
- */
+// --- ランク判定 ---
 const rank = computed(() => {
   if (!resultData.value) return "-";
   const kpm = resultData.value.stats.kpm;
@@ -115,32 +110,22 @@ const rank = computed(() => {
   return "C";
 });
 
-/**
- * マウント時処理
- */
+// --- マウント時処理 ---
 onMounted(async () => {
-  // 1. localStorageから結果を読み込む
   const savedResult = localStorage.getItem("last_session_result");
   if (savedResult) {
     resultData.value = JSON.parse(savedResult);
-
-    // (★) データがあったら、AIコメントを取得しにいく！
     await fetchAiComment();
   } else {
     router.push("/");
   }
 });
 
-/**
- * (★) AIコメントを取得する魔法
- */
+// --- AIコメント取得 ---
 const fetchAiComment = async () => {
   if (!resultData.value) return;
-
   isCommentLoading.value = true;
   try {
-    // 1. 全問題のミスキーを集計して、APIに渡す形（オブジェクト）にする
-    // (TypingGameView.vue でやったのと同じロジックだね！)
     const totalMissedKeys = {};
     resultData.value.results.forEach((result) => {
       const keys = result.missed_keys || {};
@@ -149,7 +134,6 @@ const fetchAiComment = async () => {
       }
     });
 
-    // 2. APIを叩く！
     const response = await api.post("/api/typing/ai-comment", {
       kpm: Math.round(resultData.value.stats.kpm),
       accuracy: Math.round(resultData.value.stats.accuracy),
@@ -166,9 +150,7 @@ const fetchAiComment = async () => {
   }
 };
 
-/**
- * 「もう一度やる！」ボタン処理
- */
+// --- リトライ処理 ---
 const handleRetry = () => {
   const savedConfig = localStorage.getItem("last_session_config");
   if (savedConfig) {
@@ -186,9 +168,7 @@ const handleRetry = () => {
   }
 };
 
-/**
- * ミスキー情報をフォーマット
- */
+// --- ミスキーフォーマット ---
 const formatMissedKeys = (missedKeys) => {
   if (!missedKeys || Object.keys(missedKeys).length === 0) {
     return "-";
@@ -201,7 +181,7 @@ const formatMissedKeys = (missedKeys) => {
 
 <style lang="scss" scoped>
 .result-view {
-  max-width: 800px;
+  max-width: 1000px; /* (★) 幅を広げたよ！ */
   margin: 2rem auto;
   padding: 2rem;
   text-align: center;
@@ -263,7 +243,7 @@ const formatMissedKeys = (missedKeys) => {
     }
   }
 
-  /* (★) AIコメントエリアのスタイル */
+  /* AIコメントエリア */
   &__ai-comment {
     display: flex;
     align-items: flex-start;
@@ -289,7 +269,7 @@ const formatMissedKeys = (missedKeys) => {
       background: #e6f2ff;
       padding: 1rem 1.5rem;
       border-radius: 12px;
-      border-top-left-radius: 0; /* 吹き出しっぽく */
+      border-top-left-radius: 0;
       text-align: left;
       color: #333;
       position: relative;
@@ -360,6 +340,11 @@ const formatMissedKeys = (missedKeys) => {
     }
   }
 
+  /* (★) テーブルラッパー追加 */
+  &__table-wrapper {
+    overflow-x: auto;
+  }
+
   &__table {
     width: 100%;
     border-collapse: collapse;
@@ -369,6 +354,7 @@ const formatMissedKeys = (missedKeys) => {
       padding: 0.8rem;
       font-weight: bold;
       color: #555;
+      white-space: nowrap;
     }
     td {
       border-bottom: 1px solid #eee;
@@ -378,22 +364,40 @@ const formatMissedKeys = (missedKeys) => {
     .text-left {
       text-align: left;
     }
-    .text-miss {
-      color: #dc3545;
-      font-size: 0.9rem;
+    .text-bold {
+      font-weight: bold;
+      color: #333;
     }
 
+    /* (★) スタイル追加 */
+    .text-romaji {
+      font-family: "Courier New", monospace;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .text-miss {
+      color: #dc3545;
+      font-weight: bold;
+    }
+    .text-miss-keys {
+      color: #dc3545;
+      font-size: 0.85rem;
+    }
+
+    /* (★) 列幅調整 (SessionDetailViewと合わせたよ！) */
     .col-problem {
-      width: 50%;
+      min-width: 150px;
     }
-    .col-kpm {
-      width: 15%;
+    .col-romaji {
+      min-width: 150px;
     }
-    .col-acc {
-      width: 15%;
+    .col-kpm,
+    .col-acc,
+    .col-miss-count {
+      width: 80px;
     }
-    .col-miss {
-      width: 20%;
+    .col-miss-keys {
+      min-width: 120px;
     }
   }
 

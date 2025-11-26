@@ -865,6 +865,7 @@ app.post('/api/typing/result', authenticateToken, async (req, res) => {
       average_accuracy,
       most_missed_key,
       total_types,
+      total_miss_count,
       problem_results
     } = req.body;
 
@@ -899,16 +900,21 @@ app.post('/api/typing/result', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'average_accuracy は数字にして下さい。' });
     }
 
-    // total_typesは、数字（整数）かどうか
-    if (!Number.isInteger(total_types)) {
-      return res.status(400).json({ message: 'total_types は整数にして下さい。' });
-    }
-
     // most_missed_keyは、文字列であるかどうか (空文字はOKとする)
     if (most_missed_key !== null && most_missed_key !== undefined) {
       if (typeof most_missed_key !== 'string') {
         return res.status(400).json({ message: 'most_missed_key は文字列にして下さい。' });
       }
+    }
+
+    // total_typesは、数字（整数）かどうか
+    if (!Number.isInteger(total_types)) {
+      return res.status(400).json({ message: 'total_types は整数にして下さい。' });
+    }
+
+    // total_miss_countは、数字（整数）かどうか
+    if (!Number.isInteger(total_miss_count)) {
+      return res.status(400).json({ message: 'total_miss_count は整数にして下さい。' });
     }
 
     // ---子データ(session_problemsテーブル)のバリデーション---
@@ -939,6 +945,16 @@ app.post('/api/typing/result', authenticateToken, async (req, res) => {
       if (typeof p.missed_keys !== 'object' || p.missed_keys === null || Array.isArray(p.missed_keys)) {
         return res.status(400).json({ message: 'missed_keys はオブジェクト形式 例: {"k": 1} にして下さい。' });
       }
+
+      // miss_countは、数字（整数）かどうか
+      if (!Number.isInteger(p.miss_count)) {
+        return res.status(400).json({ message: '個別の miss_count は数字にしてね！' });
+      }
+
+      // romaji_textは、空ではない事
+      if (!p.romaji_text || typeof p.romaji_text !== 'string') {
+        return res.status(400).json({ message: '個別の結果には romaji_text が必要です。' });
+      }
     }
 
     // 登録
@@ -952,13 +968,16 @@ app.post('/api/typing/result', authenticateToken, async (req, res) => {
         average_accuracy: parseFloat(average_accuracy),
         most_missed_key: most_missed_key || '',
         total_types: parseInt(total_types, 10),
+        total_miss_count: parseInt(total_miss_count, 10),
 
         session_problems: {
           create: problem_results.map(p => ({
             problem_text: p.problem_text,
+            romaji_text: p.romaji_text,
             kpm: parseFloat(p.kpm),
             accuracy: parseFloat(p.accuracy),
-            missed_keys: JSON.stringify(p.missed_keys || {}) // ここで文字列化
+            miss_count: parseInt(p.miss_count, 10),
+            missed_keys: JSON.stringify(p.missed_keys || {}),
           }))
         }
       }

@@ -58,6 +58,7 @@ model TypingSession {
   average_accuracy  Float
   most_missed_key   String
   total_types       Int
+  total_miss_count  Int
   created_at        DateTime  @default(now())
 
   user              User      @relation(fields: [user_id], references: [id]) // ユーザーとの「つながり」
@@ -72,8 +73,10 @@ model SessionProblem {
   id           Int      @id @default(autoincrement())
   session_id   Int
   problem_text String
+  romaji_text  String
   kpm          Float
   accuracy     Float
+  miss_count   Int
   missed_keys  String   // ここは「JSON文字列」で保存する
 
   session      TypingSession @relation(fields: [session_id], references: [id]) // まとめ記録との「つながり」

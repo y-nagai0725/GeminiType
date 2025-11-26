@@ -10,7 +10,9 @@
     <div v-else-if="errorMessage" class="game-view__error">
       <p>エラーが発生しました</p>
       <p>{{ errorMessage }}</p>
-      <RouterLink to="/menu" class="game-view__button">メニューに戻る</RouterLink>
+      <RouterLink to="/menu" class="game-view__button"
+        >メニューに戻る</RouterLink
+      >
     </div>
 
     <div v-else class="game-view__core">
@@ -220,6 +222,10 @@ const handleComplete = async (results) => {
     return sum + count;
   }, 0);
 
+  const totalMissCount = results.reduce((sum, r) => {
+    return sum + (r.miss_count || 0);
+  }, 0);
+
   // ログインしているなら、結果をDBに保存
   if (authStore.isLoggedIn) {
     try {
@@ -231,6 +237,7 @@ const handleComplete = async (results) => {
         average_accuracy: avgAccuracy,
         most_missed_key: mostMissedKey,
         total_types: totalTypes,
+        total_miss_count: totalMissCount,
         problem_results: results,
       });
       notificationStore.addNotification("結果を保存しました！", "success");

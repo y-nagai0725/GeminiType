@@ -457,6 +457,8 @@ const finishCurrentProblem = () => {
     kpm: currentKpm.value,
     accuracy: currentAccuracy.value,
     missed_keys: { ...currentMissedKeys.value },
+    miss_count: missKeyCount.value,
+    romaji_text: displayRomaji.value,
     correct_key_count: correctKeyCount.value,
     miss_key_count: missKeyCount.value,
   };
