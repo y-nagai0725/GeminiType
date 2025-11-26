@@ -284,36 +284,52 @@ const startGame = () => {
  * @param {String} hiragana 問題文のひらがな
  */
 const parseHiragana = (hiragana) => {
-  const units = [];
-  const defaultPatterns = [];
-  let cursor = 0;
+  try {
+    const units = [];
+    const defaultPatterns = [];
+    let cursor = 0;
 
-  while (cursor < hiragana.length) {
-    let matched = false;
-    // 3文字、2文字、1文字といった順番で検索していく
-    for (let len = 3; len >= 1; len--) {
-      const chunk = hiragana.substring(cursor, cursor + len);
-      if (romaMap.has(chunk)) {
-        const patterns = romaMap.get(chunk);
-        units.push({ hiragana: chunk, patterns: patterns });
-        defaultPatterns.push(patterns[0]);
-        cursor += len;
-        matched = true;
-        break;
+    while (cursor < hiragana.length) {
+      let matched = false;
+      // 3文字、2文字、1文字といった順番で検索していく
+      for (let len = 3; len >= 1; len--) {
+        const chunk = hiragana.substring(cursor, cursor + len);
+        if (romaMap.has(chunk)) {
+          const patterns = romaMap.get(chunk);
+          units.push({ hiragana: chunk, patterns: patterns });
+          defaultPatterns.push(patterns[0]);
+          cursor += len;
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        const errorChar = hiragana[cursor];
+        throw new Error(
+          `問題文に、辞書にない文字「${errorChar}」が含まれています。`
+        );
       }
     }
-    if (!matched) {
-      const errorChar = hiragana[cursor];
-      throw new Error(
-        `問題文に、辞書にない文字「${errorChar}」が含まれています。`
-      );
-    }
-  }
 
-  return {
-    parsedUnits: units,
-    defaultActivePatterns: defaultPatterns,
-  };
+    return {
+      parsedUnits: units,
+      defaultActivePatterns: defaultPatterns,
+    };
+  } catch (error) {
+    console.error("Critical Parsing Error:", error);
+
+    // ユーザーへの通知
+    notificationStore.addNotification(
+      `問題データの生成に失敗しました（未対応の文字が含まれています）。メニューに戻ります。`,
+      "error"
+    );
+
+    // メニュー画面へ強制遷移
+    router.push("/menu");
+
+    // 空配列を返して終わらせる
+    return [];
+  }
 };
 
 /**
