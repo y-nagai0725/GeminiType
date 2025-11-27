@@ -834,8 +834,6 @@ app.get('/api/typing/gemini', async (req, res) => {
   }
 });
 
-// backend/index.js
-
 /**
  * [public] Geminiによる結果へのコメント生成 (POST /api/typing/ai-comment)
  */
