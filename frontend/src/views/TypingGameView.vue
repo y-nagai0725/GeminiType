@@ -16,7 +16,13 @@
     </div>
 
     <div v-else class="game-view__core">
-      <TypingCore :problems="problems" @complete="handleComplete" />
+      <TypingCore
+        :problems="problems"
+        :game-mode="settingsStore.gameMode"
+        :time-limit="settingsStore.timeLimit"
+        :miss-limit="settingsStore.missLimit"
+        @complete="handleComplete"
+      />
     </div>
   </div>
 </template>
@@ -226,8 +232,11 @@ const handleComplete = async (results) => {
     return sum + (r.miss_count || 0);
   }, 0);
 
+  // 「ログインしている」かつ「通常モード」の場合のみ保存
+  const isNormalMode = settingsStore.gameMode === "normal";
+
   // ログインしているなら、結果をDBに保存
-  if (authStore.isLoggedIn) {
+  if (authStore.isLoggedIn && isNormalMode) {
     try {
       await api.post("/api/typing/result", {
         session_type: mode.value,
@@ -252,10 +261,16 @@ const handleComplete = async (results) => {
         );
       }
     }
+  } else if (!isNormalMode) {
+    // 特殊モードの場合の通知
+    notificationStore.addNotification(
+      "特殊モードのため、結果は保存されません（記録のみ表示します）",
+      "success"
+    );
   } else {
     // ゲストユーザーへの通知
     notificationStore.addNotification(
-      "お疲れ様！ログインすると結果を保存できるよ♡",
+      "お疲れ様！ログインすると結果を保存できるよ!",
       "success"
     );
   }

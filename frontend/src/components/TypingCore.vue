@@ -12,9 +12,32 @@
       <h2>Ready?</h2>
       <p>スペースキーを押してスタート！</p>
       <p class="typing-core__sub-text">（または画面をクリック）</p>
+      <div class="typing-core__mode-info" v-if="gameMode !== 'normal'">
+        <span v-if="gameMode === 'time_limit'"
+          >⏱️ 制限時間: {{ timeLimit }}秒</span
+        >
+        <span v-if="gameMode === 'sudden_death'">
+          💀 ミス許容: {{ missLimit === 0 ? "即死！" : missLimit + "回" }}
+        </span>
+      </div>
     </div>
 
     <div v-else class="typing-core__playing">
+      <div class="typing-core__hud" v-if="gameMode !== 'normal'">
+        <div
+          v-if="gameMode === 'time_limit'"
+          :class="{ danger: remainingTime <= 10 }"
+        >
+          ⏱️ Time: {{ remainingTime }}s
+        </div>
+        <div
+          v-if="gameMode === 'sudden_death'"
+          :class="{ danger: remainingLives <= 1 }"
+        >
+          ❤️ Lives: {{ remainingLives }}
+        </div>
+      </div>
+
       <div class="typing-core__progress">
         Problem: {{ currentProblemIndex + 1 }} / {{ problems.length }}
       </div>
@@ -87,17 +110,19 @@ const notificationStore = useNotificationStore();
 const settingsStore = useSettingsStore();
 
 /**
- * props
+ * Props定義 (特殊モード用に追加)
  */
 const props = defineProps({
   // 問題配列
   problems: { type: Array, required: true },
-
-  // デバッグ部分の表示・非表示
-  showDebug: {
-    type: Boolean,
-    default: false,
-  },
+  // デバッグ表示
+  showDebug: { type: Boolean, default: false },
+  // ゲームモード ('normal', 'time_limit', 'sudden_death')
+  gameMode: { type: String, default: "normal" },
+  // 制限時間 (秒)
+  timeLimit: { type: Number, default: 60 },
+  // ミス許容回数
+  missLimit: { type: Number, default: 0 },
 });
 
 /**
@@ -186,6 +211,21 @@ const currentMissedKeys = ref({});
  */
 const sessionResults = ref([]);
 
+/**
+ * 残り時間
+ */
+const remainingTime = ref(props.timeLimit);
+
+/**
+ * セッション通算ミス数
+ */
+const totalMissCountSession = ref(0);
+
+/**
+ * タイマーID
+ */
+let timerInterval = null;
+
 // --- Computed ---
 
 /**
@@ -253,6 +293,13 @@ const currentAccuracy = computed(() => {
   return Math.round((correctKeyCount.value / total) * 100);
 });
 
+// 残りライフ (Sudden Death用)
+const remainingLives = computed(() => {
+  if (props.gameMode !== "sudden_death") return null;
+  // ミス許容回数 - 現在のミス数 (0未満にはしない)
+  return Math.max(0, props.missLimit - totalMissCountSession.value);
+});
+
 // --- Methods ---
 
 /**
@@ -272,11 +319,56 @@ const playSound = (type) => {
 };
 
 /**
- * (★) ゲームスタート処理
+ * ゲームスタート処理
  */
 const startGame = () => {
   isStarted.value = true;
-  // 最初の問題のタイマー開始は、実際にキーを打った時（handleKeydown内）に行う
+
+  // 時間制限モードならタイマー始動！
+  if (props.gameMode === "time_limit") {
+    remainingTime.value = props.timeLimit;
+    startTimer();
+  }
+};
+
+/**
+ * タイマー処理
+ */
+const startTimer = () => {
+  if (timerInterval) clearInterval(timerInterval);
+
+  timerInterval = setInterval(() => {
+    remainingTime.value--;
+    // 時間切れチェック
+    if (remainingTime.value <= 0) {
+      forceFinishGame("Time Up!");
+    }
+  }, 1000);
+};
+
+/**
+ * 強制終了処理 (ゲームオーバー時)
+ */
+const forceFinishGame = (reason) => {
+  if (timerInterval) clearInterval(timerInterval);
+
+  // プレイ中なら、今の問題の結果も（途中だけど）配列に追加する
+  if (!isCompleted.value) {
+    sessionResults.value.push({
+      problem_text: targetProblem.value.problem_text + ` (${reason})`,
+      kpm: currentKpm.value,
+      accuracy: currentAccuracy.value,
+      missed_keys: { ...currentMissedKeys.value },
+      miss_count: missKeyCount.value,
+      romaji_text: displayRomaji.value,
+      correct_key_count: correctKeyCount.value,
+      miss_key_count: missKeyCount.value,
+    });
+  }
+
+  isCompleted.value = true;
+  notificationStore.addNotification(`Game Over... ${reason}`, "error");
+  emit("complete", sessionResults.value);
 };
 
 /**
@@ -405,7 +497,9 @@ const handleKeydown = (e) => {
 const handleMiss = (key) => {
   playSound("miss");
   missKeyCount.value++;
-  console.log("ミスタイプ！");
+
+  // セッション通算ミスをカウント
+  totalMissCountSession.value++;
 
   // 本来打つべきだったキーを集計
   const currentActivePattern = activePatterns.value[unitIndex.value];
@@ -419,6 +513,15 @@ const handleMiss = (key) => {
       currentMissedKeys.value[expectedKey] = 0;
     }
     currentMissedKeys.value[expectedKey]++;
+  }
+
+  // Sudden Death判定
+  if (props.gameMode === "sudden_death") {
+    // ミス許容回数を超えたらアウト
+    if (totalMissCountSession.value > props.missLimit) {
+      forceFinishGame("Miss Limit Exceeded!");
+      return;
+    }
   }
 };
 
@@ -489,6 +592,9 @@ const finishCurrentProblem = () => {
       setupCurrentProblem();
     }, 200);
   } else {
+    // タイマー停止
+    if (timerInterval) clearInterval(timerInterval);
+
     // 全問終了
     isCompleted.value = true;
     emit("complete", sessionResults.value);
@@ -549,6 +655,9 @@ onMounted(async () => {
  */
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeydown);
+
+  // タイマーのお片付け
+  if (timerInterval) clearInterval(timerInterval);
 });
 </script>
 
@@ -584,6 +693,19 @@ onUnmounted(() => {
       color: #888;
       margin-top: 0.5rem;
     }
+  }
+
+  /* 待機画面のモード情報 */
+  &__mode-info {
+    margin-top: 1.5rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #dc3545;
+    background: #fff0f0;
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: 1px solid #ffcccc;
   }
 
   &__progress {
@@ -634,6 +756,34 @@ onUnmounted(() => {
     color: #999;
     background-color: #f0f0f0;
     padding: 0.5rem;
+  }
+
+  /* HUD (Head-Up Display) のスタイル */
+  &__hud {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #333;
+
+    .danger {
+      color: #dc3545;
+      animation: pulse 1s infinite;
+    }
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 </style>
