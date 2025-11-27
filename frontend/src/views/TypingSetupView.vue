@@ -87,6 +87,28 @@
         </div>
 
         <div class="setup-view__group">
+          <label class="setup-view__label">ローマ字ガイド</label>
+          <div class="setup-view__radios">
+            <label class="setup-view__radio">
+              <input
+                type="radio"
+                :value="true"
+                v-model="settingsStore.showRomaji"
+              />
+              常に表示
+            </label>
+            <label class="setup-view__radio">
+              <input
+                type="radio"
+                :value="false"
+                v-model="settingsStore.showRomaji"
+              />
+              隠す (ミス時のみ表示)
+            </label>
+          </div>
+        </div>
+
+        <div class="setup-view__group">
           <label class="setup-view__label">サウンド</label>
           <div class="setup-view__checkboxes">
             <label class="setup-view__checkbox">

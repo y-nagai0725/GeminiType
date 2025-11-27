@@ -66,7 +66,10 @@
         <p v-else-if="targetHiragana">{{ targetHiragana }}</p>
       </div>
 
-      <div class="typing-core__romaji">
+      <div
+        class="typing-core__romaji"
+        :class="{ 'romaji-hidden': !shouldShowRomaji }"
+      >
         <span class="typing-core__romaji--typed">
           {{ typedDisplayRomaji }}
         </span>
@@ -151,6 +154,8 @@ const props = defineProps({
   timeLimit: { type: Number, default: 60 },
   // ミス許容回数
   missLimit: { type: Number, default: 0 },
+  // ローマ字ガイド表示
+  showRomaji: { type: Boolean, default: true },
 });
 
 /**
@@ -171,7 +176,7 @@ const isLoading = ref(true);
 const isCompleted = ref(false);
 
 /**
- * (★) スタートしたかどうか (待機画面用)
+ * スタートしたかどうか (待機画面用)
  */
 const isStarted = ref(false);
 
@@ -184,6 +189,11 @@ const hiraganaList = ref([]);
  * 現在の問題番号 (0始まり)
  */
 const currentProblemIndex = ref(0);
+
+/**
+ * 今の問題でミスをしたかどうか
+ */
+const hasMissedInCurrentProblem = ref(false);
 
 // --- エンジン用状態 ---
 
@@ -395,6 +405,37 @@ const sessionAverageAccuracy = computed(() => {
   return Math.round((totalCorrect / total) * 100);
 });
 
+/**
+ * ローマ字ガイドを表示すべきかどうか？
+ */
+const shouldShowRomaji = computed(() => {
+  // 設定が「常に表示(true)」なら無条件で表示
+  if (props.showRomaji) return true;
+
+  // 設定が「隠す(false)」なら、ミスしたかどうかで決める
+  return hasMissedInCurrentProblem.value;
+});
+
+/**
+ * 次に入力すべきキー
+ * (現在のパターンと入力済みバッファから特定)
+ */
+const nextExpectedKey = computed(() => {
+  // 現在の入力対象パターン (例: "ka")
+  const currentPattern = activePatterns.value[unitIndex.value];
+
+  // パターンがない、または完了している場合は null
+  if (!currentPattern) return null;
+
+  // バッファの長さ = 次の文字のインデックス
+  // 例: pattern="ka", buffer="k" (len=1) -> "a" (index 1) が次のキー
+  if (inputBuffer.value.length < currentPattern.length) {
+    return currentPattern[inputBuffer.value.length];
+  }
+
+  return null;
+});
+
 // --- Methods ---
 
 /**
@@ -596,18 +637,16 @@ const handleMiss = (key) => {
   // セッション通算ミスをカウント
   totalMissCountSession.value++;
 
-  // 本来打つべきだったキーを集計
-  const currentActivePattern = activePatterns.value[unitIndex.value];
-  if (
-    currentActivePattern &&
-    currentActivePattern.length > inputBuffer.value.length
-  ) {
-    const expectedKey = currentActivePattern[inputBuffer.value.length];
+  // ミスしたので、ローマ字ガイドを表示させる
+  hasMissedInCurrentProblem.value = true;
 
-    if (!currentMissedKeys.value[expectedKey]) {
-      currentMissedKeys.value[expectedKey] = 0;
+  // 「本来打つべきキー」を集計
+  const expected = nextExpectedKey.value;
+  if (expected) {
+    if (!currentMissedKeys.value[expected]) {
+      currentMissedKeys.value[expected] = 0;
     }
-    currentMissedKeys.value[expectedKey]++;
+    currentMissedKeys.value[expected]++;
   }
 
   // Sudden Death判定
@@ -704,6 +743,7 @@ const finishCurrentProblem = () => {
  * 現在の問題のセットアップ（初期化）
  */
 const setupCurrentProblem = () => {
+  hasMissedInCurrentProblem.value = false;
   unitIndex.value = 0;
   inputBuffer.value = "";
   typedRomajiLength.value = 0;
@@ -886,6 +926,15 @@ onUnmounted(() => {
     border-radius: 4px;
     min-height: 1.75rem;
     margin-top: 1rem;
+    transition: opacity 0.2s, visibility 0.2s;
+    opacity: 1;
+    visibility: visible;
+
+    /* 隠す時のクラス */
+    &.romaji-hidden {
+      opacity: 0;
+      visibility: hidden; /* 場所は確保したまま見えなくする */
+    }
 
     &--typed {
       color: #007bff;

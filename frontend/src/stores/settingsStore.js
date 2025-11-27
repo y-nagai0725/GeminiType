@@ -60,6 +60,13 @@ export const useSettingsStore = defineStore('settings', () => {
   const missLimit = ref(getSavedValue('settings_missLimit', 0));
 
   /**
+   * ローマ字ガイドの表示設定
+   * true: 常に表示 (デフォルト)
+   * false: ミスするまで非表示
+   */
+  const showRomaji = ref(getSavedValue('settings_showRomaji', true));
+
+  /**
    * 設定を保存する
    */
   const saveSettings = () => {
@@ -70,6 +77,7 @@ export const useSettingsStore = defineStore('settings', () => {
       localStorage.setItem('settings_gameMode', JSON.stringify(gameMode.value));
       localStorage.setItem('settings_timeLimit', JSON.stringify(timeLimit.value));
       localStorage.setItem('settings_missLimit', JSON.stringify(missLimit.value));
+      localStorage.setItem('settings_showRomaji', JSON.stringify(showRomaji.value));
     } catch (error) {
       // 保存失敗も、ユーザー操作をブロックするほどではないのでログのみ。
       console.error('設定の保存に失敗しました:', error);
@@ -86,6 +94,7 @@ export const useSettingsStore = defineStore('settings', () => {
     gameMode.value = 'normal';
     timeLimit.value = 60;
     missLimit.value = 0;
+    showRomaji.value = true;
     saveSettings();
   };
 
@@ -96,6 +105,7 @@ export const useSettingsStore = defineStore('settings', () => {
     gameMode,
     timeLimit,
     missLimit,
+    showRomaji,
     saveSettings,
     resetSettings
   };

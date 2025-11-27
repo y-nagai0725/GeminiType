@@ -21,6 +21,7 @@
         :game-mode="settingsStore.gameMode"
         :time-limit="settingsStore.timeLimit"
         :miss-limit="settingsStore.missLimit"
+        :show-romaji="settingsStore.showRomaji"
         @complete="handleComplete"
       />
     </div>
