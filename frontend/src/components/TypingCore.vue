@@ -24,11 +24,17 @@
 
     <div v-else class="typing-core__playing">
       <div class="typing-core__hud" v-if="gameMode !== 'normal'">
-        <div
-          v-if="gameMode === 'time_limit'"
-          :class="{ danger: remainingTime <= 10 }"
-        >
-          ⏱️ Time: {{ remainingTime }}s
+        <div v-if="gameMode === 'time_limit'" class="hud-item hud-timer">
+          <div class="timer-text" :class="{ danger: remainingTime <= 10 }">
+            ⏱️ Time: {{ remainingTime }}s
+          </div>
+          <div class="progress-bar-bg">
+            <div
+              class="progress-bar-fill"
+              :class="timeBarColorClass"
+              :style="{ width: timeProgressPercentage + '%' }"
+            ></div>
+          </div>
         </div>
         <div
           v-if="gameMode === 'sudden_death'"
@@ -47,7 +53,17 @@
       </div>
 
       <div class="typing-core__hiragana">
-        <p v-if="targetHiragana">{{ targetHiragana }}</p>
+        <template v-if="parsedProblem.length > 0">
+          <span
+            v-for="(unit, index) in parsedProblem"
+            :key="index"
+            class="hiragana-char"
+            :class="{ 'hiragana-typed': index < unitIndex }"
+          >
+            {{ unit.hiragana }}
+          </span>
+        </template>
+        <p v-else-if="targetHiragana">{{ targetHiragana }}</p>
       </div>
 
       <div class="typing-core__romaji">
@@ -59,8 +75,20 @@
         </span>
       </div>
 
-      <div class="typing-core__stats">
-        KPM: {{ currentKpm }} | Accuracy: {{ currentAccuracy }}%
+      <div class="typing-core__stats-container">
+        <div class="typing-core__stat-row">
+          <span class="stat-label">Current:</span>
+          <span class="stat-value">KPM: {{ currentKpm }}</span>
+          <span class="stat-divider">|</span>
+          <span class="stat-value">Acc: {{ currentAccuracy }}%</span>
+        </div>
+
+        <div class="typing-core__stat-row typing-core__stat-row--total">
+          <span class="stat-label">Total:</span>
+          <span class="stat-value">KPM: {{ sessionAverageKpm }}</span>
+          <span class="stat-divider">|</span>
+          <span class="stat-value">Acc: {{ sessionAverageAccuracy }}%</span>
+        </div>
       </div>
 
       <div class="typing-core__debug" v-if="props.showDebug && currentUnit">
@@ -110,7 +138,7 @@ const notificationStore = useNotificationStore();
 const settingsStore = useSettingsStore();
 
 /**
- * Props定義 (特殊モード用に追加)
+ * Props定義
  */
 const props = defineProps({
   // 問題配列
@@ -298,6 +326,73 @@ const remainingLives = computed(() => {
   if (props.gameMode !== "sudden_death") return null;
   // ミス許容回数 - 現在のミス数 (0未満にはしない)
   return Math.max(0, props.missLimit - totalMissCountSession.value);
+});
+
+/**
+ * 残り時間の割合 (%)
+ */
+const timeProgressPercentage = computed(() => {
+  if (props.gameMode !== "time_limit") return 0;
+  return (remainingTime.value / props.timeLimit) * 100;
+});
+
+/**
+ * プログレスバーの色クラス
+ */
+const timeBarColorClass = computed(() => {
+  const p = timeProgressPercentage.value;
+  if (p <= 25) return "bar-red"; // 25%以下なら赤
+  if (p <= 50) return "bar-yellow"; // 50%以下なら黄色
+  return "bar-green"; // それ以外は緑
+});
+
+/**
+ * 通算の平均KPM (リアルタイム)
+ */
+const sessionAverageKpm = computed(() => {
+  // 過去問のデータ集計
+  let totalCorrect = 0;
+  let totalTimeMs = 0;
+
+  sessionResults.value.forEach((res) => {
+    totalCorrect += res.correct_key_count;
+    totalTimeMs += res.duration_ms;
+  });
+
+  // 今プレイ中のデータも足す
+  if (problemStartTime.value > 0) {
+    totalCorrect += correctKeyCount.value;
+    totalTimeMs += Date.now() - problemStartTime.value; // 今の経過時間
+  }
+
+  // 計算 (時間が0なら0を返す)
+  if (totalTimeMs === 0) return 0;
+
+  const totalMin = totalTimeMs / 1000 / 60;
+  return Math.round(totalCorrect / totalMin);
+});
+
+/**
+ * 通算の平均正確率 (リアルタイム)
+ */
+const sessionAverageAccuracy = computed(() => {
+  let totalCorrect = 0;
+  let totalMiss = 0;
+
+  // 過去問題集計
+  sessionResults.value.forEach((res) => {
+    totalCorrect += res.correct_key_count;
+    totalMiss += res.miss_key_count;
+  });
+
+  // 今の問題の分
+  totalCorrect += correctKeyCount.value;
+  totalMiss += missKeyCount.value;
+
+  const total = totalCorrect + totalMiss;
+  if (total === 0) return 100;
+
+  return Math.round((totalCorrect / total) * 100);
 });
 
 // --- Methods ---
@@ -571,6 +666,9 @@ const updateHighlightingLength = () => {
  * 1問終了時の処理
  */
 const finishCurrentProblem = () => {
+  // 今の問題にかかった時間 (ミリ秒) を計算
+  const durationMs = Date.now() - problemStartTime.value;
+
   const result = {
     problem_text: targetProblem.value.problem_text,
     kpm: currentKpm.value,
@@ -580,6 +678,7 @@ const finishCurrentProblem = () => {
     romaji_text: displayRomaji.value,
     correct_key_count: correctKeyCount.value,
     miss_key_count: missKeyCount.value,
+    duration_ms: durationMs,
   };
 
   sessionResults.value.push(result);
@@ -714,10 +813,45 @@ onUnmounted(() => {
     margin-bottom: 1rem;
   }
 
-  &__stats {
+  &__stats-container {
     margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__stat-row {
+    font-size: 1.2rem;
     font-weight: bold;
-    color: #007bff;
+    color: #007bff; /* Currentは青 */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #999;
+      text-transform: uppercase;
+      margin-right: 0.5rem;
+      min-width: 60px; /* 位置を揃える */
+      text-align: right;
+    }
+
+    .stat-divider {
+      color: #ddd;
+      margin: 0 0.5rem;
+    }
+
+    /* Total行のスタイル */
+    &--total {
+      color: #28a745; /* Totalは緑！ */
+      font-size: 1.1rem; /* ちょっとだけ小さく */
+
+      .stat-label {
+        color: #aaa;
+      }
+    }
   }
 
   &__problem h2 {
@@ -727,10 +861,21 @@ onUnmounted(() => {
     color: #333;
   }
 
-  &__hiragana p {
+  &__hiragana {
     font-size: 1.2rem;
-    color: #666;
+    color: #666; /* まだ打ってない文字の色 */
     margin: 0.5rem 0;
+    min-height: 1.5rem; /* 高さ確保 */
+
+    .hiragana-char {
+      display: inline-block; /* これがあると変な隙間ができにくい */
+      transition: color 0.1s; /* 色が変わる瞬間をちょっと滑らかに */
+    }
+
+    .hiragana-typed {
+      color: #007bff; /* 青色（ローマ字とお揃い！） */
+      font-weight: bold; /* ちょっと強調してもいいかも？ */
+    }
   }
 
   &__romaji {
@@ -763,14 +908,63 @@ onUnmounted(() => {
     display: flex;
     justify-content: center;
     gap: 2rem;
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem; /* バーが入る分、少し広げる */
     color: #333;
+    width: 100%; /* 幅を確保 */
+    max-width: 600px; /* 広がりすぎないように */
+    margin-left: auto;
+    margin-right: auto;
+
+    .hud-item {
+      font-size: 1.5rem;
+      font-weight: bold;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hud-timer {
+      width: 100%; /* バーのために幅を広げる */
+      max-width: 400px;
+    }
 
     .danger {
       color: #dc3545;
       animation: pulse 1s infinite;
+    }
+
+    /* ★追加: プログレスバーの背景 */
+    .progress-bar-bg {
+      width: 100%;
+      height: 10px;
+      background-color: #e9ecef;
+      border-radius: 5px;
+      margin-top: 5px;
+      overflow: hidden; /* 角丸からはみ出ないように */
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ★追加: プログレスバーの中身 */
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 5px;
+      /* ★ここがポイント！幅の変化を1秒かけて滑らかにする */
+      transition: width 1s linear, background-color 0.3s ease;
+    }
+
+    /* ★追加: 色の定義 */
+    .bar-green {
+      background-color: #28a745;
+      box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+    }
+    .bar-yellow {
+      background-color: #ffc107;
+      box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+    }
+    .bar-red {
+      background-color: #dc3545;
+      box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
     }
   }
 }
