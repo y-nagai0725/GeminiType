@@ -491,10 +491,12 @@ const emitComplete = (reason = null) => {
   isCompleted.value = true;
 
   // 成功したかどうか (reasonがなければ成功)
-  const isClear = (reason === null);
+  const isClear = reason === null;
 
   // 解けた問題数 (成功なら全問、失敗なら「今の問題」は解けてないから -1)
-  const solvedCount = isClear ? sessionResults.value.length : Math.max(0, sessionResults.value.length - 1);
+  const solvedCount = isClear
+    ? sessionResults.value.length
+    : Math.max(0, sessionResults.value.length - 1);
 
   // 親コンポーネントへ渡すデータ
   const completeData = {
@@ -504,8 +506,8 @@ const emitComplete = (reason = null) => {
       reason: reason,
       solvedCount: solvedCount,
       remainingTime: remainingTime.value, // 残り時間
-      remainingLives: remainingLives.value // 残りライフ (computedの値)
-    }
+      remainingLives: remainingLives.value, // 残りライフ (computedの値)
+    },
   };
 
   emit("complete", completeData);
@@ -521,13 +523,14 @@ const forceFinishGame = (reason) => {
   if (!isCompleted.value) {
     sessionResults.value.push({
       problem_text: targetProblem.value.problem_text + ` (${reason})`,
-      kpm: currentKpm.value,
+      kpm: 0,
       accuracy: currentAccuracy.value,
       missed_keys: { ...currentMissedKeys.value },
       miss_count: missKeyCount.value,
       romaji_text: displayRomaji.value,
       correct_key_count: correctKeyCount.value,
       miss_key_count: missKeyCount.value,
+      duration_ms: Date.now() - problemStartTime.value,
     });
   }
 
