@@ -40,6 +40,7 @@ model Problem {
   id           Int     @id @default(autoincrement())
   genre_id     Int
   problem_text String
+  problem_hiragana String
   genre        Genre   @relation(fields: [genre_id], references: [id]) // ジャンルとの「つながり」
 
   @@unique([genre_id, problem_text])

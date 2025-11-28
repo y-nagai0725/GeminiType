@@ -66,7 +66,7 @@
           </select>
           <input
             type="text"
-            placeholder="問題文（本文）で検索"
+            placeholder="（問題文）と（ひらがな）で検索"
             v-model="localFilterSearchText"
           />
           <button type="submit">検索</button>
@@ -97,6 +97,12 @@
             v-model="newProblemText"
             required
           />
+          <input
+            type="text"
+            placeholder="ひらがな"
+            v-model="newProblemHiragana"
+            required
+          />
           <button type="submit">問題文追加</button>
         </form>
 
@@ -120,6 +126,7 @@
               <th>ID</th>
               <th>ジャンル</th>
               <th>問題文</th>
+              <th>ひらがな</th>
               <th>(操作)</th>
             </tr>
           </thead>
@@ -128,6 +135,7 @@
               <td>{{ problem.id }}</td>
               <td>{{ problem.genre.name }}</td>
               <td>{{ problem.problem_text }}</td>
+              <td>{{ problem.problem_hiragana }}</td>
               <td class="admin-view__actions">
                 <button
                   class="admin-view__button--try"
@@ -206,7 +214,7 @@
           <h3 v-if="editType === 'genre'">ジャンル の編集</h3>
           <h3 v-else>問題文 の編集</h3>
 
-          <form @submit.prevent="handleUpdateItem">
+          <form @submit.prevent="handleUpdateItem" novalidate>
             <div v-if="editType === 'genre'" class="admin-view__form-group">
               <label for="edit-genre-name">ジャンル名</label>
               <input
@@ -243,6 +251,15 @@
                   required
                 />
               </div>
+              <div class="admin-view__form-group">
+                <label for="edit-problem-hiragana">ひらがな</label>
+                <input
+                  id="edit-problem-hiragana"
+                  type="text"
+                  v-model="editForm.problem_hiragana"
+                  required
+                />
+              </div>
             </template>
 
             <div class="admin-view__modal-actions">
@@ -272,6 +289,7 @@ import { useAdminStore } from "../stores/adminStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import TypingCore from "../components/TypingCore.vue";
 import ConfirmModal from "../components/ConfirmModal.vue";
+import romaMapData from "@/data/romanTypingParseDictionary.json";
 
 /**
  * 認証store
@@ -307,6 +325,11 @@ const newProblemGenreId = ref("");
  * (登録用)新しい問題文
  */
 const newProblemText = ref("");
+
+/**
+ * (登録用)新しい問題文のひらがな
+ */
+const newProblemHiragana = ref("");
 
 /**
  * 検索用設定: ジャンルid
@@ -366,6 +389,7 @@ const editForm = reactive({
   name: "", // (ジャンル用)ジャンル名
   genre_id: "", // (問題用)ジャンルid
   problem_text: "", // (問題用)問題文
+  problem_hiragana: "", // (問題用)ひらがな
 });
 
 /**
@@ -410,6 +434,24 @@ onMounted(async () => {
 });
 
 /**
+ * 入力された文字列が、タイピング辞書にある文字だけで構成されているかチェック
+ * @param {String} text チェック対象の文字列
+ * @returns {Boolean} OKならtrue
+ */
+const isValidReading = (text) => {
+  // 辞書にある「Pattern（文字）」をSetにして検索を爆速にする
+  const allowedChars = new Set(romaMapData.map((item) => item.Pattern));
+
+  // 1文字ずつチェックして、辞書にない文字があれば false
+  for (const char of text) {
+    if (!allowedChars.has(char)) {
+      return false;
+    }
+  }
+  return true;
+};
+
+/**
  * 「ジャンル追加」ボタンが押された時の処理
  */
 const handleAddGenre = async () => {
@@ -445,10 +487,21 @@ const handleAddProblem = async () => {
   if (
     !newProblemGenreId.value ||
     !newProblemText.value ||
-    newProblemText.value.trim() === ""
+    newProblemText.value.trim() === "" ||
+    !newProblemHiragana.value ||
+    newProblemHiragana.value.trim() === ""
   ) {
     notificationStore.addNotification(
-      "ジャンルを選択して、問題文を入力して下さい。",
+      "ジャンル、問題文、ひらがなを全て入力して下さい。",
+      "error"
+    );
+    return;
+  }
+
+  // ひらがなチェック
+  if (!isValidReading(newProblemHiragana.value)) {
+    notificationStore.addNotification(
+      "ひらがなに「未対応の文字」が含まれています！辞書にある文字（ひらがな、半角英数、一部記号）だけで入力して下さい。",
       "error"
     );
     return;
@@ -456,14 +509,19 @@ const handleAddProblem = async () => {
 
   try {
     // 問題文登録
-    await adminStore.addProblem(newProblemGenreId.value, newProblemText.value);
+    await adminStore.addProblem(
+      newProblemGenreId.value,
+      newProblemText.value,
+      newProblemHiragana.value
+    );
 
     // 成功通知
     notificationStore.addNotification("問題文を追加しました。", "success");
 
-    // ジャンルIDと問題文を空にする
+    // フォームを空にする
     newProblemGenreId.value = "";
     newProblemText.value = "";
+    newProblemHiragana.value = "";
   } catch (error) {
     // エラー通知
     notificationStore.addNotification(
@@ -608,6 +666,9 @@ const openEditModal = (item, type) => {
 
     // 問題文
     editForm.problem_text = item.problem_text;
+
+    // ひらがな
+    editForm.problem_hiragana = item.problem_hiragana;
   }
 
   // モーダルを開く
@@ -626,6 +687,7 @@ const closeEditModal = () => {
   editForm.name = "";
   editForm.genre_id = "";
   editForm.problem_text = "";
+  editForm.problem_hiragana = "";
 };
 
 /**
@@ -648,14 +710,25 @@ const handleUpdateItem = async () => {
       await adminStore.updateGenre(editForm.id, editForm.name);
     } else {
       // ---問題文編集の場合---
-      // ジャンルと問題文のバリデーション
+      // ジャンルと問題文とひらがなのバリデーション
       if (
         !editForm.genre_id ||
         !editForm.problem_text ||
-        editForm.problem_text.trim() === ""
+        editForm.problem_text.trim() === "" ||
+        !editForm.problem_hiragana ||
+        editForm.problem_hiragana.trim() === ""
       ) {
         notificationStore.addNotification(
-          "ジャンルを選択して、問題文を入力して下さい。",
+          "ジャンル、問題文、ひらがなを全て入力して下さい。",
+          "error"
+        );
+        return;
+      }
+
+      // ひらがなチェック
+      if (!isValidReading(editForm.problem_hiragana)) {
+        notificationStore.addNotification(
+          "ひらがなに「未対応の文字」が含まれています！辞書にある文字（ひらがな、半角英数、一部記号）だけで入力して下さい。",
           "error"
         );
         return;
@@ -665,7 +738,8 @@ const handleUpdateItem = async () => {
       await adminStore.updateProblem(
         editForm.id,
         editForm.genre_id,
-        editForm.problem_text
+        editForm.problem_text,
+        editForm.problem_hiragana
       );
     }
 
@@ -727,7 +801,7 @@ const handleEscClose = (e) => {
 /* (BEM) ブロック: .admin-view */
 .admin-view {
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
   margin: 2rem auto;
   padding: 2rem;
   font-family: sans-serif;

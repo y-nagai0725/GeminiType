@@ -127,11 +127,12 @@ export const useAdminStore = defineStore('admin', () => {
    * 新しい問題文を登録する
    * @param {Number} genre_id ジャンルid
    * @param {String} problem_text 問題文
+   * @param {String} problem_hiragana ひらがな
    */
-  const addProblem = async (genre_id, problem_text) => {
+  const addProblem = async (genre_id, problem_text, problem_hiragana) => {
     try {
       // 問題文登録
-      await api.post('/api/admin/problems', { genre_id, problem_text });
+      await api.post('/api/admin/problems', { genre_id, problem_text, problem_hiragana });
 
       // 問題一覧表示を更新(現在表示ページが最新になる)
       await fetchProblems();
@@ -203,11 +204,12 @@ export const useAdminStore = defineStore('admin', () => {
    * @param {Number} id 更新対象のid
    * @param {Number} genre_id ジャンルid
    * @param {String} problem_text 問題文
+   * @param {String} problem_hiragana ひらがな
    */
-  const updateProblem = async (id, genre_id, problem_text) => {
+  const updateProblem = async (id, genre_id, problem_text, problem_hiragana) => {
     try {
       // 問題を更新する
-      await api.put(`/api/admin/problems/${id}`, { genre_id, problem_text });
+      await api.put(`/api/admin/problems/${id}`, { genre_id, problem_text, problem_hiragana });
 
       // 問題一覧更新
       await fetchProblems();

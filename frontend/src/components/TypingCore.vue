@@ -796,25 +796,36 @@ const setupCurrentProblem = () => {
  */
 onMounted(async () => {
   window.addEventListener("keydown", handleKeydown);
-
   if (!props.problems || props.problems.length === 0) return;
 
   try {
-    // ひらがなを一括取得
-    const texts = props.problems.map((p) => p.problem_text);
-    const response = await api.post("/api/get-hiragana", {
-      texts: texts,
-    });
+    // ひらがなリストの準備
+    let hiraganas = [];
 
-    hiraganaList.value = response.data.hiraganas;
+    // データ内に「problem_hiragana」が含まれているかチェック
+    const hasHiraganaData = props.problems.every((p) => p.problem_hiragana);
 
-    // 1問目をセットアップ
+    if (hasHiraganaData) {
+      // --- DBモード (ひらがな有り) ---
+      // APIを使わず、持っているデータをそのまま使う
+      hiraganas = props.problems.map((p) => p.problem_hiragana);
+    } else {
+      // --- AIモード (ひらがな無し) ---
+      // APIでひらがなを取得する
+      const texts = props.problems.map((p) => p.problem_text);
+      const response = await api.post("/api/get-hiragana", { texts: texts });
+      hiraganas = response.data.hiraganas;
+    }
+
+    // データをセット
+    hiraganaList.value = hiraganas;
+
+    // ゲーム開始準備
     setupCurrentProblem();
-
     isLoading.value = false;
   } catch (error) {
     notificationStore.addNotification(
-      error.response?.data?.message || "問題の読み込みに失敗しました。",
+      error.response?.data?.message || "問題データの読み込みに失敗しました。",
       "error"
     );
     router.push("/menu");

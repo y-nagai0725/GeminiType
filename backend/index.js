@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const romaMapData = require('./romanTypingParseDictionary.json');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -27,6 +28,25 @@ const PORT = process.env.PORT || 3002;
  * 500エラーメッセージ
  */
 const SERVER_ERROR_MESSAGE_500 = 'サーバーにてエラーが発生しています。時間を空けてもう一度試してください。';
+
+/**
+ * 問題登録のひらがなで許可する文字
+ */
+const allowedChars = new Set(romaMapData.map(item => item.Pattern));
+
+/**
+ * 入力された文字列が、辞書にある文字だけで構成されているかチェックする関数
+ * @param {String} text チェック対象の文字列
+ * @returns {Boolean} OKならtrue
+ */
+const isValidReading = (text) => {
+  for (const char of text) {
+    if (!allowedChars.has(char)) {
+      return false;
+    }
+  }
+  return true;
+};
 
 /**
  * 漢数字・大字などをひらがなに一括置換する関数
@@ -324,9 +344,10 @@ app.get('/api/admin/problems', authenticateToken, isAdmin, async (req, res) => {
 
     // 「検索キーワード」のクエリがある場合
     if (search) {
-      where.problem_text = {
-        contains: search, // 「問題文に検索キーワードを含む」を条件にする
-      };
+      where.OR = [
+        { problem_text: { contains: search } },
+        { problem_hiragana: { contains: search } }
+      ];
     }
 
     // 条件に合う問題を1ページ分取得
@@ -368,11 +389,11 @@ app.get('/api/admin/problems', authenticateToken, isAdmin, async (req, res) => {
 app.post('/api/admin/problems', authenticateToken, isAdmin, async (req, res) => {
   try {
     // ジャンルID、問題文
-    const { genre_id, problem_text } = req.body;
+    const { genre_id, problem_text, problem_hiragana } = req.body;
 
     // バリデーション
-    if (!genre_id || !problem_text || problem_text.trim() === '') {
-      return res.status(400).json({ message: 'ジャンルと問題文、両方入力して下さい。' });
+    if (!genre_id || !problem_text || !problem_hiragana || problem_text.trim() === '' || problem_hiragana.trim() === '') {
+      return res.status(400).json({ message: 'ジャンル、問題文、ひらがな、全て入力して下さい。' });
     }
 
     // ジャンルIDが数字かどうか
@@ -381,11 +402,19 @@ app.post('/api/admin/problems', authenticateToken, isAdmin, async (req, res) => 
       return res.status(400).json({ message: 'ジャンルIDに、不正な値が設定されています。' });
     }
 
+    // ひらがなチェック
+    if (!isValidReading(problem_hiragana)) {
+      return res.status(400).json({
+        message: 'ひらがなに不正な文字が含まれています。（辞書に定義されていない文字は登録できません）'
+      });
+    }
+
     // 登録
     const newProblem = await prisma.problem.create({
       data: {
         genre_id: genreIdNum,
         problem_text,
+        problem_hiragana,
       },
     });
 
@@ -517,11 +546,11 @@ app.put('/api/admin/problems/:id', authenticateToken, isAdmin, async (req, res) 
     }
 
     // ジャンルID, 問題文
-    const { genre_id, problem_text } = req.body;
+    const { genre_id, problem_text, problem_hiragana } = req.body;
 
     // バリデーション
-    if (!genre_id || !problem_text || problem_text.trim() === '') {
-      return res.status(400).json({ message: 'ジャンルと問題文、両方入力して下さい。' });
+    if (!genre_id || !problem_text || !problem_hiragana || problem_text.trim() === '' || problem_hiragana.trim() === '') {
+      return res.status(400).json({ message: 'ジャンル、問題文、ひらがな、全て入力して下さい。' });
     }
 
     // ジャンルIDが数字かどうか
@@ -530,12 +559,20 @@ app.put('/api/admin/problems/:id', authenticateToken, isAdmin, async (req, res) 
       return res.status(400).json({ message: 'ジャンルIDが、不正な値です。' });
     }
 
+    // ひらがなチェック
+    if (!isValidReading(problem_hiragana)) {
+      return res.status(400).json({
+        message: 'ひらがなに不正な文字が含まれています。（辞書に定義されていない文字は登録できません）'
+      });
+    }
+
     // 更新
     const updatedProblem = await prisma.problem.update({
       where: { id: idNum }, // この「id」の問題文
       data: {
         genre_id: genreIdNum,
         problem_text: problem_text,
+        problem_hiragana: problem_hiragana,
       },
     });
 
