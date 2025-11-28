@@ -839,7 +839,7 @@ app.get('/api/typing/gemini', async (req, res) => {
  */
 app.post('/api/typing/ai-comment', async (req, res) => {
   try {
-    const { kpm, accuracy, missedKeys } = req.body;
+    const { kpm, accuracy, missedKeys, specialModeInfo } = req.body;
 
     // Geminiの準備
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -854,27 +854,55 @@ app.post('/api/typing/ai-comment', async (req, res) => {
       .map(([key, count]) => `${key}(${count}回)`)
       .join(', ');
 
-    // プロンプト作成
-    const promptText = `
-      あなたはタイピング練習ゲームの「専属美少女コーチ」です。
-      プレイヤーの今回の成績に対して、短くて元気が出るコメント（アドバイスや称賛）をください。
-
-      【今回の成績】
-      - KPM (1分間の打鍵数): ${kpm}
-      - 正確率: ${accuracy}%
-      - よくミスしたキー: ${missedKeyText || 'なし（完璧！）'}
-
-      【条件】
-      - 100文字以内で簡潔に。
-      - 口調は「〜だね！」「〜だよ！」のように親しみやすく、敬語は使いすぎないこと。
-      - KPMが300以上なら手放しで褒める。
-      - 正確率が95%未満なら、正確さを意識するようアドバイスする。
-      - ミスしたキーがあれば、具体的な練習のアドバイスを含める。
-      - 絵文字を1〜2個使って可愛くすること。
+    let systemInstruction = `
+    あなたはタイピング練習ゲームのコーチです。
+    あなたは「妹キャラ」です。
+    ユーザーのタイピング結果に対して、可愛く、励ましや称賛のコメントをしてください。
+    【条件】
+    - 150文字以内で簡潔に。
+    - 口調は「〜だね！」「〜だよ！」のように親しみやすく、敬語は使いすぎないこと。
+    - 「妹キャラ」で話すことが大事ですが、ユーザーの性別は固定ではないので「お兄ちゃん」や「お姉ちゃん」は使わないようにすること。
+    - KPMが320以上なら手放しで褒める。
+    - 正確率が95%未満なら、正確さを意識するようアドバイスする。
+    - ミスしたキーがあれば、具体的な練習のアドバイスを含める。
+    - 絵文字を1〜2個使って可愛くすること。
     `;
 
+    // 状況説明を作る
+    let statusDescription = `
+    【今回の成績】
+    - KPM (1分間の打鍵数): ${kpm}
+    - 正確率: ${accuracy}%
+    - ミスしたキーTOP3: ${missedKeyText || 'なし（完璧！）'}`;
+
+    // 特殊モードの場合の情報を追加
+    if (specialModeInfo && specialModeInfo.config.mode !== 'normal') {
+      const { config, result } = specialModeInfo;
+
+      if (config.mode === 'time_limit') {
+        statusDescription += `\n- プレイモード: 制限時間モード (${config.timeLimit}秒以内)`;
+        if (result.isClear) {
+          statusDescription += `\n- 結果: クリア成功！ (残り時間: ${result.remainingTime}秒)`;
+        } else {
+          statusDescription += `\n- 結果: 時間切れで失敗… (${result.solvedCount}/${config.problemCount}問 正解)`;
+        }
+      } else if (config.mode === 'sudden_death') {
+        statusDescription += `\n- プレイモード: サドンデスモード (許容ミス: ${config.missLimit}回)`;
+        if (result.isClear) {
+          statusDescription += `\n- 結果: クリア成功！ (残りライフ: ${result.remainingLives})`;
+        } else {
+          statusDescription += `\n- 結果: ミス回数オーバーで失敗… (${result.solvedCount}/${config.problemCount}問 正解)`;
+        }
+      }
+    }
+
+    // プロンプト
+    const prompt = `
+    成績に応じたコメントをください。以下今回の成績です。
+    ${statusDescription}`;
+
     // Geminiでコメント生成
-    const result = await model.generateContent(promptText);
+    const result = await model.generateContent([systemInstruction, prompt]);
     const comment = result.response.text();
 
     res.json({ comment });

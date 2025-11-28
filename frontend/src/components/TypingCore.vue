@@ -483,6 +483,35 @@ const startTimer = () => {
 };
 
 /**
+ * 完了通知を送るヘルパー関数
+ * (成功・失敗に関わらず、共通の形式で親にデータを渡す)
+ */
+const emitComplete = (reason = null) => {
+  if (timerInterval) clearInterval(timerInterval);
+  isCompleted.value = true;
+
+  // 成功したかどうか (reasonがなければ成功)
+  const isClear = (reason === null);
+
+  // 解けた問題数 (成功なら全問、失敗なら「今の問題」は解けてないから -1)
+  const solvedCount = isClear ? sessionResults.value.length : Math.max(0, sessionResults.value.length - 1);
+
+  // 親コンポーネントへ渡すデータ
+  const completeData = {
+    results: sessionResults.value, // 今までの結果配列
+    info: {
+      isClear: isClear,
+      reason: reason,
+      solvedCount: solvedCount,
+      remainingTime: remainingTime.value, // 残り時間
+      remainingLives: remainingLives.value // 残りライフ (computedの値)
+    }
+  };
+
+  emit("complete", completeData);
+};
+
+/**
  * 強制終了処理 (ゲームオーバー時)
  */
 const forceFinishGame = (reason) => {
@@ -504,7 +533,7 @@ const forceFinishGame = (reason) => {
 
   isCompleted.value = true;
   notificationStore.addNotification(`Game Over... ${reason}`, "error");
-  emit("complete", sessionResults.value);
+  emitComplete(reason);
 };
 
 /**
@@ -735,7 +764,7 @@ const finishCurrentProblem = () => {
 
     // 全問終了
     isCompleted.value = true;
-    emit("complete", sessionResults.value);
+    emitComplete(null);
   }
 };
 

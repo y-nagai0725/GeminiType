@@ -192,9 +192,15 @@ const loadProblems = async () => {
 
 /**
  * タイピング終了時（TypingCoreから呼ばれる）
- * @param {Array} results 各問題の結果配列
+ * @param {Object} data TypingCoreから渡されるデータ { results, info }
  */
-const handleComplete = async (results) => {
+const handleComplete = async (data) => {
+  // 結果配列
+  const results = data.results;
+
+  // 特殊モード情報など
+  const info = data.info;
+
   // 集計処理
   const totalProblems = results.length;
   const avgKpm = Math.round(
@@ -232,6 +238,22 @@ const handleComplete = async (results) => {
   const totalMissCount = results.reduce((sum, r) => {
     return sum + (r.miss_count || 0);
   }, 0);
+
+  const specialModeInfo = {
+    config: {
+      mode: settingsStore.gameMode,
+      timeLimit: settingsStore.timeLimit,
+      missLimit: settingsStore.missLimit,
+      problemCount: settingsStore.problemCount,
+    },
+    result: {
+      isClear: info.isClear,
+      reason: info.reason,
+      solvedCount: info.solvedCount,
+      remainingTime: info.remainingTime,
+      remainingLives: info.remainingLives,
+    },
+  };
 
   // 「ログインしている」かつ「通常モード」の場合のみ保存
   const isNormalMode = settingsStore.gameMode === "normal";
@@ -292,6 +314,7 @@ const handleComplete = async (results) => {
     JSON.stringify({
       stats: { kpm: avgKpm, accuracy: avgAccuracy },
       results: results,
+      specialModeInfo: specialModeInfo,
     })
   );
 

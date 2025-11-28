@@ -139,6 +139,7 @@ const fetchAiComment = async () => {
       kpm: Math.round(resultData.value.stats.kpm),
       accuracy: Math.round(resultData.value.stats.accuracy),
       missedKeys: totalMissedKeys,
+      specialModeInfo: resultData.value.specialModeInfo,
     });
 
     aiComment.value = response.data.comment;
