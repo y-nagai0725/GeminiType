@@ -9,6 +9,7 @@ import TypingResultView from '../views/TypingResultView.vue';
 import TopView from '../views/TopView.vue';
 import MyPageView from '../views/MyPageView.vue';
 import SessionDetailView from '../views/SessionDetailView.vue';
+import NotFoundView from '../views/NotFoundView.vue';
 import { useAuthStore } from '../stores/authStore';
 
 const router = createRouter({
@@ -68,6 +69,12 @@ const router = createRouter({
       path: '/test-typing',
       name: 'test-typing',
       component: () => import('../views/TestTypingView.vue')
+    },
+    {
+      // 404ページ設定
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFoundView
     }
   ]
 });
