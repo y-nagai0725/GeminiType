@@ -847,7 +847,6 @@ onUnmounted(() => {
 .typing-core {
   border: 2px dashed #ccc;
   padding: 1.5rem;
-  font-family: "Courier New", Courier, monospace;
   text-align: center;
 
   /* ローディング・完了・待機画面の共通スタイル */
@@ -962,6 +961,8 @@ onUnmounted(() => {
   }
 
   &__romaji {
+    font-family: $roboto-mono;
+    font-weight: $bold;
     font-size: 1.75rem;
     letter-spacing: 2px;
     background-color: #f9f9f9;
