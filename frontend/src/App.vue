@@ -2,11 +2,14 @@
   <RouterView />
 
   <NotificationDisplay />
+
+  <MouseStalker />
 </template>
 
 <script setup>
 import { RouterView } from "vue-router";
 import NotificationDisplay from './components/NotificationDisplay.vue';
+import MouseStalker from './components/MouseStalker.vue';
 </script>
 
 <style lang="scss" scoped>
