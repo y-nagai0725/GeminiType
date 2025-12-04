@@ -1,0 +1,319 @@
+<template>
+  <header class="app-header">
+    <div class="app-header__inner">
+      <div class="app-header__left">
+        <RouterLink to="/" class="app-header__logo" @click="closeMenu">
+          GeminiType
+        </RouterLink>
+      </div>
+
+      <div class="app-header__right">
+        <div class="pc-actions">
+          <template v-if="!authStore.isLoggedIn">
+            <RouterLink to="/login" class="header-btn">ログイン</RouterLink>
+            <RouterLink to="/register" class="header-btn header-btn--primary"
+              >ユーザー登録</RouterLink
+            >
+          </template>
+          <template v-else>
+            <span class="user-name">{{ authStore.user?.name }} さん</span>
+            <RouterLink to="/mypage" class="header-btn header-btn--outline"
+              >マイページ</RouterLink
+            >
+          </template>
+        </div>
+
+        <button
+          class="hamburger-btn"
+          :class="{ 'is-active': isMenuOpen }"
+          @click="toggleMenu"
+          aria-label="メニューを開く"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+
+    <transition name="fade">
+      <nav v-show="isMenuOpen" class="fullscreen-menu">
+        <div class="menu-content">
+          <ul class="menu-list">
+            <li class="menu-item">
+              <RouterLink to="/" @click="closeMenu">TOP</RouterLink>
+            </li>
+
+            <template v-if="!authStore.isLoggedIn">
+              <li class="menu-item">
+                <RouterLink to="/login" @click="closeMenu">ログイン</RouterLink>
+              </li>
+              <li class="menu-item">
+                <RouterLink to="/register" @click="closeMenu"
+                  >ユーザー登録</RouterLink
+                >
+              </li>
+            </template>
+
+            <template v-else>
+              <li class="menu-item">
+                <RouterLink to="/mypage" @click="closeMenu"
+                  >マイページ</RouterLink
+                >
+              </li>
+              <li class="menu-item" v-if="authStore.isAdmin">
+                <RouterLink to="/admin" @click="closeMenu">管理画面</RouterLink>
+              </li>
+            </template>
+
+            <li class="menu-item">
+              <RouterLink to="/menu" @click="closeMenu"
+                >MENU (ゲーム選択)</RouterLink
+              >
+            </li>
+
+            <li class="menu-item" v-if="authStore.isLoggedIn">
+              <a href="#" @click.prevent="handleLogout" class="logout-link"
+                >ログアウト</a
+              >
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </transition>
+  </header>
+</template>
+
+<script setup>
+import { ref } from "vue";
+import { RouterLink, useRouter } from "vue-router";
+import { useAuthStore } from "../stores/authStore";
+import { useNotificationStore } from "../stores/notificationStore";
+
+const authStore = useAuthStore();
+const notificationStore = useNotificationStore();
+const router = useRouter();
+
+// メニューの開閉状態
+const isMenuOpen = ref(false);
+
+/**
+ * メニューの切り替え
+ */
+const toggleMenu = () => {
+  isMenuOpen.value = !isMenuOpen.value;
+};
+
+/**
+ * メニューを閉じる (リンククリック時など)
+ */
+const closeMenu = () => {
+  isMenuOpen.value = false;
+};
+
+/**
+ * ログアウト処理
+ */
+const handleLogout = () => {
+  closeMenu();
+  authStore.logout();
+  notificationStore.addNotification("ログアウトしました", "success");
+  router.push("/login");
+};
+</script>
+
+<style lang="scss" scoped>
+/* ヘッダー全体のスタイル */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px; /* ヘッダーの高さ */
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  z-index: 1000; /* 最前面 */
+
+  &__inner {
+    max-width: 1200px;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 1001; /* メニューより上に配置 */
+    background-color: #fff; /* 背景色でメニューを隠さないように */
+  }
+
+  /* ロゴ */
+  &__logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    text-decoration: none;
+    letter-spacing: 1px;
+    &:hover {
+      color: #007bff;
+    }
+  }
+
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+/* PC用アクションボタン (スマホでは消す) */
+.pc-actions {
+  display: none; /* デフォルトは非表示(SP) */
+  align-items: center;
+  gap: 1rem;
+
+  @media (min-width: 768px) {
+    display: flex; /* PC以上で表示 */
+  }
+
+  .user-name {
+    font-size: 0.9rem;
+    color: #555;
+    margin-right: 0.5rem;
+  }
+}
+
+/* 共通ボタンのスタイル */
+.header-btn {
+  font-size: 0.9rem;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  color: #555;
+  transition: all 0.2s;
+
+  &:hover {
+    color: #007bff;
+    background-color: #f0f8ff;
+  }
+
+  &--primary {
+    background-color: #007bff;
+    color: white;
+    &:hover {
+      color: white;
+      background-color: #0056b3;
+    }
+  }
+
+  &--outline {
+    border: 1px solid #007bff;
+    color: #007bff;
+    &:hover {
+      background-color: #007bff;
+      color: white;
+    }
+  }
+}
+
+/* ハンバーガーボタン */
+.hamburger-btn {
+  display: block;
+  position: relative;
+  width: 30px;
+  height: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 1002;
+
+  span {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #333;
+    border-radius: 2px;
+    transition: all 0.3s;
+
+    &:nth-of-type(1) {
+      top: 0;
+    }
+    &:nth-of-type(2) {
+      top: 11px;
+    }
+    &:nth-of-type(3) {
+      bottom: 0;
+    }
+  }
+
+  /* 開いた時のバッテンアニメーション */
+  &.is-active span {
+    &:nth-of-type(1) {
+      transform: translateY(11px) rotate(45deg);
+    }
+    &:nth-of-type(2) {
+      opacity: 0;
+    }
+    &:nth-of-type(3) {
+      transform: translateY(-11px) rotate(-45deg);
+    }
+  }
+}
+
+/* 全画面メニュー */
+.fullscreen-menu {
+  position: fixed;
+  top: 60px; /* ヘッダーの下から */
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 60px);
+  background-color: rgba(255, 255, 255, 0.95);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .menu-content {
+    text-align: center;
+    width: 100%;
+  }
+
+  .menu-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .menu-item {
+    margin: 1.5rem 0;
+
+    a {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #333;
+      text-decoration: none;
+      display: inline-block;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #007bff;
+      }
+    }
+
+    .logout-link {
+      color: #dc3545;
+    }
+  }
+}
+
+/* トランジション（フェード） */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

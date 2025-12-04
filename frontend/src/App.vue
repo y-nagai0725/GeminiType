@@ -1,19 +1,37 @@
 <template>
-  <RouterView />
+  <div class="app-container">
+    <AppHeader />
 
-  <NotificationDisplay />
+    <main class="main-content">
+      <RouterView />
+    </main>
 
-  <MouseStalker />
+    <AppFooter />
+
+    <NotificationDisplay />
+    <MouseStalker />
+  </div>
 </template>
 
 <script setup>
 import { RouterView } from "vue-router";
-import NotificationDisplay from './components/NotificationDisplay.vue';
-import MouseStalker from './components/MouseStalker.vue';
+import NotificationDisplay from "./components/NotificationDisplay.vue";
+import MouseStalker from "./components/MouseStalker.vue";
+import AppHeader from "./components/AppHeader.vue";
+import AppFooter from "./components/AppFooter.vue";
 </script>
 
 <style lang="scss" scoped>
-/* ここに「アプリ全体」に当てたいスタイル（背景色とか）を書けるよ！
-  でも、いったんカラっぽでもOK！
-*/
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* 画面いっぱいの高さを確保 */
+}
+
+.main-content {
+  flex: 1; /* ★ここ重要！余ったスペースを全部埋める！ */
+  padding-top: 60px; /* ヘッダーの高さ分 */
+  width: 100%;
+  box-sizing: border-box;
+}
 </style>
