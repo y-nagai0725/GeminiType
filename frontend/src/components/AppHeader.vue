@@ -10,8 +10,10 @@
       <div class="app-header__right">
         <div class="pc-actions">
           <template v-if="!authStore.isLoggedIn">
-            <RouterLink to="/login" class="header-btn">ログイン</RouterLink>
-            <RouterLink to="/register" class="header-btn header-btn--primary"
+            <RouterLink to="/login" class="header-btn header-btn--outline"
+              >ログイン</RouterLink
+            >
+            <RouterLink to="/register" class="header-btn header-btn--fill"
               >ユーザー登録</RouterLink
             >
           </template>
@@ -129,10 +131,9 @@ const handleLogout = () => {
   top: 0;
   left: 0;
   width: 100%;
-  height: 60px; /* ヘッダーの高さ */
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  z-index: 1000; /* 最前面 */
+  height: 60px;
+  background-color: $green;
+  z-index: 1000;
 
   &__inner {
     max-width: 1200px;
@@ -144,18 +145,18 @@ const handleLogout = () => {
     justify-content: space-between;
     position: relative;
     z-index: 1001; /* メニューより上に配置 */
-    background-color: #fff; /* 背景色でメニューを隠さないように */
   }
 
   /* ロゴ */
   &__logo {
     font-size: 1.5rem;
     font-weight: bold;
-    color: #333;
+    color: $white;
     text-decoration: none;
     letter-spacing: 1px;
+    transition: color 0.3s ease-out;
     &:hover {
-      color: #007bff;
+      color: $yellow;
     }
   }
 
@@ -178,7 +179,7 @@ const handleLogout = () => {
 
   .user-name {
     font-size: 0.9rem;
-    color: #555;
+    color: $white;
     margin-right: 0.5rem;
   }
 }
@@ -188,30 +189,28 @@ const handleLogout = () => {
   font-size: 0.9rem;
   text-decoration: none;
   padding: 0.5rem 1rem;
-  border-radius: 4px;
-  color: #555;
-  transition: all 0.2s;
+  border-radius: 100vmax;
+  color: $white;
+  transition: color 0.3s ease-out, background-color 0.3s ease-out,
+    border 0.3s ease-out;
 
-  &:hover {
-    color: #007bff;
-    background-color: #f0f8ff;
-  }
+  &--fill {
+    background-color: $white;
+    color: $black;
 
-  &--primary {
-    background-color: #007bff;
-    color: white;
-    &:hover {
+    @include hover {
       color: white;
-      background-color: #0056b3;
+      background-color: $yellow;
     }
   }
 
   &--outline {
-    border: 1px solid #007bff;
-    color: #007bff;
-    &:hover {
-      background-color: #007bff;
-      color: white;
+    border: 1px solid $white;
+    color: $white;
+
+    @include hover {
+      background-color: $white;
+      color: $green;
     }
   }
 }
@@ -232,7 +231,7 @@ const handleLogout = () => {
     left: 0;
     width: 100%;
     height: 2px;
-    background-color: #333;
+    background-color: $white;
     border-radius: 2px;
     transition: all 0.3s;
 
@@ -268,7 +267,7 @@ const handleLogout = () => {
   left: 0;
   width: 100%;
   height: calc(100vh - 60px);
-  background-color: rgba(255, 255, 255, 0.95);
+  background-color: $green;
   z-index: 999;
   display: flex;
   justify-content: center;
@@ -290,18 +289,18 @@ const handleLogout = () => {
     a {
       font-size: 1.5rem;
       font-weight: bold;
-      color: #333;
+      color: $white;
       text-decoration: none;
       display: inline-block;
-      transition: color 0.2s;
+      transition: color 0.3s ease-out;
 
-      &:hover {
-        color: #007bff;
+      @include hover {
+        color: $yellow;
       }
     }
 
     .logout-link {
-      color: #dc3545;
+      color: $red;
     }
   }
 }

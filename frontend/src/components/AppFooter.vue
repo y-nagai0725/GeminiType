@@ -50,8 +50,7 @@ const handleLogout = () => {
 
 <style lang="scss" scoped>
 .app-footer {
-  background-color: #f8f9fa; /* 薄いグレー */
-  border-top: 1px solid #eee;
+  background-color: $green;
   padding: 2rem 1rem;
   margin-top: auto; /* ★これ重要！Flexboxで下寄せにするため */
 
@@ -67,11 +66,14 @@ const handleLogout = () => {
   &__logo {
     font-weight: bold;
     font-size: 1.2rem;
+
     a {
-      color: #333;
+      color: $white;
       text-decoration: none;
-      &:hover {
-        color: #007bff;
+      transition: color 0.3s ease-out;
+
+      @include hover {
+        color: $yellow;
       }
     }
   }
@@ -86,12 +88,13 @@ const handleLogout = () => {
       padding: 0;
 
       a {
-        color: #666;
+        color: $white;
         text-decoration: none;
         font-size: 0.9rem;
-        &:hover {
-          color: #007bff;
-          text-decoration: underline;
+        transition: color 0.3s ease-out;
+
+        @include hover {
+          color: $yellow;
         }
       }
     }
@@ -99,7 +102,7 @@ const handleLogout = () => {
 
   &__copyright {
     font-size: 0.8rem;
-    color: #999;
+    color: $white;
   }
 }
 </style>
