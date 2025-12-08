@@ -3,7 +3,8 @@
     <div class="app-header__inner">
       <div class="app-header__left">
         <RouterLink to="/" class="app-header__logo" @click="closeMenu">
-          GeminiType
+          <SiteLogoIcon class="app-header__logo-icon" />
+          <span class="app-header__title">GeminiType</span>
         </RouterLink>
       </div>
 
@@ -91,6 +92,7 @@ import { ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
+import SiteLogoIcon from "@/components/icons/SiteLogoIcon.vue";
 
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
@@ -127,6 +129,7 @@ const handleLogout = () => {
 <style lang="scss" scoped>
 /* ヘッダー全体のスタイル */
 .app-header {
+  $parent: &;
   position: fixed;
   top: 0;
   left: 0;
@@ -149,14 +152,46 @@ const handleLogout = () => {
 
   /* ロゴ */
   &__logo {
-    font-size: 1.5rem;
-    font-weight: bold;
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+
+    @include pc {
+      gap: 16px;
+    }
+
+    @include hover {
+      #{$parent}__logo-icon {
+        stroke: $yellow;
+        fill: $yellow;
+      }
+
+      #{$parent}__title {
+        color: $yellow;
+      }
+    }
+  }
+
+  &__logo-icon {
+    width: 52px;
+    stroke: $white;
+    fill: $white;
+    transition: fill 0.3s ease-out, stroke 0.3s ease-out;
+
+    @include pc {
+      width: 52px;
+    }
+  }
+
+  &__title {
+    font-family: $roboto-mono;
+    font-weight: $bold;
     color: $white;
-    text-decoration: none;
-    letter-spacing: 1px;
+    letter-spacing: 0.05em;
     transition: color 0.3s ease-out;
-    &:hover {
-      color: $yellow;
+
+    @include pc {
+      font-size: 30px;
     }
   }
 
