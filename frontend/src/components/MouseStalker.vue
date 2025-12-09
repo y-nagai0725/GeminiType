@@ -57,12 +57,8 @@ onUnmounted(() => {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background-color: rgba(
-    0,
-    123,
-    255,
-    0.5
-  ); /* 半透明の青 (お兄ちゃんの好きな色に変えてね！) */
+  background-color: $green;
+  opacity: 0.6;
   pointer-events: none; /* マウスイベントを邪魔しないように！これ大事！ */
   z-index: 9999; /* 一番上に表示 */
 
@@ -73,7 +69,7 @@ onUnmounted(() => {
   /* ★ポイント: アニメーション設定 */
   transition: transform 0.1s ease-out,
     /* ちょっと遅れてついてくる演出 */ width 0.3s, height 0.3s,
-    background-color 0.3s, margin 0.3s; /* 大きさ変化用 */
+    opacity 0.3s, margin 0.3s; /* 大きさ変化用 */
 
   /* PC以外（タッチデバイス）では非表示にする */
   @media (hover: none) {
@@ -87,6 +83,6 @@ onUnmounted(() => {
   height: 50px;
   margin-top: -25px; /* 中心位置の補正 */
   margin-left: -25px;
-  background-color: rgba(0, 123, 255, 0.2); /* 少し薄くする */
+  opacity: 0.25;
 }
 </style>
