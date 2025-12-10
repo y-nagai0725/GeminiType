@@ -111,7 +111,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import api from "../services/api";
 import romaMapData from "@/data/romanTypingParseDictionary.json";
@@ -434,6 +434,13 @@ const nextExpectedKey = computed(() => {
   }
 
   return null;
+});
+
+// --- watch ---
+
+watch(nextExpectedKey, (newKey, oldKey) => {
+  console.log("new: " + newKey);
+  console.log("old: " + oldKey);
 });
 
 // --- Methods ---
