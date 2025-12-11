@@ -46,6 +46,32 @@
   );
 }
 
+// ==========================================
+//  4. 汎用版：プロパティを指定して可変にするMixin
+//     使い方: @include fluid-style(padding-bottom, 20, 60);
+// ==========================================
+@mixin fluid-style($property, $min-value, $max-value, $min-vw: 375, $max-vw: 1200) {
+  // 単位除去
+  $min-val: strip-unit($min-value);
+  $max-val: strip-unit($max-value);
+  $min-vw: strip-unit($min-vw);
+  $max-vw: strip-unit($max-vw);
+
+  // 傾き計算
+  $val-diff: $max-val - $min-val;
+  $vw-diff: $max-vw - $min-vw;
+
+  $slope: math.div($val-diff, $vw-diff);
+  $y-intercept: $min-val - ($slope * $min-vw);
+
+  // 指定されたプロパティに対して出力
+  #{$property}: clamp(
+    #{px-to-rem($min-val)},
+    calc(#{px-to-rem($y-intercept)} + #{$slope * 100}vw),
+    #{px-to-rem($max-val)}
+  );
+}
+
 //タブレット用メディアクエリ
 @mixin tab {
   @media screen and (min-width: 768px) {
