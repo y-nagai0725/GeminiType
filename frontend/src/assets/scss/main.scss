@@ -3,6 +3,10 @@
 @import "./reset.scss";
 
 html {
+  font-size: 62.5%;
+}
+
+body {
   font-family: $noto-sans;
   font-weight: $medium;
   color: $black;

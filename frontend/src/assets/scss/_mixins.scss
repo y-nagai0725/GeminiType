@@ -1,4 +1,50 @@
 @use "./_variables.scss" as *;
+@use "sass:math";
+@use "sass:meta";
+
+// ==========================================
+//  1. 数値から単位を取り除く関数
+// ==========================================
+@function strip-unit($number) {
+  @if meta.type-of($number) == "number" and not math.is-unitless($number) {
+    @return math.div($number, ($number * 0 + 1));
+  }
+  @return $number;
+}
+
+// ==========================================
+//  2. pxをremに変換する関数
+//     html { font-size: 62.5%; } 前提なので、10で割る
+// ==========================================
+@function px-to-rem($px) {
+  $val: strip-unit($px);
+  @return math.div($val, 10) * 1rem;
+}
+
+// ==========================================
+//  3. clamp() をremで自動生成するmixin
+// ==========================================
+@mixin fluid-text($min-font-size, $max-font-size, $min-viewport: 375, $max-viewport: 1200) {
+  // 単位除去
+  $min-size: strip-unit($min-font-size);
+  $max-size: strip-unit($max-font-size);
+  $min-vw: strip-unit($min-viewport);
+  $max-vw: strip-unit($max-viewport);
+
+  // 傾き計算
+  $size-diff: $max-size - $min-size;
+  $vw-diff: $max-vw - $min-vw;
+
+  $slope: math.div($size-diff, $vw-diff);
+  $y-intercept: $min-size - ($slope * $min-vw);
+
+  // 出力
+  font-size: clamp(
+    #{px-to-rem($min-size)},
+    calc(#{px-to-rem($y-intercept)} + #{$slope * 100}vw),
+    #{px-to-rem($max-size)}
+  );
+}
 
 //タブレット用メディアクエリ
 @mixin tab {
