@@ -2,7 +2,7 @@
   <header class="app-header">
     <div class="app-header__inner">
       <div class="app-header__left">
-        <RouterLink to="/" class="app-header__logo" @click="closeMenu">
+        <RouterLink to="/" class="app-header__logo-link" @click="closeMenu">
           <SiteLogoIcon class="app-header__logo-icon" />
           <span class="app-header__title">GeminiType</span>
         </RouterLink>
@@ -127,38 +127,31 @@ const handleLogout = () => {
 </script>
 
 <style lang="scss" scoped>
-/* ヘッダー全体のスタイル */
 .app-header {
   $parent: &;
   position: fixed;
+  z-index: 1000;
   top: 0;
   left: 0;
   width: 100%;
   height: 60px;
   background-color: $green;
-  z-index: 1000;
 
   &__inner {
-    max-width: 1200px;
-    height: 100%;
-    margin: 0 auto;
-    padding: 0 1rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: relative;
-    z-index: 1001; /* メニューより上に配置 */
+    z-index: 1001;
+    @include contents-width;
+    height: 100%;
   }
 
-  /* ロゴ */
-  &__logo {
-    padding: 10px 0;
+  &__logo-link {
+    padding: 1rem 0;
     display: flex;
     align-items: center;
-
-    @include pc {
-      gap: 16px;
-    }
+    @include fluid-style(gap, 8, 16);
 
     @include hover {
       #{$parent}__logo-icon {
@@ -173,26 +166,19 @@ const handleLogout = () => {
   }
 
   &__logo-icon {
-    width: 52px;
+    @include fluid-style(width, 26, 40);
     stroke: $white;
     fill: $white;
     transition: fill 0.3s ease-out, stroke 0.3s ease-out;
-
-    @include pc {
-      width: 52px;
-    }
   }
 
   &__title {
+    @include fluid-text(20, 30);
     font-family: $roboto-mono;
     font-weight: $bold;
     color: $white;
     letter-spacing: 0.05em;
     transition: color 0.3s ease-out;
-
-    @include pc {
-      font-size: 30px;
-    }
   }
 
   &__right {
