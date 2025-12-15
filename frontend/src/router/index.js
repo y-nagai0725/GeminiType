@@ -76,7 +76,18 @@ const router = createRouter({
       name: 'not-found',
       component: NotFoundView
     }
-  ]
+  ],
+  /**
+   * 画面遷移時のスクロール位置を制御する
+   * @param {*} to 行き先のルート
+   * @param {*} from 来た元のルート
+   * @param {*} savedPosition 覚えておいたスクロール位置
+   * @returns スクロール位置
+   */
+  scrollBehavior(to, from, savedPosition) {
+    // ページが変わったら、常に一番上（y: 0）に戻す
+    return { top: 0 };
+  },
 });
 
 /**
