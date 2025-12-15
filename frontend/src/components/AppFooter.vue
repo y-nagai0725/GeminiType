@@ -58,21 +58,27 @@
       <div class="footer__bottom-box">
         <ul class="footer__external-link-list">
           <li class="footer__external-link-item">
-            <a href="#" class="footer__external-link" target="_blank"
+            <a
+              href="https://portfolio.mikanbako.jp/"
+              class="footer__external-link"
+              target="_blank"
               >ポートフォリオ<ExternalLinkIcon
                 class="footer__external-link-icon"
             /></a>
           </li>
           <li class="footer__external-link-item">
             <a
-              href="#"
+              href="https://github.com/y-nagai0725"
               class="footer__external-link footer__external-link--roboto"
               target="_blank"
               >GitHub<ExternalLinkIcon class="footer__external-link-icon"
             /></a>
           </li>
           <li class="footer__external-link-item">
-            <a href="#" class="footer__external-link" target="_blank"
+            <a
+              href="https://blog.mikanbako.jp/"
+              class="footer__external-link"
+              target="_blank"
               >技術ブログ<ExternalLinkIcon class="footer__external-link-icon"
             /></a>
           </li>
