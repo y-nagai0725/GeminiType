@@ -1,87 +1,116 @@
 <template>
-  <header class="app-header">
-    <div class="app-header__inner">
-      <div class="app-header__left">
-        <RouterLink to="/" class="app-header__logo-link" @click="closeMenu">
-          <SiteLogoIcon class="app-header__logo-icon" />
-          <span class="app-header__title">GeminiType</span>
+  <header class="header">
+    <div class="header__inner">
+      <div class="header__left">
+        <RouterLink to="/" class="header__logo-link" @click="closeMenu">
+          <SiteLogoIcon class="header__logo-icon" />
+          <span class="header__title">GeminiType</span>
         </RouterLink>
       </div>
 
-      <div class="app-header__right">
-        <div class="pc-actions">
+      <div class="header__right">
+        <div class="header__pc-actions">
           <template v-if="!authStore.isLoggedIn">
-            <RouterLink to="/login" class="header-btn header-btn--outline"
+            <RouterLink to="/login" class="header__button" @click="closeMenu"
               >ログイン</RouterLink
             >
-            <RouterLink to="/register" class="header-btn header-btn--fill"
+            <RouterLink to="/register" class="header__button" @click="closeMenu"
               >ユーザー登録</RouterLink
             >
           </template>
           <template v-else>
-            <span class="user-name">{{ authStore.user?.name }} さん</span>
-            <RouterLink to="/mypage" class="header-btn header-btn--outline"
+            <span class="header__user-name"
+              ><UserIcon class="header__user-icon" /> {{ authStore.user?.name
+              }}<span class="header__honorific-title">さん</span></span
+            >
+            <RouterLink to="/mypage" class="header__button" @click="closeMenu"
               >マイページ</RouterLink
             >
           </template>
         </div>
 
         <button
-          class="hamburger-btn"
+          class="header__hamburger-button"
           :class="{ 'is-active': isMenuOpen }"
           @click="toggleMenu"
           aria-label="メニューを開く"
         >
-          <span></span>
-          <span></span>
-          <span></span>
+          <span class="header__line-wrapper">
+            <span class="header__line header__line--top"></span>
+            <span class="header__line header__line--middle"></span>
+            <span class="header__line header__line--bottom"></span>
+          </span>
+          <span class="header__hamburger-button-text">MENU</span>
         </button>
       </div>
     </div>
 
     <transition name="fade">
-      <nav v-show="isMenuOpen" class="fullscreen-menu">
-        <div class="menu-content">
-          <ul class="menu-list">
-            <li class="menu-item">
-              <RouterLink to="/" @click="closeMenu">TOP</RouterLink>
-            </li>
+      <nav v-show="isMenuOpen" class="header__fullscreen-menu">
+        <span v-if="authStore.isLoggedIn" class="header__menu-user-name"
+          ><UserIcon class="header__menu-user-icon" /> {{ authStore.user?.name
+          }}<span class="header__menu-honorific-title">さん</span></span
+        >
+        <ul class="header__menu-list">
+          <li class="header__menu-item">
+            <RouterLink
+              to="/"
+              class="header__menu-link header__menu-link--roboto"
+              @click="closeMenu"
+              >TOP</RouterLink
+            >
+          </li>
 
-            <template v-if="!authStore.isLoggedIn">
-              <li class="menu-item">
-                <RouterLink to="/login" @click="closeMenu">ログイン</RouterLink>
-              </li>
-              <li class="menu-item">
-                <RouterLink to="/register" @click="closeMenu"
-                  >ユーザー登録</RouterLink
-                >
-              </li>
-            </template>
+          <li class="header__menu-item">
+            <RouterLink to="/menu" class="header__menu-link" @click="closeMenu"
+              >メインメニュー</RouterLink
+            >
+          </li>
 
-            <template v-else>
-              <li class="menu-item">
-                <RouterLink to="/mypage" @click="closeMenu"
-                  >マイページ</RouterLink
-                >
-              </li>
-              <li class="menu-item" v-if="authStore.isAdmin">
-                <RouterLink to="/admin" @click="closeMenu">管理画面</RouterLink>
-              </li>
-            </template>
-
-            <li class="menu-item">
-              <RouterLink to="/menu" @click="closeMenu"
-                >MENU (ゲーム選択)</RouterLink
+          <template v-if="!authStore.isLoggedIn">
+            <li class="header__menu-item">
+              <RouterLink
+                to="/login"
+                class="header__menu-link"
+                @click="closeMenu"
+                >ログイン</RouterLink
               >
             </li>
-
-            <li class="menu-item" v-if="authStore.isLoggedIn">
-              <a href="#" @click.prevent="handleLogout" class="logout-link"
-                >ログアウト</a
+            <li class="header__menu-item">
+              <RouterLink
+                to="/register"
+                class="header__menu-link"
+                @click="closeMenu"
+                >ユーザー登録</RouterLink
               >
             </li>
-          </ul>
-        </div>
+          </template>
+
+          <template v-else>
+            <li class="header__menu-item">
+              <RouterLink
+                to="/mypage"
+                class="header__menu-link"
+                @click="closeMenu"
+                >マイページ</RouterLink
+              >
+            </li>
+            <li class="header__menu-item" v-if="authStore.isAdmin">
+              <RouterLink
+                to="/admin"
+                class="header__menu-link"
+                @click="closeMenu"
+                >管理画面</RouterLink
+              >
+            </li>
+          </template>
+
+          <li class="header__menu-item" v-if="authStore.isLoggedIn">
+            <a href="#" @click.prevent="handleLogout" class="header__menu-link"
+              >ログアウト</a
+            >
+          </li>
+        </ul>
       </nav>
     </transition>
   </header>
@@ -93,12 +122,26 @@ import { RouterLink, useRouter } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import SiteLogoIcon from "@/components/icons/SiteLogoIcon.vue";
+import UserIcon from "@/components/icons/UserIcon.vue";
 
+/**
+ * 認証store
+ */
 const authStore = useAuthStore();
+
+/**
+ * お知らせstore
+ */
 const notificationStore = useNotificationStore();
+
+/**
+ * router
+ */
 const router = useRouter();
 
-// メニューの開閉状態
+/**
+ * メニューの開閉状態
+ */
 const isMenuOpen = ref(false);
 
 /**
@@ -109,7 +152,7 @@ const toggleMenu = () => {
 };
 
 /**
- * メニューを閉じる (リンククリック時など)
+ * メニューを閉じる
  */
 const closeMenu = () => {
   isMenuOpen.value = false;
@@ -119,15 +162,19 @@ const closeMenu = () => {
  * ログアウト処理
  */
 const handleLogout = () => {
+  // メニューを閉じる
   closeMenu();
+
+  // ログアウト
   authStore.logout();
+
+  // ログアウトを通知
   notificationStore.addNotification("ログアウトしました", "success");
-  router.push("/login");
 };
 </script>
 
 <style lang="scss" scoped>
-.app-header {
+.header {
   $parent: &;
   position: fixed;
   z-index: 1000;
@@ -136,6 +183,14 @@ const handleLogout = () => {
   width: 100%;
   height: 60px;
   background-color: $green;
+
+  @include tab {
+    height: 70px;
+  }
+
+  @include pc {
+    height: 80px;
+  }
 
   &__inner {
     display: flex;
@@ -148,10 +203,10 @@ const handleLogout = () => {
   }
 
   &__logo-link {
-    padding: 1rem 0;
     display: flex;
     align-items: center;
     @include fluid-style(gap, 8, 16);
+    padding: 1rem 0;
 
     @include hover {
       #{$parent}__logo-icon {
@@ -176,157 +231,198 @@ const handleLogout = () => {
     @include fluid-text(20, 30);
     font-family: $roboto-mono;
     font-weight: $bold;
-    color: $white;
     letter-spacing: 0.05em;
+    color: $white;
     transition: color 0.3s ease-out;
   }
 
   &__right {
     display: flex;
     align-items: center;
-    gap: 1rem;
-  }
-}
-
-/* PC用アクションボタン (スマホでは消す) */
-.pc-actions {
-  display: none; /* デフォルトは非表示(SP) */
-  align-items: center;
-  gap: 1rem;
-
-  @media (min-width: 768px) {
-    display: flex; /* PC以上で表示 */
+    gap: 2.4rem;
   }
 
-  .user-name {
-    font-size: 0.9rem;
-    color: $white;
-    margin-right: 0.5rem;
-  }
-}
+  &__pc-actions {
+    display: none;
 
-/* 共通ボタンのスタイル */
-.header-btn {
-  font-size: 0.9rem;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 100vmax;
-  color: $white;
-  transition: color 0.3s ease-out, background-color 0.3s ease-out,
-    border 0.3s ease-out;
-
-  &--fill {
-    background-color: $white;
-    color: $black;
-
-    @include hover {
-      color: white;
-      background-color: $yellow;
+    @include pc {
+      display: flex;
+      align-items: center;
+      gap: 2.4rem;
     }
   }
 
-  &--outline {
-    border: 1px solid $white;
+  &__button {
+    padding: 1.6rem 3.2rem;
+    font-size: 1.4rem;
+    font-weight: $bold;
+    line-height: 1;
+    letter-spacing: 0.1em;
     color: $white;
+    border: 1px solid $white;
+    border-radius: 100vmax;
+    transition: color 0.3s ease-out, background-color 0.3s ease-out;
 
     @include hover {
       background-color: $white;
       color: $green;
     }
   }
-}
 
-/* ハンバーガーボタン */
-.hamburger-btn {
-  display: block;
-  position: relative;
-  width: 30px;
-  height: 24px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  z-index: 1002;
+  &__user-name,
+  &__menu-user-name {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 1.4rem;
+    color: $white;
+  }
 
-  span {
+  &__user-icon,
+  &__menu-user-icon {
+    width: 1.7rem;
+    aspect-ratio: 1;
+    fill: $white;
+  }
+
+  &__honorific-title,
+  &__menu-honorific-title {
+    font-size: 1.2rem;
+    color: $white;
+  }
+
+  &__hamburger-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    position: relative;
+    z-index: 1002;
+    @include fluid-style(width, 40, 48);
+    aspect-ratio: 1;
+    cursor: pointer;
+
+    &.is-active {
+      #{$parent}__line--top {
+        top: 50%;
+        transform: translateY(-50%) rotate(45deg);
+      }
+      #{$parent}__line--middle {
+        transform: translate(7px, -50%);
+        opacity: 0;
+      }
+      #{$parent}__line--bottom {
+        bottom: 50%;
+        transform: translateY(50%) rotate(-45deg);
+      }
+    }
+
+    @include hover {
+      #{$parent}__line {
+        background-color: $yellow;
+      }
+
+      #{$parent}__hamburger-button-text {
+        color: $yellow;
+      }
+    }
+  }
+
+  &__line-wrapper {
+    display: block;
+    position: relative;
+    width: 50%;
+    aspect-ratio: 5 / 4;
+  }
+
+  &__line {
     position: absolute;
     left: 0;
     width: 100%;
     height: 2px;
     background-color: $white;
     border-radius: 2px;
-    transition: all 0.3s;
+    transition: top 0.3s ease-out, bottom 0.3s ease-out, opacity 0.3s ease-out,
+      transform 0.3s ease-out, background-color 0.3s ease-out;
 
-    &:nth-of-type(1) {
+    &--top {
       top: 0;
     }
-    &:nth-of-type(2) {
-      top: 11px;
+
+    &--middle {
+      top: 50%;
+      transform: translateY(-50%);
     }
-    &:nth-of-type(3) {
+
+    &--bottom {
       bottom: 0;
     }
   }
 
-  /* 開いた時のバッテンアニメーション */
-  &.is-active span {
-    &:nth-of-type(1) {
-      transform: translateY(11px) rotate(45deg);
-    }
-    &:nth-of-type(2) {
-      opacity: 0;
-    }
-    &:nth-of-type(3) {
-      transform: translateY(-11px) rotate(-45deg);
-    }
+  &__hamburger-button-text {
+    font-family: $roboto-mono;
+    @include fluid-text(10, 11);
+    color: $white;
+    transition: color 0.3s ease-out;
   }
-}
 
-/* 全画面メニュー */
-.fullscreen-menu {
-  position: fixed;
-  top: 60px; /* ヘッダーの下から */
-  left: 0;
-  width: 100%;
-  height: calc(100vh - 60px);
-  background-color: $green;
-  z-index: 999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  .menu-content {
-    text-align: center;
+  &__fullscreen-menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5.6rem;
+    position: fixed;
+    top: 60px;
+    left: 0;
     width: 100%;
-  }
+    height: calc(100svh - 60px);
+    background-color: $green;
 
-  .menu-list {
-    list-style: none;
-    padding: 0;
-  }
-
-  .menu-item {
-    margin: 1.5rem 0;
-
-    a {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: $white;
-      text-decoration: none;
-      display: inline-block;
-      transition: color 0.3s ease-out;
-
-      @include hover {
-        color: $yellow;
-      }
+    @include tab {
+      top: 70px;
+      height: calc(100svh - 70px);
     }
 
-    .logout-link {
-      color: $red;
+    @include pc {
+      top: 80px;
+      height: calc(100vh - 80px);
+    }
+  }
+
+  &__menu-user-name {
+    @include pc {
+      display: none;
+    }
+  }
+
+  &__menu-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    @include fluid-style(gap, 12, 28);
+  }
+
+  &__menu-link {
+    display: block;
+    padding: 1rem 0;
+    @include fluid-text(18, 24);
+    font-weight: $bold;
+    letter-spacing: 0.1em;
+    color: $white;
+    transition: color 0.3s ease-out;
+
+    @include hover {
+      color: $yellow;
+    }
+
+    &--roboto {
+      font-family: $roboto-mono;
+      letter-spacing: 0.05em;
     }
   }
 }
 
-/* トランジション（フェード） */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;

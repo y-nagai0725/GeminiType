@@ -24,7 +24,7 @@
 // ==========================================
 //  3. clamp() をremで自動生成するmixin
 // ==========================================
-@mixin fluid-text($min-font-size, $max-font-size, $min-viewport: 375, $max-viewport: 1200) {
+@mixin fluid-text($min-font-size, $max-font-size, $min-viewport: 375, $max-viewport: 1280) {
   // 単位除去
   $min-size: strip-unit($min-font-size);
   $max-size: strip-unit($max-font-size);
@@ -50,7 +50,7 @@
 //  4. 汎用版：プロパティを指定して可変にするMixin
 //     使い方: @include fluid-style(padding-bottom, 20, 60);
 // ==========================================
-@mixin fluid-style($property, $min-value, $max-value, $min-vw: 375, $max-vw: 1200) {
+@mixin fluid-style($property, $min-value, $max-value, $min-vw: 375, $max-vw: 1280) {
   // 単位除去
   $min-val: strip-unit($min-value);
   $max-val: strip-unit($max-value);
@@ -81,7 +81,7 @@
 
 //PC用メディアクエリ
 @mixin pc {
-  @media screen and (min-width: 1024px) {
+  @media screen and (min-width: 1280px) {
     @content;
   }
 }
