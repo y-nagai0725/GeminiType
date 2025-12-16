@@ -56,27 +56,27 @@ const authStore = useAuthStore();
 
 <style lang="scss" scoped>
 .top-view {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 4rem 2rem;
-  text-align: center;
-  font-family: sans-serif;
+  @include contents-width;
+  @include fluid-style(padding-top, 40, 80);
+  @include fluid-style(padding-bottom, 64, 120);
 
   &__hero {
     margin-bottom: 4rem;
   }
 
   &__title {
-    font-size: 4rem;
-    color: #333;
-    margin-bottom: 1rem;
-    letter-spacing: 2px;
+    font-family: $roboto-mono;
+    @include fluid-text(40,64);
+    font-weight: $bold;
+    letter-spacing: 0.05em;
+    text-align: center;
   }
 
   &__subtitle {
+    margin-bottom: 3rem;
     font-size: 1.5rem;
     color: #666;
-    margin-bottom: 3rem;
+    text-align: center;
   }
 
   &__actions {

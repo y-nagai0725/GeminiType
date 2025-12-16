@@ -25,13 +25,24 @@ import AppFooter from "./components/AppFooter.vue";
 .app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* 画面いっぱいの高さを確保 */
+  min-height: 100svh;
+
+  @include pc {
+    min-height: 100vh;
+  }
 }
 
 .main-content {
-  flex: 1; /* ★ここ重要！余ったスペースを全部埋める！ */
-  padding-top: 60px; /* ヘッダーの高さ分 */
+  flex: 1;
   width: 100%;
-  box-sizing: border-box;
+  padding-top: 60px;
+
+  @include tab {
+    padding-top: 70px;
+  }
+
+  @include pc {
+    padding-top: 80px;
+  }
 }
 </style>
