@@ -3,18 +3,17 @@
     <div class="top-view__hero">
       <h1 class="top-view__title">GeminiType</h1>
       <p class="top-view__subtitle">
-        AIと一緒に、タイピングを楽しく練習しよう！
+        <span class="top-view__highlight">AI(Gemini)</span>と一緒に、<br
+          class="top-view__br"
+        />タイピングを楽しく練習しよう！
       </p>
 
       <div v-if="authStore.isLoggedIn" class="top-view__actions">
         <p class="top-view__welcome">
           おかえりなさい、{{ authStore.user?.name }} さん！
         </p>
-        <RouterLink
-          to="/menu"
-          class="top-view__button top-view__button--primary"
-        >
-          メニューへ進む
+        <RouterLink to="/menu" class="top-view__button top-view__button--menu">
+          メインメニューへ進む
         </RouterLink>
       </div>
 
@@ -61,60 +60,73 @@ const authStore = useAuthStore();
   @include fluid-style(padding-bottom, 64, 120);
 
   &__hero {
-    margin-bottom: 4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    @include fluid-style(gap, 32, 48);
+    @include fluid-style(margin-bottom, 40, 120);
   }
 
   &__title {
     font-family: $roboto-mono;
-    @include fluid-text(40,64);
+    @include fluid-text(40, 64);
     font-weight: $bold;
+    letter-spacing: 0.05em;
+  }
+
+  &__subtitle {
+    @include fluid-text(20, 32);
+    font-weight: $bold;
+    line-height: 1.8;
     letter-spacing: 0.05em;
     text-align: center;
   }
 
-  &__subtitle {
-    margin-bottom: 3rem;
-    font-size: 1.5rem;
-    color: #666;
-    text-align: center;
+  &__highlight {
+    color: $green;
+  }
+
+  &__br {
+    @include pc {
+      display: none;
+    }
   }
 
   &__actions {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
+    @include fluid-style(gap, 24, 48);
   }
 
   &__welcome {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #007bff;
+    @include fluid-text(14, 18);
+    font-weight: $bold;
+    letter-spacing: 0.1em;
+    color: $blue;
   }
 
   &__button {
     display: inline-block;
-    padding: 1rem 3rem;
-    border-radius: 50px;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 1.2rem;
-    transition: transform 0.2s;
+    @include fluid-style(width, 276, 432);
+    @include fluid-style(padding-block, 17, 22);
+    border-radius: 100vmax;
+    @include fluid-text(14, 18);
+    font-weight: $bold;
+    letter-spacing: 0.1em;
+    color: $white;
+    text-align: center;
+    transition: color 0.3s ease-out, background-color 0.3s ease-out;
 
-    &:hover {
-      transform: translateY(-2px);
+    @include hover {
     }
 
-    &--primary {
-      background-color: #007bff;
-      color: white;
-      box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+    &--menu {
+      background-color: $blue;
     }
 
     &--guest {
-      background-color: #28a745;
-      color: white;
-      box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+      background-color: $green;
     }
   }
 
