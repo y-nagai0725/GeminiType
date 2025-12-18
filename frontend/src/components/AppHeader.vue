@@ -207,23 +207,18 @@ const handleLogout = () => {
     align-items: center;
     @include fluid-style(gap, 8, 16);
     padding: 1rem 0;
+    color: $white;
+    transition: color 0.3s ease-out;
 
     @include hover {
-      #{$parent}__logo-icon {
-        stroke: $yellow;
-        fill: $yellow;
-      }
-
-      #{$parent}__title {
-        color: $yellow;
-      }
+      color: $yellow;
     }
   }
 
   &__logo-icon {
     @include fluid-style(width, 26, 40);
-    stroke: $white;
-    fill: $white;
+    stroke: currentColor;
+    fill: currentColor;
     transition: fill 0.3s ease-out, stroke 0.3s ease-out;
   }
 
@@ -232,8 +227,6 @@ const handleLogout = () => {
     font-family: $roboto-mono;
     font-weight: $bold;
     letter-spacing: 0.05em;
-    color: $white;
-    transition: color 0.3s ease-out;
   }
 
   &__right {
