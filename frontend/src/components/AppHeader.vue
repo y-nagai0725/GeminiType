@@ -246,20 +246,10 @@ const handleLogout = () => {
   }
 
   &__button {
+    @include button-style-border($white, $green);
     padding: 1.6rem 3.2rem;
     font-size: 1.4rem;
-    font-weight: $bold;
     line-height: 1;
-    letter-spacing: 0.1em;
-    color: $white;
-    border: 1px solid $white;
-    border-radius: 100vmax;
-    transition: color 0.3s ease-out, background-color 0.3s ease-out;
-
-    @include hover {
-      background-color: $white;
-      color: $green;
-    }
   }
 
   &__user-name,

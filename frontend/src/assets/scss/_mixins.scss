@@ -110,3 +110,46 @@
     max-width: 1200px;
   }
 }
+
+@mixin button-style {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.8rem;
+  font-weight: $bold;
+  letter-spacing: 0.1em;
+  border-radius: 100vmax;
+  transition:
+    color 0.3s ease-out,
+    background-color 0.3s ease-out;
+
+  @include hover {
+    svg {
+      transform: translateX(8px);
+    }
+  }
+}
+
+@mixin button-style-border($font-color, $hovered-font-color: $white) {
+  @include button-style;
+  color: $font-color;
+  border: 1px solid $font-color;
+  background-color: transparent;
+
+  @include hover {
+    color: $hovered-font-color;
+    background-color: $font-color;
+  }
+}
+
+@mixin button-style-fill($fill-color, $font-color: $white) {
+  @include button-style;
+  color: $font-color;
+  border: 1px solid $fill-color;
+  background-color: $fill-color;
+
+  @include hover {
+    color: $fill-color;
+    background-color: transparent;
+  }
+}
