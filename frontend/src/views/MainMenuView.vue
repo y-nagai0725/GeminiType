@@ -1,6 +1,9 @@
 <template>
   <div class="main-menu">
-    <h1 class="main-menu__title">GeminiType メインメニュー</h1>
+    <h1 class="main-menu__title">
+      <span class="en">MAIN MENU</span>
+      <span class="ja">メインメニュー</span>
+    </h1>
 
     <div class="main-menu__content">
       <section class="main-menu__section main-menu__section--ai">
@@ -144,12 +147,12 @@ const handleStartDbMode = (genreId) => {
 </script>
 
 <style lang="scss" scoped>
-/* スタイルは変更なし！ */
 .main-menu {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  @include contents-width;
+
+  &__title {
+    @include page-title;
+  }
 
   &__content {
     display: flex;

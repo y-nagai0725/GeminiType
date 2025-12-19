@@ -153,3 +153,47 @@
     background-color: transparent;
   }
 }
+
+// ==========================================
+//  ページタイトル用Mixin
+// ==========================================
+@mixin page-title {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  @include fluid-style(gap, 16, 24);
+  @include fluid-style(padding-block, 32, 48);
+
+  // 背景のグレーの帯
+  &::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 50%;
+    width: 100vw;
+    height: 100%;
+    transform: translateX(-50%);
+    background-color: $gray;
+  }
+
+  // 英語部分 (.en)
+  .en {
+    font-family: $roboto-mono;
+    @include fluid-text(30, 56);
+    font-weight: $bold;
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+
+  // 日本語部分 (.ja)
+  .ja {
+    @include fluid-text(14, 20);
+    font-weight: $bold;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    color: $green;
+  }
+}
