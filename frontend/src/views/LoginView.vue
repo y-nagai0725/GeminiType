@@ -1,6 +1,9 @@
 <template>
   <div class="login-view">
-    <h1 class="login-view__title">ログイン</h1>
+    <h1 class="login-view__title">
+      <span class="en">LOGIN</span>
+      <span class="ja">ログイン</span>
+    </h1>
 
     <form class="login-view__form" @submit.prevent="handleLogin" novalidate>
       <div class="login-view__group">
@@ -100,21 +103,14 @@ const handleLogin = async () => {
 <style lang="scss" scoped>
 /* (BEM) ブロック: .login-view */
 .login-view {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 400px; // 仮の幅
-  margin: 40px auto;
-  padding: 2rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  @include contents-width;
 
-  /* (BEM) エレメント: .login-view__title */
+  @include pc {
+    max-width: 1000px;
+  }
+
   &__title {
-    margin-bottom: 1.5rem;
-    color: #333;
+    @include page-title;
   }
 
   /* (BEM) エレメント: .login-view__form */

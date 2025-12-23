@@ -1,6 +1,9 @@
 <template>
   <div class="register-view">
-    <h1 class="register-view__title">ユーザー登録</h1>
+    <h1 class="register-view__title">
+      <span class="en">REGISTER</span>
+      <span class="ja">ユーザー登録</span>
+    </h1>
 
     <form
       class="register-view__form"
@@ -199,25 +202,15 @@ const handleRegister = async () => {
 </script>
 
 <style lang="scss" scoped>
-/* (BEM) .register-view は .login-view と「ほぼ」同じスタイルを使うよ */
-/* SCSSの「@import」とか「共通化」もできるけど、まずはコピペでOK！ */
-/* お兄ちゃんがデザインするときに、キレイに共通化しようね！♡ */
-
 .register-view {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 400px;
-  margin: 40px auto;
-  padding: 2rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  @include contents-width;
+
+  @include pc {
+    max-width: 1000px;
+  }
 
   &__title {
-    margin-bottom: 1.5rem;
-    color: #333;
+    @include page-title;
   }
 
   &__form {
