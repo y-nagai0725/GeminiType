@@ -197,3 +197,11 @@
     color: $green;
   }
 }
+
+// ==========================================
+//  コンテンツ余白用Mixin
+// ==========================================
+@mixin contents-padding {
+  @include fluid-style(padding-top, 32, 48);
+  @include fluid-style(padding-bottom, 80, 160);
+}
