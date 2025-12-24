@@ -4,71 +4,83 @@
       <span class="en">REGISTER</span>
       <span class="ja">ユーザー登録</span>
     </h1>
-
-    <form
-      class="register-view__form"
-      @submit.prevent="handleRegister"
-      novalidate
-    >
-      <div class="register-view__group">
-        <label for="name" class="register-view__label"
-          >ユーザー名 (10文字以内)</label
-        >
-        <input
-          type="text"
-          id="name"
-          class="register-view__input"
-          v-model.trim="name"
-          required
-        />
+    <div class="register-view__contents-wrapper">
+      <div class="register-view__link-wrapper">
+        <RouterLink to="/login" class="register-view__link">
+          <span class="register-view__link-text register-view__link-text--jp"
+            >ログイン</span
+          >
+          <span class="register-view__link-text register-view__link-text--en"
+            >LOGIN</span
+          >
+        </RouterLink>
+        <RouterLink to="/register" class="register-view__link">
+          <span class="register-view__link-text register-view__link-text--jp"
+            >ユーザー登録</span
+          >
+          <span class="register-view__link-text register-view__link-text--en"
+            >REGISTER</span
+          >
+        </RouterLink>
       </div>
+      <form
+        class="register-view__form"
+        @submit.prevent="handleRegister"
+        novalidate
+      >
+        <div class="register-view__group">
+          <label for="name" class="register-view__label"
+            >ユーザー名 (10文字以内)</label
+          >
+          <input
+            type="text"
+            id="name"
+            class="register-view__input"
+            v-model.trim="name"
+            required
+          />
+        </div>
 
-      <div class="register-view__group">
-        <label for="email" class="register-view__label">メールアドレス</label>
-        <input
-          type="email"
-          id="email"
-          class="register-view__input"
-          v-model.trim="email"
-          required
-        />
-      </div>
+        <div class="register-view__group">
+          <label for="email" class="register-view__label">メールアドレス</label>
+          <input
+            type="email"
+            id="email"
+            class="register-view__input"
+            v-model.trim="email"
+            required
+          />
+        </div>
 
-      <div class="register-view__group">
-        <label for="password" class="register-view__label"
-          >パスワード (4文字以上)</label
-        >
-        <input
-          type="password"
-          id="password"
-          class="register-view__input"
-          v-model="password"
-          required
-        />
-      </div>
+        <div class="register-view__group">
+          <label for="password" class="register-view__label"
+            >パスワード (4文字以上)</label
+          >
+          <input
+            type="password"
+            id="password"
+            class="register-view__input"
+            v-model="password"
+            required
+          />
+        </div>
 
-      <div class="register-view__group">
-        <label for="password-confirm" class="register-view__label"
-          >パスワード (確認用)</label
-        >
-        <input
-          type="password"
-          id="password-confirm"
-          class="register-view__input"
-          v-model="passwordConfirm"
-          required
-        />
-      </div>
+        <div class="register-view__group">
+          <label for="password-confirm" class="register-view__label"
+            >パスワード (確認用)</label
+          >
+          <input
+            type="password"
+            id="password-confirm"
+            class="register-view__input"
+            v-model="passwordConfirm"
+            required
+          />
+        </div>
 
-      <button type="submit" class="register-view__button">登録する</button>
-
-      <p class="register-view__message">
-        アカウント持ってる？
-        <RouterLink to="/login" class="register-view__link"
-          >ログインはこちら</RouterLink
-        >
-      </p>
-    </form>
+        <button type="submit" class="register-view__button">登録する</button>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -213,8 +225,21 @@ const handleRegister = async () => {
     @include page-title;
   }
 
+  &__contents-wrapper {
+    @include contents-padding;
+  }
+
+  &__link-wrapper {
+    display: flex;
+    justify-content: space-between;
+    @include fluid-style(gap, 16, 24);
+  }
+
+  &__link {
+
+  }
+
   &__form {
-    width: 100%;
   }
 
   &__group {
@@ -255,15 +280,6 @@ const handleRegister = async () => {
     margin-top: 1.5rem;
     text-align: center;
     font-size: 0.9rem;
-  }
-
-  &__link {
-    color: #007bff;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
   }
 }
 </style>
