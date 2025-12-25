@@ -11,6 +11,7 @@ $extrabold: 800;
 // Colors
 // =================================
 $black: #444;
+$light-black: rgba($black, 0.5);
 $white: #fff;
 $gray: #faf7f3;
 $green: #41a9a5;
@@ -44,3 +45,6 @@ $z-header: 100;
 $z-modal-overlay: 200;
 $z-modal-content: 210;
 $z-toast: 300;
+
+// 影
+$text-box-shadow: 0 0 7px $blue;
