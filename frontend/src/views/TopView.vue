@@ -337,7 +337,7 @@ const isStressFreeDetail = ref(false);
     @include fluid-style(gap, 24, 28);
     aspect-ratio: 335 / 472;
     padding: 2.4rem;
-    border-radius: 22px;
+    border-radius: $radius-lg;
     background-color: $gray;
   }
 
@@ -365,7 +365,7 @@ const isStressFreeDetail = ref(false);
     width: 100%;
     aspect-ratio: 1;
     object-fit: cover;
-    border-radius: 22px;
+    border-radius: $radius-lg;
   }
 
   &__text {
@@ -398,7 +398,7 @@ const isStressFreeDetail = ref(false);
     aspect-ratio: 1;
     border-radius: 100vmax;
     background-color: $blue;
-    transition: background-color 0.3s ease-out, transform 0.3s ease-out;
+    transition: background-color $transition-base, transform $transition-base;
 
     &::before,
     &::after {
@@ -409,7 +409,7 @@ const isStressFreeDetail = ref(false);
       width: 1.4rem;
       height: 2px;
       background-color: $white;
-      transition: transform 0.3s ease-out, background-color 0.3s ease-out;
+      transition: transform $transition-base, background-color $transition-base;
     }
 
     &::before {
