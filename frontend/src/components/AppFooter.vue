@@ -178,7 +178,7 @@ const handleLogout = () => {
     @include fluid-style(gap, 8, 24);
     padding: 1rem 0;
     color: $white;
-    transition: color 0.3s ease-out;
+    transition: color $transition-base;
 
     @include hover {
       color: $yellow;
@@ -189,7 +189,7 @@ const handleLogout = () => {
     @include fluid-style(width, 32, 52);
     stroke: currentColor;
     fill: currentColor;
-    transition: fill 0.3s ease-out, stroke 0.3s ease-out;
+    transition: fill $transition-base, stroke $transition-base;
   }
 
   &__title {
@@ -217,7 +217,7 @@ const handleLogout = () => {
     font-weight: $bold;
     letter-spacing: 0.1em;
     color: $white;
-    transition: color 0.3s ease-out;
+    transition: color $transition-base;
 
     &--roboto {
       font-family: $roboto-mono;
@@ -271,7 +271,7 @@ const handleLogout = () => {
     @include fluid-text(11, 14);
     letter-spacing: 0.1em;
     color: $white;
-    transition: color 0.3s ease-out;
+    transition: color $transition-base;
 
     &--roboto {
       font-family: $roboto-mono;
@@ -292,7 +292,7 @@ const handleLogout = () => {
     @include fluid-style(width, 11, 14);
     aspect-ratio: 1;
     fill: $white;
-    transition: fill 0.3s ease-out, transform 0.3s ease-out;
+    transition: fill $transition-base, transform $transition-base;
   }
 
   &__copyright {
