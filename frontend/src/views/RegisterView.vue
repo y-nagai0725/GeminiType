@@ -6,7 +6,10 @@
     </h1>
     <div class="register-view__contents-wrapper">
       <div class="register-view__link-wrapper">
-        <RouterLink to="/login" class="register-view__link">
+        <RouterLink
+          to="/login"
+          class="register-view__link register-view__link--active"
+        >
           <span class="register-view__link-text register-view__link-text--jp"
             >ログイン</span
           >
@@ -14,14 +17,14 @@
             >LOGIN</span
           >
         </RouterLink>
-        <RouterLink to="/register" class="register-view__link">
+        <div class="register-view__link register-view__link--disable">
           <span class="register-view__link-text register-view__link-text--jp"
             >ユーザー登録</span
           >
           <span class="register-view__link-text register-view__link-text--en"
             >REGISTER</span
           >
-        </RouterLink>
+        </div>
       </div>
       <form
         class="register-view__form"
@@ -30,7 +33,9 @@
       >
         <div class="register-view__group">
           <label for="name" class="register-view__label"
-            >ユーザー名 (10文字以内)</label
+            >ユーザー名<span class="register-view__label-notice"
+              >※10文字以内</span
+            ></label
           >
           <input
             type="text"
@@ -54,7 +59,9 @@
 
         <div class="register-view__group">
           <label for="password" class="register-view__label"
-            >パスワード (4文字以上)</label
+            >パスワード<span class="register-view__label-notice"
+              >※4文字以上</span
+            ></label
           >
           <input
             type="password"
@@ -67,7 +74,7 @@
 
         <div class="register-view__group">
           <label for="password-confirm" class="register-view__label"
-            >パスワード (確認用)</label
+            >パスワード確認</label
           >
           <input
             type="password"
@@ -78,7 +85,7 @@
           />
         </div>
 
-        <button type="submit" class="register-view__button">登録する</button>
+        <button type="submit" class="register-view__button">登録<ArrowIcon class="register-view__arrow-icon" /></button>
       </form>
     </div>
   </div>
@@ -90,6 +97,7 @@ import { RouterLink, useRouter } from "vue-router";
 import api from "../services/api";
 import { useNotificationStore } from "../stores/notificationStore";
 import { useAuthStore } from "../stores/authStore";
+import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 
 /**
  * router
@@ -215,71 +223,6 @@ const handleRegister = async () => {
 
 <style lang="scss" scoped>
 .register-view {
-  @include contents-width;
-
-  @include pc {
-    max-width: 1000px;
-  }
-
-  &__title {
-    @include page-title;
-  }
-
-  &__contents-wrapper {
-    @include contents-padding;
-  }
-
-  &__link-wrapper {
-    display: flex;
-    justify-content: space-between;
-    @include fluid-style(gap, 16, 24);
-  }
-
-  &__link {
-
-  }
-
-  &__form {
-  }
-
-  &__group {
-    margin-bottom: 1rem;
-  }
-
-  &__label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-  }
-
-  &__input {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
-  }
-
-  &__button {
-    width: 100%;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 4px;
-    background-color: #28a745; // 仮の緑色
-    color: white;
-    font-size: 1rem;
-    cursor: pointer;
-    margin-top: 1rem;
-
-    &:hover {
-      background-color: #218838; // 仮の濃い緑色
-    }
-  }
-
-  &__message {
-    margin-top: 1.5rem;
-    text-align: center;
-    font-size: 0.9rem;
-  }
+  @include auth-style;
 }
 </style>

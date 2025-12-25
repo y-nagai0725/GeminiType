@@ -1,13 +1,41 @@
+// =================================
+// Typography
+// =================================
 $noto-sans: "Noto Sans JP", sans-serif;
 $roboto-mono: "Roboto Mono", monospace;
 $medium: 500;
 $bold: 700;
 $extrabold: 800;
+
+// =================================
+// Colors
+// =================================
 $black: #444;
 $white: #fff;
 $gray: #faf7f3;
 $green: #41a9a5;
+$light-green: rgba($green, 0.1);
 $yellow: #fec800;
 $orange: #f67e62;
 $blue: #3490d1;
+$light-blue: rgba($blue, 0.1);
 $red: #f44336;
+
+// =================================
+// Size / Layout
+// =================================
+// 角丸
+$radius-sm: 3px;
+$radius-md: 8px;
+$radius-lg: 22px;
+
+// アニメーション
+$transition-base: 0.3s ease-out;
+
+// Z-index管理
+$z-back: -1;
+$z-default: 1;
+$z-header: 100;
+$z-modal-overlay: 200;
+$z-modal-content: 210;
+$z-toast: 300;

@@ -292,9 +292,7 @@ const isStressFreeDetail = ref(false);
   }
 
   &__arrow-icon {
-    width: 0.9em;
-    fill: currentColor;
-    transition: transform 0.3s ease-out;
+    @include button-arrow-icon-style;
   }
 
   &__sub-actions {

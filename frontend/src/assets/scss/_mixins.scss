@@ -112,11 +112,13 @@
 }
 
 @mixin button-style {
+  cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 0.8rem;
   font-weight: $bold;
+  line-height: 1;
   letter-spacing: 0.1em;
   border-radius: 100vmax;
   transition:
@@ -152,6 +154,12 @@
     color: $fill-color;
     background-color: transparent;
   }
+}
+
+@mixin button-arrow-icon-style {
+  width: 0.8em;
+  fill: currentColor;
+  transition: transform $transition-base;
 }
 
 // ==========================================
@@ -204,4 +212,132 @@
 @mixin contents-padding {
   @include fluid-style(padding-top, 32, 48);
   @include fluid-style(padding-bottom, 80, 160);
+}
+
+// ==========================================
+//  認証ページ（ログイン・ユーザー登録）Mixin
+// ==========================================
+@mixin auth-style {
+  @include contents-width;
+
+  @include pc {
+    max-width: 1000px;
+  }
+
+  &__title {
+    @include page-title;
+  }
+
+  &__contents-wrapper {
+    display: flex;
+    flex-direction: column;
+    @include fluid-style(gap, 32, 48);
+    @include contents-padding;
+  }
+
+  &__link-wrapper {
+    display: flex;
+    justify-content: space-between;
+    @include fluid-style(gap, 16, 24);
+  }
+
+  &__link {
+    display: flex;
+    flex-direction: column;
+    @include fluid-style(gap, 8, 16);
+    width: 50%;
+    @include fluid-style(padding, 16, 24);
+    color: $green;
+    border: 1px solid $green;
+    border-radius: $radius-md $radius-md 0 0;
+    transition: background-color $transition-base;
+
+    &--active {
+      @include hover {
+        background-color: $light-green;
+      }
+    }
+
+    &--disable {
+      color: $white;
+      background-color: $green;
+    }
+
+    @include pc {
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+
+  &__link-text {
+    font-weight: $bold;
+    color: currentColor;
+
+    &--jp {
+      @include fluid-text(14, 16);
+      letter-spacing: 0.1em;
+    }
+
+    &--en {
+      font-family: $roboto-mono;
+      @include fluid-text(12, 14);
+      letter-spacing: 0.05em;
+    }
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    @include fluid-style(gap, 24, 32);
+  }
+
+  &__group {
+    display: grid;
+    grid-template-columns: 1fr;
+    @include fluid-style(gap, 16, 24);
+
+    @include pc {
+      align-items: center;
+      grid-template-columns: 1fr 3fr;
+      gap: 0;
+    }
+  }
+
+  &__label {
+    @include fluid-text(14, 16);
+    font-weight: $bold;
+    letter-spacing: 0.1em;
+  }
+
+  &__label-notice {
+    margin-left: 1em;
+    color: $orange;
+  }
+
+  &__input {
+    padding: 1em;
+    @include fluid-text(14, 16);
+    font-weight: $bold;
+    line-height: 1;
+    border-radius: $radius-md;
+    background-color: $light-green;
+    transition: box-shadow $transition-base;
+
+    &:focus {
+      box-shadow: 0 0 7px $blue;
+    }
+  }
+
+  &__button {
+    @include button-style-fill($blue);
+    @include fluid-style(width, 240, 350);
+    @include fluid-style(padding-block, 17, 22);
+    @include fluid-style(margin-top, 8, 16);
+    margin-inline: auto;
+    @include fluid-text(14, 18);
+  }
+
+  &__arrow-icon {
+    @include button-arrow-icon-style;
+  }
 }
