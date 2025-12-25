@@ -36,14 +36,14 @@ import AppFooter from "./components/AppFooter.vue";
 .main-content {
   flex: 1;
   width: 100%;
-  padding-top: 60px;
+  padding-top: $header-height-sp;
 
   @include tab {
-    padding-top: 70px;
+    padding-top: $header-height-tab;
   }
 
   @include pc {
-    padding-top: 80px;
+    padding-top: $header-height-pc;
   }
 }
 </style>

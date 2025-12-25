@@ -177,19 +177,19 @@ const handleLogout = () => {
 .header {
   $parent: &;
   position: fixed;
-  z-index: 1000;
+  z-index: $z-header;
   top: 0;
   left: 0;
   width: 100%;
-  height: 60px;
+  height: $header-height-sp;
   background-color: $green;
 
   @include tab {
-    height: 70px;
+    height: $header-height-tab;
   }
 
   @include pc {
-    height: 80px;
+    height: $header-height-pc;
   }
 
   &__inner {
@@ -197,7 +197,6 @@ const handleLogout = () => {
     align-items: center;
     justify-content: space-between;
     position: relative;
-    z-index: 1001;
     @include contents-width;
     height: 100%;
   }
@@ -208,7 +207,7 @@ const handleLogout = () => {
     @include fluid-style(gap, 8, 16);
     padding: 1rem 0;
     color: $white;
-    transition: color 0.3s ease-out;
+    transition: color $transition-base;
 
     @include hover {
       color: $yellow;
@@ -219,7 +218,7 @@ const handleLogout = () => {
     @include fluid-style(width, 26, 40);
     stroke: currentColor;
     fill: currentColor;
-    transition: fill 0.3s ease-out, stroke 0.3s ease-out;
+    transition: fill $transition-base, stroke $transition-base;
   }
 
   &__title {
@@ -280,7 +279,6 @@ const handleLogout = () => {
     align-items: center;
     justify-content: space-around;
     position: relative;
-    z-index: 1002;
     @include fluid-style(width, 40, 48);
     aspect-ratio: 1;
     cursor: pointer;
@@ -325,8 +323,9 @@ const handleLogout = () => {
     height: 2px;
     background-color: $white;
     border-radius: 2px;
-    transition: top 0.3s ease-out, bottom 0.3s ease-out, opacity 0.3s ease-out,
-      transform 0.3s ease-out, background-color 0.3s ease-out;
+    transition: top $transition-base, bottom $transition-base,
+      opacity $transition-base, transform $transition-base,
+      background-color $transition-base;
 
     &--top {
       top: 0;
@@ -346,7 +345,7 @@ const handleLogout = () => {
     font-family: $roboto-mono;
     @include fluid-text(10, 11);
     color: $white;
-    transition: color 0.3s ease-out;
+    transition: color $transition-base;
   }
 
   &__fullscreen-menu {
@@ -356,20 +355,20 @@ const handleLogout = () => {
     align-items: center;
     gap: 5.6rem;
     position: fixed;
-    top: 60px;
+    top: $header-height-sp;
     left: 0;
     width: 100%;
-    height: calc(100svh - 60px);
+    height: calc(100svh - $header-height-sp);
     background-color: $green;
 
     @include tab {
-      top: 70px;
-      height: calc(100svh - 70px);
+      top: $header-height-tab;
+      height: calc(100svh - $header-height-tab);
     }
 
     @include pc {
-      top: 80px;
-      height: calc(100vh - 80px);
+      top: $header-height-pc;
+      height: calc(100vh - $header-height-pc);
     }
   }
 
@@ -393,7 +392,7 @@ const handleLogout = () => {
     font-weight: $bold;
     letter-spacing: 0.1em;
     color: $white;
-    transition: color 0.3s ease-out;
+    transition: color $transition-base;
 
     @include hover {
       color: $yellow;
@@ -408,7 +407,7 @@ const handleLogout = () => {
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity $transition-base;
 }
 
 .fade-enter-from,
