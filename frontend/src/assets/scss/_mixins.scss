@@ -219,6 +219,8 @@
 // ==========================================
 @mixin auth-style {
   @include contents-width;
+  max-width: 600px;
+  margin-inline: auto;
 
   @include pc {
     max-width: 1000px;
