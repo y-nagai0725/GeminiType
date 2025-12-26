@@ -6,6 +6,7 @@
       <RouterView />
     </main>
 
+    <Submenu />
     <AppFooter />
 
     <NotificationDisplay />
@@ -19,6 +20,7 @@ import NotificationDisplay from "./components/NotificationDisplay.vue";
 import MouseStalker from "./components/MouseStalker.vue";
 import AppHeader from "./components/AppHeader.vue";
 import AppFooter from "./components/AppFooter.vue";
+import Submenu from "./components/Submenu.vue";
 </script>
 
 <style lang="scss" scoped>
