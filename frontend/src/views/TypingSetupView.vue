@@ -13,7 +13,7 @@
         </template>
         <template v-else-if="mode === 'db'">
           <p class="setup-view__info-heading">登録問題モード</p>
-          <p class="setup-view__info-theme">ジャンル名: {{ genreId }}</p>
+          <p class="setup-view__info-theme">ジャンル名: {{ genreName }}</p>
         </template>
       </div>
 
@@ -212,6 +212,11 @@ const prompt = computed(() => route.query.prompt);
 const genreId = computed(() => route.query.genreId);
 
 /**
+ * URLクエリから取得: ジャンル名
+ */
+const genreName = computed(() => route.query.genreName);
+
+/**
  * 画面表示時のチェック処理
  */
 onMounted(() => {
@@ -227,6 +232,16 @@ onMounted(() => {
 
   // DBモードなのにジャンルIDがない場合
   if (mode.value === "db" && !genreId.value) {
+    notificationStore.addNotification(
+      "ジャンルが選択されていません。",
+      "error"
+    );
+    router.push("/menu");
+    return;
+  }
+
+  // DBモードなのにジャンル名がない場合
+  if (mode.value === "db" && !genreName.value) {
     notificationStore.addNotification(
       "ジャンルが選択されていません。",
       "error"

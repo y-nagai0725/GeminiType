@@ -56,7 +56,7 @@
                 v-for="genre in genres"
                 :key="genre.id"
                 class="main-menu__genre-button"
-                @click="handleStartDbMode(genre.id)"
+                @click="handleStartDbMode(genre.id, genre.name)"
               >
                 {{ genre.name }}
                 <ArrowIcon class="main-menu__arrow-icon" />
@@ -147,10 +147,20 @@ const handleStartAiMode = () => {
 /**
  * DBモードで次へ（設定画面へ）
  * @param {Number} genreId 選択されたジャンルID
+ * @param {String} genreName 選択されたジャンル名
  */
-const handleStartDbMode = (genreId) => {
-  // バリデーション: IDが空または数字ではない場合は止める
+const handleStartDbMode = (genreId, genreName) => {
+  // ジャンルIDバリデーション: IDが空または数字ではない場合は止める
   if (!genreId || typeof genreId !== "number") {
+    notificationStore.addNotification(
+      "ジャンルが正しく選択されていません。",
+      "error"
+    );
+    return;
+  }
+
+  // ジャンル名バリデーション: ジャンル名が空の場合は止める
+  if (!genreName) {
     notificationStore.addNotification(
       "ジャンルが正しく選択されていません。",
       "error"
@@ -161,7 +171,7 @@ const handleStartDbMode = (genreId) => {
   // 設定画面へ遷移
   router.push({
     path: "/typing/setup",
-    query: { mode: "db", genreId },
+    query: { mode: "db", genreId, genreName },
   });
 };
 </script>
