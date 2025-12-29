@@ -312,7 +312,12 @@ const handleComplete = async (data) => {
   localStorage.setItem(
     "last_session_result",
     JSON.stringify({
-      stats: { kpm: avgKpm, accuracy: avgAccuracy },
+      stats: {
+        kpm: avgKpm,
+        accuracy: avgAccuracy,
+        total_types: totalTypes,
+        total_miss_count: totalMissCount,
+      },
       results: results,
       specialModeInfo: specialModeInfo,
     })

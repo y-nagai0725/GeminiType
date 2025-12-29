@@ -14,6 +14,14 @@
             >{{ Math.round(resultData.stats.accuracy) }}%</span
           >
         </div>
+        <div class="result-view__score-item">
+          <span class="label">ミス回数</span>
+          <span class="value">{{ resultData.stats.total_miss_count }}</span>
+        </div>
+        <div class="result-view__score-item">
+          <span class="label">総タイプ数</span>
+          <span class="value">{{ resultData.stats.total_types }}</span>
+        </div>
 
         <div class="result-view__rank">
           Rank: <span :class="`rank-${rank}`">{{ rank }}</span>
@@ -57,7 +65,6 @@
                 <th class="col-romaji">ローマ字</th>
                 <th class="col-kpm">KPM</th>
                 <th class="col-acc">Acc.</th>
-                <th class="col-miss-count">Miss</th>
                 <th class="col-miss-keys">Missed Keys</th>
               </tr>
             </thead>
@@ -69,7 +76,6 @@
                 </td>
                 <td class="text-bold">{{ Math.round(problem.kpm) }}</td>
                 <td class="text-bold">{{ Math.round(problem.accuracy) }}%</td>
-                <td class="text-miss">{{ problem.miss_count }}</td>
                 <td class="text-miss-keys">
                   {{ formatMissedKeys(problem.missed_keys) }}
                 </td>
