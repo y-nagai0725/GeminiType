@@ -5,111 +5,113 @@
       <span class="ja">タイピング結果</span>
     </h1>
 
-    <div v-if="resultData" class="result-view__content-wrapper">
-      <div class="result-view__result-card-wrapper">
-        <div class="result-view__result-card">
-          <KpmIcon class="result-view__card-icon result-view__card-icon--kpm" />
-          <span class="result-view__card-title result-view__card-title--en"
-            >KPM</span
-          >
-          <span class="result-view__card-value result-view__card-value--kpm">{{
-            Math.round(resultData.stats.kpm)
-          }}</span>
-        </div>
-        <div class="result-view__result-card">
-          <AccuracyIcon
-            class="result-view__card-icon result-view__card-icon--accuracy"
-          />
-          <span class="result-view__card-title">正確率</span>
-          <span
-            class="result-view__card-value result-view__card-value--accuracy"
-            >{{ Math.round(resultData.stats.accuracy) }}%</span
-          >
-        </div>
-        <div class="result-view__result-card">
-          <TotalMissCountIcon
-            class="result-view__card-icon result-view__card-icon--total-miss-count"
-          />
-          <span class="result-view__card-title">ミス回数</span>
-          <span
-            class="result-view__card-value result-view__card-value--total-miss-count"
-            >{{ resultData.stats.total_miss_count }}</span
-          >
-        </div>
-        <div class="result-view__result-card">
-          <TotalTypeCountIcon
-            class="result-view__card-icon result-view__card-icon--total-type-count"
-          />
-          <span class="result-view__card-title">総タイプ数</span>
-          <span
-            class="result-view__card-value result-view__card-value--total-type-count"
-            >{{ resultData.stats.total_types }}</span
-          >
-        </div>
-      </div>
-      <div class="result-view__score-card">
-        <div class="result-view__score-item">
-          <ScoreIcon
-            class="result-view__card-icon result-view__card-icon--score"
-          />
-          <span class="result-view__card-title">スコア</span>
-          <span
-            class="result-view__card-value result-view__card-value--score"
-            >{{ score }}</span
-          >
-        </div>
-        <div class="result-view__rank-item">
-          <div class="result-view__rank-circle-wrapper"></div>
-          <div class="result-view__rank-wrapper">
-            <span
-              class="result-view__rank-text"
-              :class="{
-                'rank-s': rank === 'S',
-                'rank-a': rank === 'A',
-                'rank-b': rank === 'B',
-                'rank-c': rank === 'C',
-              }"
-              >{{ rank }}</span
+    <div class="result-view__contents-wrapper">
+      <div v-if="resultData" class="result-view__top-wrapper">
+        <div class="result-view__result-card-wrapper">
+          <div class="result-view__result-card">
+            <KpmIcon
+              class="result-view__card-icon result-view__card-icon--kpm"
+            />
+            <span class="result-view__card-title result-view__card-title--en"
+              >KPM</span
             >
-            <span class="result-view__rank-title">Rank</span>
+            <span
+              class="result-view__card-value result-view__card-value--kpm"
+              >{{ Math.round(resultData.stats.kpm) }}</span
+            >
+          </div>
+          <div class="result-view__result-card">
+            <AccuracyIcon
+              class="result-view__card-icon result-view__card-icon--accuracy"
+            />
+            <span class="result-view__card-title">正確率</span>
+            <span
+              class="result-view__card-value result-view__card-value--accuracy"
+              >{{ Math.round(resultData.stats.accuracy) }}%</span
+            >
+          </div>
+          <div class="result-view__result-card">
+            <TotalMissCountIcon
+              class="result-view__card-icon result-view__card-icon--total-miss-count"
+            />
+            <span class="result-view__card-title">ミス回数</span>
+            <span
+              class="result-view__card-value result-view__card-value--total-miss-count"
+              >{{ resultData.stats.total_miss_count }}</span
+            >
+          </div>
+          <div class="result-view__result-card">
+            <TotalTypeCountIcon
+              class="result-view__card-icon result-view__card-icon--total-type-count"
+            />
+            <span class="result-view__card-title">総タイプ数</span>
+            <span
+              class="result-view__card-value result-view__card-value--total-type-count"
+              >{{ resultData.stats.total_types }}</span
+            >
           </div>
         </div>
-      </div>
-      <div class="result-view__ai-area">
-        <div class="result-view__ai-image-wrapper"></div>
-        <div class="result-view__ai-comment-wrapper">
-          <p
-            v-if="isCommentLoading"
-            class="result-view__ai-comment result-view__ai-comment--loading"
+        <div class="result-view__score-card">
+          <div class="result-view__score-item">
+            <ScoreIcon
+              class="result-view__card-icon result-view__card-icon--score"
+            />
+            <span class="result-view__card-title">スコア</span>
+            <span
+              class="result-view__card-value result-view__card-value--score"
+              >{{ score }}</span
+            >
+          </div>
+          <div class="result-view__rank-item">
+            <div class="result-view__rank-circle-wrapper"></div>
+            <div class="result-view__rank-wrapper">
+              <span
+                class="result-view__rank-text"
+                :class="{
+                  'rank-s': rank === 'S',
+                  'rank-a': rank === 'A',
+                  'rank-b': rank === 'B',
+                  'rank-c': rank === 'C',
+                }"
+                >{{ rank }}</span
+              >
+              <span class="result-view__rank-title">Rank</span>
+            </div>
+          </div>
+        </div>
+        <div class="result-view__ai-area">
+          <div class="result-view__ai-image-wrapper"></div>
+          <div class="result-view__ai-comment-wrapper">
+            <p
+              v-if="isCommentLoading"
+              class="result-view__ai-comment result-view__ai-comment--loading"
+            >
+              AIがコメントを考えています...
+            </p>
+            <p v-else class="result-view__ai-comment">
+              {{ aiComment }}
+            </p>
+          </div>
+        </div>
+        <div class="result-view__actions">
+          <button
+            class="result-view__button result-view__button--retry"
+            @click="handleRetry"
           >
-            AIがコメントを考えています...
-          </p>
-          <p v-else class="result-view__ai-comment">
-            {{ aiComment }}
-          </p>
+            もう一度やる！
+            <ArrowIcon class="result-view__arrow-icon" />
+          </button>
+          <RouterLink
+            to="/menu"
+            class="result-view__button result-view__button--menu"
+          >
+            メニューに戻る
+            <ArrowIcon class="result-view__arrow-icon" />
+          </RouterLink>
         </div>
       </div>
-      <div class="result-view__actions-wrapper"></div>
-    </div>
-
-    <div v-if="resultData" class="result-view__content">
-      <div class="result-view__actions">
-        <button
-          class="result-view__button result-view__button--retry"
-          @click="handleRetry"
-        >
-          もう一度やる！
-        </button>
-        <RouterLink
-          to="/menu"
-          class="result-view__button result-view__button--menu"
-        >
-          メニューに戻る
-        </RouterLink>
-      </div>
-
-      <div class="result-view__details">
-        <h3>詳細結果</h3>
+      <div v-if="resultData" class="result-view__details">
+        <h2 class="result-view__details-title">詳細結果</h2>
         <div class="result-view__table-wrapper">
           <table class="result-view__table">
             <thead>
@@ -146,6 +148,7 @@ import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import api from "../services/api";
 import { formatMissedKeys } from "../utils/formatters";
+import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import KpmIcon from "@/components/icons/KpmIcon.vue";
 import AccuracyIcon from "@/components/icons/AccuracyIcon.vue";
 import TotalMissCountIcon from "@/components/icons/TotalMissCountIcon.vue";
@@ -246,12 +249,18 @@ const handleRetry = () => {
     @include page-title;
   }
 
-  &__content-wrapper {
+  &__contents-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 3.2rem;
+    @include contents-padding;
+  }
+
+  &__top-wrapper {
     display: grid;
     gap: 3.2rem;
     max-width: 400px;
     margin-inline: auto;
-    @include contents-padding;
 
     @include pc {
       justify-content: space-between;
@@ -259,6 +268,7 @@ const handleRetry = () => {
       row-gap: 3.2rem;
       column-gap: 0;
       max-width: none;
+      margin-inline: 0;
     }
   }
 
@@ -429,6 +439,7 @@ const handleRetry = () => {
   }
 
   &__ai-image-wrapper {
+    flex-shrink: 0;
     width: 8rem;
     aspect-ratio: 1;
     border-radius: 100vmax;
@@ -436,13 +447,32 @@ const handleRetry = () => {
   }
 
   &__ai-comment-wrapper {
-    min-height: 190px;
+    position: relative;
+    width: 100%;
+    min-height: 200px;
     @include fluid-style(padding, 16, 24);
     background-color: $light-yellow;
     border-radius: $radius-lg;
 
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 20px;
+      aspect-ratio: 1;
+      background-color: $light-yellow;
+      clip-path: polygon(0 100%, 100% 100%, 50% 0);
+      transform: translate(-50%, calc(-100% + 1px));
+    }
+
     @include pc {
-      min-height: 190px;
+      &::after {
+        top: 50%;
+        left: 0;
+        clip-path: polygon(100% 0, 100% 100%, 0 50%);
+        transform: translate(calc(-100% + 1px), -50%);
+      }
     }
   }
 
@@ -454,62 +484,57 @@ const handleRetry = () => {
 
   &__actions {
     display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 3rem;
+    flex-direction: column;
+    gap: 2.4rem;
+
+    @include pc {
+      justify-content: space-around;
+      gap: 0;
+    }
   }
 
   &__button {
-    padding: 0.8rem 2rem;
-    border-radius: 30px;
-    text-decoration: none;
-    font-weight: bold;
-    cursor: pointer;
-    border: none;
-    transition: transform 0.1s;
-
-    &:active {
-      transform: scale(0.95);
-    }
+    @include fluid-style(width, 240, 350);
+    @include fluid-style(padding-block, 17, 22);
+    margin-inline: auto;
+    @include fluid-text(14, 18);
 
     &--retry {
-      background-color: #28a745;
-      color: white;
-      font-size: 1.2rem;
-      &:hover {
-        background-color: #218838;
-      }
+      @include button-style-fill($blue);
     }
 
     &--menu {
-      background-color: #6c757d;
-      color: white;
-      display: flex;
-      align-items: center;
-      &:hover {
-        background-color: #5a6268;
-      }
+      @include button-style-border($green);
     }
+
+    @include pc {
+      width: 100%;
+    }
+  }
+
+  &__arrow-icon {
+    @include button-arrow-icon-style;
   }
 
   &__details {
-    text-align: left;
-    h3 {
-      border-bottom: 2px solid #eee;
-      padding-bottom: 0.5rem;
-      margin-bottom: 1rem;
-      color: #555;
-    }
+    display: flex;
+    flex-direction: column;
+    gap: 3.2rem;
   }
 
-  /* (★) テーブルラッパー追加 */
+  &__details-title {
+    text-align: center;
+    @include fluid-text(16,20);
+    font-weight: $bold;
+    letter-spacing: 0.1em;
+  }
+
   &__table-wrapper {
     overflow-x: auto;
   }
 
   &__table {
     width: 100%;
-    border-collapse: collapse;
 
     th {
       background: #f1f1f1;
