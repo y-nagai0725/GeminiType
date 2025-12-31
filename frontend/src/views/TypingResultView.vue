@@ -1,45 +1,98 @@
 <template>
   <div class="result-view">
-    <h1 class="result-view__title">Result</h1>
+    <h1 class="result-view__title">
+      <span class="en">TYPING RESULT</span>
+      <span class="ja">タイピング結果</span>
+    </h1>
 
-    <div v-if="resultData" class="result-view__content">
-      <div class="result-view__score-board">
-        <div class="result-view__score-item">
-          <span class="label">KPM</span>
-          <span class="value">{{ Math.round(resultData.stats.kpm) }}</span>
+    <div v-if="resultData" class="result-view__content-wrapper">
+      <div class="result-view__result-card-wrapper">
+        <div class="result-view__result-card">
+          <KpmIcon class="result-view__card-icon result-view__card-icon--kpm" />
+          <span class="result-view__card-title result-view__card-title--en"
+            >KPM</span
+          >
+          <span class="result-view__card-value result-view__card-value--kpm">{{
+            Math.round(resultData.stats.kpm)
+          }}</span>
         </div>
-        <div class="result-view__score-item">
-          <span class="label">Accuracy</span>
-          <span class="value"
+        <div class="result-view__result-card">
+          <AccuracyIcon
+            class="result-view__card-icon result-view__card-icon--accuracy"
+          />
+          <span class="result-view__card-title">正確率</span>
+          <span
+            class="result-view__card-value result-view__card-value--accuracy"
             >{{ Math.round(resultData.stats.accuracy) }}%</span
           >
         </div>
-        <div class="result-view__score-item">
-          <span class="label">ミス回数</span>
-          <span class="value">{{ resultData.stats.total_miss_count }}</span>
+        <div class="result-view__result-card">
+          <TotalMissCountIcon
+            class="result-view__card-icon result-view__card-icon--total-miss-count"
+          />
+          <span class="result-view__card-title">ミス回数</span>
+          <span
+            class="result-view__card-value result-view__card-value--total-miss-count"
+            >{{ resultData.stats.total_miss_count }}</span
+          >
         </div>
-        <div class="result-view__score-item">
-          <span class="label">総タイプ数</span>
-          <span class="value">{{ resultData.stats.total_types }}</span>
-        </div>
-
-        <div class="result-view__rank">
-          Rank: <span :class="`rank-${rank}`">{{ rank }}</span>
+        <div class="result-view__result-card">
+          <TotalTypeCountIcon
+            class="result-view__card-icon result-view__card-icon--total-type-count"
+          />
+          <span class="result-view__card-title">総タイプ数</span>
+          <span
+            class="result-view__card-value result-view__card-value--total-type-count"
+            >{{ resultData.stats.total_types }}</span
+          >
         </div>
       </div>
-
-      <div class="result-view__ai-comment">
-        <div class="ai-icon">🤖</div>
-        <div class="ai-bubble">
-          <p v-if="isCommentLoading" class="ai-loading">
-            コーチがコメントを考えています...
+      <div class="result-view__score-card">
+        <div class="result-view__score-item">
+          <ScoreIcon
+            class="result-view__card-icon result-view__card-icon--score"
+          />
+          <span class="result-view__card-title">スコア</span>
+          <span
+            class="result-view__card-value result-view__card-value--score"
+            >{{ score }}</span
+          >
+        </div>
+        <div class="result-view__rank-item">
+          <div class="result-view__rank-circle-wrapper"></div>
+          <div class="result-view__rank-wrapper">
+            <span
+              class="result-view__rank-text"
+              :class="{
+                'rank-s': rank === 'S',
+                'rank-a': rank === 'A',
+                'rank-b': rank === 'B',
+                'rank-c': rank === 'C',
+              }"
+              >{{ rank }}</span
+            >
+            <span class="result-view__rank-title">Rank</span>
+          </div>
+        </div>
+      </div>
+      <div class="result-view__ai-area">
+        <div class="result-view__ai-image-wrapper"></div>
+        <div class="result-view__ai-comment-wrapper">
+          <p
+            v-if="isCommentLoading"
+            class="result-view__ai-comment result-view__ai-comment--loading"
+          >
+            AIがコメントを考えています...
           </p>
-          <p v-else class="ai-text">
+          <p v-else class="result-view__ai-comment">
             {{ aiComment }}
           </p>
         </div>
       </div>
+      <div class="result-view__actions-wrapper"></div>
+    </div>
 
+    <div v-if="resultData" class="result-view__content">
       <div class="result-view__actions">
         <button
           class="result-view__button result-view__button--retry"
@@ -85,11 +138,6 @@
         </div>
       </div>
     </div>
-
-    <div v-else class="result-view__error">
-      <p>結果データが見つかりません…</p>
-      <RouterLink to="/" class="result-view__link">トップへ戻る</RouterLink>
-    </div>
   </div>
 </template>
 
@@ -98,22 +146,31 @@ import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import api from "../services/api";
 import { formatMissedKeys } from "../utils/formatters";
+import KpmIcon from "@/components/icons/KpmIcon.vue";
+import AccuracyIcon from "@/components/icons/AccuracyIcon.vue";
+import TotalMissCountIcon from "@/components/icons/TotalMissCountIcon.vue";
+import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
+import ScoreIcon from "@/components/icons/ScoreIcon.vue";
 
 const router = useRouter();
 const resultData = ref(null);
 const aiComment = ref("");
 const isCommentLoading = ref(false);
 
-// --- ランク判定 ---
-const rank = computed(() => {
+const score = computed(() => {
   if (!resultData.value) return "-";
   const kpm = resultData.value.stats.kpm;
   const acc = resultData.value.stats.accuracy;
+  return Math.round(kpm * (acc / 100));
+});
 
-  if (acc < 80) return "C";
-  if (kpm >= 300) return "S";
-  if (kpm >= 200) return "A";
-  if (kpm >= 100) return "B";
+// --- ランク判定 ---
+const rank = computed(() => {
+  if (!resultData.value) return "-";
+
+  if (score.value >= 300) return "S";
+  if (score.value >= 250) return "A";
+  if (score.value >= 200) return "B";
   return "C";
 });
 
@@ -179,113 +236,220 @@ const handleRetry = () => {
 
 <style lang="scss" scoped>
 .result-view {
-  max-width: 1000px; /* (★) 幅を広げたよ！ */
-  margin: 2rem auto;
-  padding: 2rem;
-  text-align: center;
-  font-family: sans-serif;
+  @include contents-width;
 
-  &__title {
-    font-size: 2rem;
-    color: #333;
-    margin-bottom: 2rem;
+  @include pc {
+    max-width: 1000px;
   }
 
-  &__score-board {
+  &__title {
+    @include page-title;
+  }
+
+  &__content-wrapper {
+    display: grid;
+    gap: 3.2rem;
+    max-width: 400px;
+    margin-inline: auto;
+    @include contents-padding;
+
+    @include pc {
+      justify-content: space-between;
+      grid-template-columns: 656px 312px;
+      row-gap: 3.2rem;
+      column-gap: 0;
+      max-width: none;
+    }
+  }
+
+  &__result-card-wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 2.4rem;
+
+    @include pc {
+      grid-template-columns: repeat(4, 1fr);
+      row-gap: 0;
+      column-gap: 3.2rem;
+    }
+  }
+
+  &__result-card {
+    justify-self: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 14rem;
+    aspect-ratio: 1;
+    padding: 1.6rem 0;
+    border-radius: $radius-lg;
+    background-color: $gray;
+
+    @include pc {
+      justify-self: auto;
+    }
+  }
+
+  &__card-icon {
+    width: 4rem;
+    line-height: 1;
+
+    &--kpm {
+      fill: $blue;
+    }
+
+    &--accuracy {
+      fill: $green;
+    }
+
+    &--total-miss-count {
+      fill: $red;
+    }
+
+    &--total-type-count {
+      fill: $light-black;
+    }
+
+    &--score {
+      stroke: $orange;
+    }
+  }
+
+  &__card-title {
+    font-size: 1.6rem;
+    font-weight: $bold;
+    letter-spacing: 0.1em;
+    line-height: 1;
+
+    &--en {
+      font-family: $roboto-mono;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  &__card-value {
+    font-family: $roboto-mono;
+    font-size: 2.2rem;
+    font-weight: $bold;
+    line-height: 1;
+
+    &--kpm {
+      color: $blue;
+    }
+
+    &--accuracy {
+      color: $green;
+    }
+
+    &--total-miss-count {
+      color: $red;
+    }
+
+    &--total-type-count {
+      color: $light-black;
+    }
+
+    &--score {
+      color: $orange;
+    }
+  }
+
+  &__score-card {
     display: flex;
     justify-content: center;
-    gap: 3rem;
-    margin-bottom: 2rem;
-    padding: 2rem;
-    background-color: #f8f9fa;
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    gap: 4rem;
+    width: 100%;
+    height: 14rem;
+    padding: 1.6rem 0;
+    border-radius: $radius-lg;
+    background-color: $gray;
   }
 
   &__score-item {
     display: flex;
     flex-direction: column;
-    .label {
-      font-size: 1rem;
-      color: #666;
-    }
-    .value {
-      font-size: 2.5rem;
-      font-weight: bold;
-      color: #007bff;
-    }
+    align-items: center;
+    justify-content: space-between;
   }
 
-  &__rank {
+  &__rank-item {
+    display: grid;
+    place-content: center;
+    width: 10.8rem;
+    aspect-ratio: 1;
+  }
+
+  &__rank-wrapper {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    font-size: 1.5rem;
-    font-weight: bold;
-    .rank-S {
-      color: #ffc107;
-      font-size: 3rem;
-      text-shadow: 2px 2px 0 #fff, 0 0 5px #ffc107;
+    align-items: center;
+  }
+
+  &__rank-text {
+    font-family: $roboto-mono;
+    font-size: 5.4rem;
+    font-weight: $bold;
+    line-height: 1;
+
+    &.rank-s {
+      color: $yellow;
     }
-    .rank-A {
-      color: #fd7e14;
-      font-size: 3rem;
+
+    &.rank-a {
+      color: $orange;
     }
-    .rank-B {
-      color: #007bff;
-      font-size: 3rem;
+
+    &.rank-b {
+      color: $green;
     }
-    .rank-C {
-      color: #6c757d;
-      font-size: 3rem;
+
+    &.rank-c {
+      color: $blue;
     }
   }
 
-  /* AIコメントエリア */
-  &__ai-comment {
+  &__rank-title {
+    font-family: $roboto-mono;
+    font-size: 1.6rem;
+    font-weight: $bold;
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+
+  &__ai-area {
     display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
+    flex-direction: column;
+    align-items: center;
+    gap: 3.2rem;
 
-    .ai-icon {
-      font-size: 3rem;
-      background: #e6f2ff;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    @include pc {
+      flex-direction: row;
     }
+  }
 
-    .ai-bubble {
-      background: #e6f2ff;
-      padding: 1rem 1.5rem;
-      border-radius: 12px;
-      border-top-left-radius: 0;
-      text-align: left;
-      color: #333;
-      position: relative;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-      min-height: 60px;
-      display: flex;
-      align-items: center;
-      flex: 1;
+  &__ai-image-wrapper {
+    width: 8rem;
+    aspect-ratio: 1;
+    border-radius: 100vmax;
+    background-color: $gray;
+  }
 
-      .ai-loading {
-        color: #666;
-        font-style: italic;
-      }
-      .ai-text {
-        line-height: 1.5;
-        font-weight: bold;
-      }
+  &__ai-comment-wrapper {
+    min-height: 190px;
+    @include fluid-style(padding, 16, 24);
+    background-color: $light-yellow;
+    border-radius: $radius-lg;
+
+    @include pc {
+      min-height: 190px;
     }
+  }
+
+  &__ai-comment {
+    @include fluid-text(14, 16);
+    font-weight: $bold;
+    line-height: 1.8;
   }
 
   &__actions {
