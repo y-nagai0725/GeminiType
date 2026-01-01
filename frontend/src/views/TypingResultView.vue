@@ -115,23 +115,37 @@
         <div class="result-view__table-wrapper">
           <table class="result-view__table">
             <thead>
-              <tr>
-                <th class="col-problem">問題</th>
-                <th class="col-romaji">ローマ字</th>
-                <th class="col-kpm">KPM</th>
-                <th class="col-acc">Acc.</th>
-                <th class="col-miss-keys">Missed Keys</th>
+              <tr class="result-view__tr">
+                <th class="result-view__th result-view__th--problem">問題文</th>
+                <th class="result-view__th result-view__th--romaji">
+                  ローマ字
+                </th>
+                <th class="result-view__th result-view__th--kpm">KPM</th>
+                <th class="result-view__th result-view__th--acc">正確率</th>
+                <th class="result-view__th result-view__th--miss-keys">
+                  ミスしたキー
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(problem, index) in resultData.results" :key="index">
-                <td class="text-left">{{ problem.problem_text }}</td>
-                <td class="text-left text-romaji">
+              <tr
+                v-for="(problem, index) in resultData.results"
+                class="result-view__tr"
+                :key="index"
+              >
+                <td class="result-view__td result-view__td--problem">
+                  {{ problem.problem_text }}
+                </td>
+                <td class="result-view__td result-view__td--romaji">
                   {{ problem.romaji_text || "-" }}
                 </td>
-                <td class="text-bold">{{ Math.round(problem.kpm) }}</td>
-                <td class="text-bold">{{ Math.round(problem.accuracy) }}%</td>
-                <td class="text-miss-keys">
+                <td class="result-view__td result-view__td--kpm">
+                  {{ Math.round(problem.kpm) }}
+                </td>
+                <td class="result-view__td result-view__td--acc">
+                  {{ Math.round(problem.accuracy) }}%
+                </td>
+                <td class="result-view__td result-view__td--miss-keys">
                   {{ formatMissedKeys(problem.missed_keys) }}
                 </td>
               </tr>
@@ -524,7 +538,7 @@ const handleRetry = () => {
 
   &__details-title {
     text-align: center;
-    @include fluid-text(16,20);
+    @include fluid-text(16, 20);
     font-weight: $bold;
     letter-spacing: 0.1em;
   }
@@ -535,70 +549,72 @@ const handleRetry = () => {
 
   &__table {
     width: 100%;
+    min-width: 1000px;
+  }
 
-    th {
-      background: #f1f1f1;
-      padding: 0.8rem;
-      font-weight: bold;
-      color: #555;
-      white-space: nowrap;
+  &__tr {
+    &:nth-of-type(odd) {
+      background-color: $gray;
     }
-    td {
-      border-bottom: 1px solid #eee;
-      padding: 0.8rem;
-      text-align: center;
-    }
-    .text-left {
+  }
+
+  &__th {
+    padding: 1em;
+    font-size: 1.4rem;
+    font-weight: $bold;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    color: $white;
+    background-color: $green;
+
+    &--problem,
+    &--romaji {
+      width: 30%;
       text-align: left;
     }
-    .text-bold {
-      font-weight: bold;
-      color: #333;
+
+    &--kpm {
+      width: 10%;
+      font-family: $roboto-mono;
+      letter-spacing: 0.05em;
+      text-align: right;
     }
 
-    /* (★) スタイル追加 */
-    .text-romaji {
-      font-family: "Courier New", monospace;
-      color: #666;
-      font-size: 0.9rem;
-    }
-    .text-miss {
-      color: #dc3545;
-      font-weight: bold;
-    }
-    .text-miss-keys {
-      color: #dc3545;
-      font-size: 0.85rem;
+    &--acc {
+      width: 10%;
+      text-align: right;
     }
 
-    /* (★) 列幅調整 (SessionDetailViewと合わせたよ！) */
-    .col-problem {
-      min-width: 150px;
-    }
-    .col-romaji {
-      min-width: 150px;
-    }
-    .col-kpm,
-    .col-acc,
-    .col-miss-count {
-      width: 80px;
-    }
-    .col-miss-keys {
-      min-width: 120px;
+    &--miss-keys {
+      width: 20%;
+      text-align: left;
     }
   }
 
-  &__error {
-    margin-top: 3rem;
-    font-size: 1.2rem;
-    color: #666;
-  }
+  &__td {
+    padding: 1em;
+    font-size: 1.4rem;
+    line-height: 1;
 
-  &__link {
-    color: #007bff;
-    text-decoration: none;
-    &:hover {
-      text-decoration: underline;
+    &--problem,
+    &--romaji {
+      text-align: left;
+    }
+
+    &--kpm {
+      font-family: $roboto-mono;
+      color: $blue;
+      text-align: right;
+    }
+
+    &--acc {
+      color: $green;
+      text-align: right;
+    }
+
+    &--miss-keys {
+      color: $red;
+      text-align: left;
     }
   }
 }
