@@ -63,7 +63,34 @@
             >
           </div>
           <div class="result-view__rank-item">
-            <div class="result-view__rank-circle-wrapper"></div>
+            <div class="result-view__rank-circle-wrapper">
+              <svg class="result-view__progress-ring" viewBox="0 0 100 100">
+                <circle
+                  class="result-view__progress-ring-background"
+                  stroke-width="10"
+                  fill="transparent"
+                  r="45"
+                  cx="50"
+                  cy="50"
+                />
+                <circle
+                  class="result-view__progress-ring-circle"
+                  stroke-width="10"
+                  fill="transparent"
+                  r="45"
+                  cx="50"
+                  cy="50"
+                  :class="{
+                    'rank-s': rank === 'S',
+                    'rank-a': rank === 'A',
+                    'rank-b': rank === 'B',
+                    'rank-c': rank === 'C',
+                  }"
+                  :stroke-dasharray="circumference"
+                  :style="{ strokeDashoffset: currentOffset }"
+                />
+              </svg>
+            </div>
             <div class="result-view__rank-wrapper">
               <span
                 class="result-view__rank-text"
@@ -173,6 +200,24 @@ const router = useRouter();
 const resultData = ref(null);
 const aiComment = ref("");
 const isCommentLoading = ref(false);
+/**
+ * 円の半径
+ */
+const radius = 45;
+
+/**
+ * 円周の長さ（2 * π * r）
+ */
+const circumference = 2 * Math.PI * radius;
+
+const maxScore = 350;
+
+const currentOffset = computed(() => {
+  const validPercent = Math.min(100, Math.max(0, percent.value));
+
+  // 計算式：円周 - (進捗割合 * 円周)
+  return circumference - (validPercent / 100) * circumference;
+});
 
 const score = computed(() => {
   if (!resultData.value) return "-";
@@ -181,13 +226,21 @@ const score = computed(() => {
   return Math.round(kpm * (acc / 100));
 });
 
+const percent = computed(() => {
+  if (!score.value || score.value === "-") {
+    return "-";
+  }
+
+  return Math.round((score.value / maxScore) * 100);
+});
+
 // --- ランク判定 ---
 const rank = computed(() => {
-  if (!resultData.value) return "-";
+  if (!percent.value) return "-";
 
-  if (score.value >= 300) return "S";
-  if (score.value >= 250) return "A";
-  if (score.value >= 200) return "B";
+  if (percent.value >= 95) return "S";
+  if (percent.value >= 75) return "A";
+  if (percent.value >= 60) return "B";
   return "C";
 });
 
@@ -398,10 +451,52 @@ const handleRetry = () => {
   }
 
   &__rank-item {
+    position: relative;
     display: grid;
     place-content: center;
     width: 10.8rem;
-    aspect-ratio: 1;
+    height: 10.8rem;
+  }
+
+  &__rank-circle-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    transform: translate(-50%, -50%);
+  }
+
+  &__progress-ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  &__progress-ring-background {
+    stroke: $light-black;
+  }
+
+  &__progress-ring-circle {
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.4s linear, stroke $transition-base;
+
+    &.rank-c {
+      stroke: $blue;
+    }
+
+    &.rank-b {
+      stroke: $green;
+    }
+
+    &.rank-a {
+      stroke: $orange;
+    }
+
+    &.rank-s {
+      stroke: $yellow;
+    }
   }
 
   &__rank-wrapper {
@@ -412,7 +507,7 @@ const handleRetry = () => {
 
   &__rank-text {
     font-family: $roboto-mono;
-    font-size: 5.4rem;
+    font-size: 5rem;
     font-weight: $bold;
     line-height: 1;
 
