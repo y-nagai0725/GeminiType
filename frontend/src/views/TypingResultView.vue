@@ -107,7 +107,9 @@
           </div>
         </div>
         <div class="result-view__ai-area">
-          <div class="result-view__ai-image-wrapper"></div>
+          <div class="result-view__ai-image-wrapper">
+            <AiIcon class="result-view__ai-icon" />
+          </div>
           <div class="result-view__ai-comment-wrapper">
             <p
               v-if="isCommentLoading"
@@ -195,6 +197,7 @@ import AccuracyIcon from "@/components/icons/AccuracyIcon.vue";
 import TotalMissCountIcon from "@/components/icons/TotalMissCountIcon.vue";
 import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 import ScoreIcon from "@/components/icons/ScoreIcon.vue";
+import AiIcon from "@/components/icons/AiIcon.vue";
 
 const router = useRouter();
 const resultData = ref(null);
@@ -549,10 +552,17 @@ const handleRetry = () => {
 
   &__ai-image-wrapper {
     flex-shrink: 0;
+    display: grid;
+    place-content: center;
     width: 8rem;
     aspect-ratio: 1;
     border-radius: 100vmax;
     background-color: $gray;
+  }
+
+  &__ai-icon {
+    width: 6.4rem;
+    aspect-ratio: 1;
   }
 
   &__ai-comment-wrapper {
