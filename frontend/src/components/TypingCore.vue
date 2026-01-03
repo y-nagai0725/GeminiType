@@ -107,6 +107,23 @@
         </p>
       </div>
     </div>
+
+    <div class="typing-core__keyboard-container">
+      <div
+        v-for="(row, rowIndex) in keyboardLayout"
+        :key="rowIndex"
+        class="typing-core__keyboard-row"
+      >
+        <div
+          v-for="keyObj in row"
+          :key="keyObj.key"
+          class="typing-core__key"
+          :class="[keyObj.class, { active: nextExpectedKey === keyObj.key }]"
+        >
+          {{ keyObj.label }}
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -117,6 +134,79 @@ import api from "../services/api";
 import romaMapData from "@/data/romanTypingParseDictionary.json";
 import { useNotificationStore } from "../stores/notificationStore";
 import { useSettingsStore } from "../stores/settingsStore";
+
+/**
+ *
+ */
+const keyboardLayout = [
+  // 1行目
+  [
+    { label: "1", key: "1" },
+    { label: "2", key: "2" },
+    { label: "3", key: "3" },
+    { label: "4", key: "4" },
+    { label: "5", key: "5" },
+    { label: "6", key: "6" },
+    { label: "7", key: "7" },
+    { label: "8", key: "8" },
+    { label: "9", key: "9" },
+    { label: "0", key: "0" },
+    { label: "-", key: "-" },
+    { label: "^", key: "^" },
+    { label: "¥", key: "\\" },
+    { label: "BS", key: "Backspace", class: "key-backspace" },
+  ],
+  // 2行目
+  [
+    { label: "Tab", key: "Tab", class: "key-tab" },
+    { label: "Q", key: "q" },
+    { label: "W", key: "w" },
+    { label: "E", key: "e" },
+    { label: "R", key: "r" },
+    { label: "T", key: "t" },
+    { label: "Y", key: "y" },
+    { label: "U", key: "u" },
+    { label: "I", key: "i" },
+    { label: "O", key: "o" },
+    { label: "P", key: "p" },
+    { label: "@", key: "@" },
+    { label: "[", key: "[" },
+  ],
+  // 3行目
+  [
+    { label: "Caps", key: "CapsLock", class: "key-caps" },
+    { label: "A", key: "a" },
+    { label: "S", key: "s" },
+    { label: "D", key: "d" },
+    { label: "F", key: "f" },
+    { label: "G", key: "g" },
+    { label: "H", key: "h" },
+    { label: "J", key: "j" },
+    { label: "K", key: "k" },
+    { label: "L", key: "l" },
+    { label: ";", key: ";" },
+    { label: ":", key: ":" },
+    { label: "]", key: "]" },
+  ],
+  // 4行目
+  [
+    { label: "Shift", key: "Shift", class: "key-shift" },
+    { label: "Z", key: "z" },
+    { label: "X", key: "x" },
+    { label: "C", key: "c" },
+    { label: "V", key: "v" },
+    { label: "B", key: "b" },
+    { label: "N", key: "n" },
+    { label: "M", key: "m" },
+    { label: ",", key: "," },
+    { label: ".", key: "." },
+    { label: "/", key: "/" },
+    { label: "\\", key: "_"},
+    { label: "Shift", key: "Shift", class: "key-shift" },
+  ],
+  // 5行目（スペースキーなど）
+  [{ label: "Space", key: " ", class: "key-space" }],
+];
 
 /**
  * ローマ字マップ(検索用にMapオブジェクトにしておく)
@@ -1065,6 +1155,66 @@ onUnmounted(() => {
     .bar-red {
       background-color: #dc3545;
       box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
+    }
+  }
+
+  &__keyboard-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    max-width: 900px;
+    padding: 2rem;
+    margin: 0 auto;
+    background-color: #f0f4f8; /* 優しい背景色 */
+    border-radius: $radius-lg;
+  }
+
+  &__keyboard-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+  }
+
+  &__key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 5rem;
+    height: 5rem;
+    font-family: $roboto-mono;
+    font-size: 1.6rem;
+    font-weight: $bold;
+    background-color: $white;
+    border-radius: $radius-md;
+    box-shadow: 0 4px 0 #dbe4eb;
+    transition: box-shadow $transition-base, transform $transition-base;
+    user-select: none;
+
+    &.key-tab {
+      width: 8rem;
+    }
+
+    &.key-caps {
+      width: 9rem;
+    }
+
+    &.key-shift {
+      width: 11rem;
+    }
+
+    &.key-backspace {
+      width: 8rem;
+    }
+
+    &.key-space {
+      width: 30rem;
+    }
+
+    &.active {
+      background-color: $orange;
+      color: white;
+      box-shadow: 0 4px 0 rgba($orange, 0.5);
+      transform: translateY(2px);
     }
   }
 }
