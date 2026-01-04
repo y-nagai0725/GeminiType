@@ -118,7 +118,7 @@
           v-for="keyObj in row"
           :key="keyObj.key"
           class="typing-core__key"
-          :class="[keyObj.class, { active: nextExpectedKey === keyObj.key }]"
+          :class="[keyObj.class, { active: isKeyActive(keyObj) }]"
         >
           {{ keyObj.label }}
         </div>
@@ -136,7 +136,7 @@ import { useNotificationStore } from "../stores/notificationStore";
 import { useSettingsStore } from "../stores/settingsStore";
 
 /**
- *
+ * キーボードレイアウト配列
  */
 const keyboardLayout = [
   // 1行目
@@ -201,12 +201,44 @@ const keyboardLayout = [
     { label: ",", key: "," },
     { label: ".", key: "." },
     { label: "/", key: "/" },
-    { label: "\\", key: "_"},
+    { label: "\\", key: "_" },
     { label: "Shift", key: "Shift", class: "key-shift" },
   ],
-  // 5行目（スペースキーなど）
+  // 5行目
   [{ label: "Space", key: " ", class: "key-space" }],
 ];
+
+/**
+ * 記号から、実際に押すべきキーへ変換するマップ
+ */
+const symbolToKeyMap = {
+  "!": "1",
+  '"': "2",
+  "#": "3",
+  $: "4",
+  "%": "5",
+  "&": "6",
+  "'": "7",
+  "(": "8",
+  ")": "9",
+  "=": "-",
+  "~": "^",
+  "|": "\\",
+  "`": "@",
+  "{": "[",
+  "+": ";",
+  "*": ":",
+  "}": "]",
+  "<": ",",
+  ">": ".",
+  "?": "/",
+  _: "\\",
+};
+
+/**
+ * Shiftキーを押す必要がある文字のリスト
+ */
+const shiftRequiredSymbols = "!\"#$%&'()=~|`{+*}<>?_";
 
 /**
  * ローマ字マップ(検索用にMapオブジェクトにしておく)
@@ -886,6 +918,38 @@ const setupCurrentProblem = () => {
   const { parsedUnits, defaultActivePatterns } = parseHiragana(hiragana);
   parsedProblem.value = parsedUnits;
   activePatterns.value = defaultActivePatterns;
+};
+
+/**
+ *
+ */
+const isKeyActive = (keyObj) => {
+  const target = nextExpectedKey.value; // 次に打つべき文字
+  const keyChar = keyObj.key; // キーボード上の文字 ('a', '1', 'Shift' など)
+
+  if (!target) return false;
+
+  // --- A. Shiftキー自体の判定 ---
+  if (keyChar === "Shift") {
+    // ターゲットが大文字 (A-Z) か、Shift必須記号なら true
+    const isUpperCase = target >= "A" && target <= "Z";
+    const isShiftSymbol = shiftRequiredSymbols.includes(target);
+    return isUpperCase || isShiftSymbol;
+  }
+
+  // --- B. 通常キーの判定 ---
+
+  // 1. そのまま一致するか？ (小文字に揃えて比較)
+  if (target.toLowerCase() === keyChar.toLowerCase()) {
+    return true;
+  }
+
+  // 2. 記号の対応表で一致するか？ (例: targetが'!'なら、keyCharが'1'かチェック)
+  if (symbolToKeyMap[target] === keyChar) {
+    return true;
+  }
+
+  return false;
 };
 
 /**
