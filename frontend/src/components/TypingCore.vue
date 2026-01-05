@@ -153,7 +153,7 @@ const keyboardLayout = [
     { label: "0", key: "0" },
     { label: "-", key: "-" },
     { label: "^", key: "^" },
-    { label: "¥", key: "\\" },
+    { label: "¥", key: "¥" },
     { label: "BS", key: "Backspace", class: "key-backspace" },
   ],
   // 2行目
@@ -201,7 +201,7 @@ const keyboardLayout = [
     { label: ",", key: "," },
     { label: ".", key: "." },
     { label: "/", key: "/" },
-    { label: "\\", key: "_" },
+    { label: "\\", key: "\\" },
     { label: "Shift", key: "Shift", class: "key-shift" },
   ],
   // 5行目
@@ -223,7 +223,7 @@ const symbolToKeyMap = {
   ")": "9",
   "=": "-",
   "~": "^",
-  "|": "\\",
+  "|": "¥",
   "`": "@",
   "{": "[",
   "+": ";",
