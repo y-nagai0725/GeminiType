@@ -124,6 +124,53 @@
         </div>
       </div>
     </div>
+
+    <div class="typing-core__hands-container">
+      <div class="typing-core__hand typing-core__hand--left">
+        <div
+          class="typing-core__finger typing-core__finger--pinky"
+          :class="{ active: isFingerActive('left-pinky') }"
+        ></div>
+        <div
+          class="typing-core__finger typing-core__finger--ring"
+          :class="{ active: isFingerActive('left-ring') }"
+        ></div>
+        <div
+          class="typing-core__finger typing-core__finger--middle"
+          :class="{ active: isFingerActive('left-middle') }"
+        ></div>
+        <div
+          class="typing-core__finger typing-core__finger--index"
+          :class="{ active: isFingerActive('left-index') }"
+        ></div>
+        <div
+          class="typing-core__finger typing-core__finger--thumb"
+          :class="{ active: isFingerActive('left-thumb') }"
+        ></div>
+      </div>
+      <div class="typing-core__hand typing-core__hand--right">
+        <div
+          class="typing-core__finger typing-core__finger--thumb"
+          :class="{ active: isFingerActive('right-thumb') }"
+        ></div>
+        <div
+          class="typing-core__finger typing-core__finger--index"
+          :class="{ active: isFingerActive('right-index') }"
+        ></div>
+        <div
+          class="typing-core__finger typing-core__finger--middle"
+          :class="{ active: isFingerActive('right-middle') }"
+        ></div>
+        <div
+          class="typing-core__finger typing-core__finger--ring"
+          :class="{ active: isFingerActive('right-ring') }"
+        ></div>
+        <div
+          class="typing-core__finger typing-core__finger--pinky"
+          :class="{ active: isFingerActive('right-pinky') }"
+        ></div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -141,6 +188,7 @@ import { useSettingsStore } from "../stores/settingsStore";
 const keyboardLayout = [
   // 1行目
   [
+    { label: "", key: "spacer-1", class: "key-spacer-1" },
     { label: "1", key: "1" },
     { label: "2", key: "2" },
     { label: "3", key: "3" },
@@ -154,11 +202,11 @@ const keyboardLayout = [
     { label: "-", key: "-" },
     { label: "^", key: "^" },
     { label: "¥", key: "¥" },
-    { label: "BS", key: "Backspace", class: "key-backspace" },
+    { label: "", key: "Backspace", class: "key-backspace" },
   ],
   // 2行目
   [
-    { label: "Tab", key: "Tab", class: "key-tab" },
+    { label: "", key: "Tab", class: "key-tab" },
     { label: "Q", key: "q" },
     { label: "W", key: "w" },
     { label: "E", key: "e" },
@@ -171,10 +219,11 @@ const keyboardLayout = [
     { label: "P", key: "p" },
     { label: "@", key: "@" },
     { label: "[", key: "[" },
+    { label: "", key: "spacer-2", class: "key-spacer-2" },
   ],
   // 3行目
   [
-    { label: "Caps", key: "CapsLock", class: "key-caps" },
+    { label: "", key: "CapsLock", class: "key-caps" },
     { label: "A", key: "a" },
     { label: "S", key: "s" },
     { label: "D", key: "d" },
@@ -187,10 +236,11 @@ const keyboardLayout = [
     { label: ";", key: ";" },
     { label: ":", key: ":" },
     { label: "]", key: "]" },
+    { label: "", key: "spacer-3", class: "key-spacer-3" },
   ],
   // 4行目
   [
-    { label: "Shift", key: "Shift", class: "key-shift" },
+    { label: "Shift", key: "ShiftLeft", class: "key-shift" },
     { label: "Z", key: "z" },
     { label: "X", key: "x" },
     { label: "C", key: "c" },
@@ -202,7 +252,7 @@ const keyboardLayout = [
     { label: ".", key: "." },
     { label: "/", key: "/" },
     { label: "\\", key: "\\" },
-    { label: "Shift", key: "Shift", class: "key-shift" },
+    { label: "Shift", key: "ShiftRight", class: "key-shift" },
   ],
   // 5行目
   [{ label: "Space", key: " ", class: "key-space" }],
@@ -239,6 +289,64 @@ const symbolToKeyMap = {
  * Shiftキーを押す必要がある文字のリスト
  */
 const shiftRequiredSymbols = "!\"#$%&'()=~|`{+*}<>?_";
+
+/**
+ * キー文字から指IDへのマッピング
+ */
+const keyToFingerMap = {
+  // --- 左手 ---
+  1: "left-pinky",
+  Q: "left-pinky",
+  A: "left-pinky",
+  Z: "left-pinky",
+  2: "left-ring",
+  W: "left-ring",
+  S: "left-ring",
+  X: "left-ring",
+  3: "left-middle",
+  E: "left-middle",
+  D: "left-middle",
+  C: "left-middle",
+  4: "left-index",
+  R: "left-index",
+  F: "left-index",
+  V: "left-index",
+  5: "left-index",
+  T: "left-index",
+  G: "left-index",
+  B: "left-index",
+  " ": "left-thumb", //とりあえず左手親指に割り当て
+
+  // --- 右手 ---
+  6: "right-index",
+  Y: "right-index",
+  H: "right-index",
+  N: "right-index",
+  7: "right-index",
+  U: "right-index",
+  J: "right-index",
+  M: "right-index",
+  8: "right-middle",
+  I: "right-middle",
+  K: "right-middle",
+  ",": "right-middle",
+  9: "right-ring",
+  O: "right-ring",
+  L: "right-ring",
+  ".": "right-ring",
+  0: "right-pinky",
+  P: "right-pinky",
+  ";": "right-pinky",
+  "/": "right-pinky",
+  "@": "right-pinky",
+  "[": "right-pinky",
+  ":": "right-pinky",
+  "]": "right-pinky",
+  "-": "right-pinky",
+  "^": "right-pinky",
+  "\\": "right-pinky",
+  "¥": "right-pinky",
+};
 
 /**
  * ローマ字マップ(検索用にMapオブジェクトにしておく)
@@ -934,11 +1042,44 @@ const isKeyActive = (keyObj) => {
   if (!target) return false;
 
   // --- A. Shiftキー自体の判定 ---
-  if (keyChar === "Shift") {
-    // ターゲットが大文字 (A-Z) か、Shift必須記号なら true
+  if (keyChar === "ShiftLeft" || keyChar === "ShiftRight") {
+    // 1. まず、ターゲット文字について情報整理
+    let targetBaseKey = target; // 判定に使う「キーの文字」
+
+    // 記号の場合、Shift不要な「元のキー文字」に変換 (例: '!' -> '1')
+    // ※ symbolToKeyMap は「!」:「1」のようなマップ
+    if (symbolToKeyMap[target]) {
+      targetBaseKey = symbolToKeyMap[target];
+    }
+
+    // 2. Shiftが必要な文字かチェック
     const isUpperCase = target >= "A" && target <= "Z";
     const isShiftSymbol = shiftRequiredSymbols.includes(target);
-    return isUpperCase || isShiftSymbol;
+
+    // Shift不要なら、Shiftキーは光らせない
+    if (!isUpperCase && !isShiftSymbol) {
+      return false;
+    }
+
+    // 3. 文字を打つ「指」を取得して、「手」を判別
+    // 大文字小文字を吸収してマップ検索
+    const fingerId = keyToFingerMap[targetBaseKey.toUpperCase()];
+
+    // 指情報がない（万が一の未定義キー）場合は光らせない
+    if (!fingerId) return false;
+
+    // 'left-pinky' -> 'left', 'right-index' -> 'right' を取り出す
+    const hand = fingerId.split("-")[0];
+
+    // 4. クロス・シフト判定！ (手と逆のShiftなら正解)
+    if (hand === "left" && keyChar === "ShiftRight") {
+      return true; // 文字が左手 → 右Shiftを光らせる
+    }
+    if (hand === "right" && keyChar === "ShiftLeft") {
+      return true; // 文字が右手 → 左Shiftを光らせる
+    }
+
+    return false;
   }
 
   // --- B. 通常キーの判定 ---
@@ -951,6 +1092,60 @@ const isKeyActive = (keyObj) => {
   // 2. 記号の対応表で一致するか？ (例: targetが'!'なら、keyCharが'1'かチェック)
   if (symbolToKeyMap[target] === keyChar) {
     return true;
+  }
+
+  return false;
+};
+
+/**
+ *
+ */
+const isFingerActive = (fingerId) => {
+  // 設定で非表示なら光らせない
+  if (!shouldShowRomaji.value) {
+    return false;
+  }
+
+  const target = nextExpectedKey.value;
+  if (!target) return false;
+
+  // 2. ターゲット文字の「元のキー」を特定
+  // (例: '!' -> '1', 'A' -> 'A')
+  let targetBaseKey = target;
+  if (symbolToKeyMap[target]) {
+    targetBaseKey = symbolToKeyMap[target];
+  }
+
+  // 3. 文字を打つ指 (charFingerId) を取得
+  const charFingerId = keyToFingerMap[targetBaseKey.toUpperCase()];
+
+  // ★判定A：この指は「文字を打つ指」か？
+  if (charFingerId === fingerId) {
+    return true; // 文字担当の指なら光る！
+  }
+
+  // --- ★判定B：この指は「Shiftを押す指」か？ (ここを追加！) ---
+
+  // Shiftが必要かチェック
+  const isUpperCase = target >= "A" && target <= "Z";
+  const isShiftSymbol = shiftRequiredSymbols.includes(target);
+
+  // Shiftが必要な場合のみ、小指の判定を行う
+  if (isUpperCase || isShiftSymbol) {
+    // 文字を打つ指が、左右どっちの手か取得 ('left' or 'right')
+    // ※万が一 charFingerId が取れない場合はガードする
+    if (!charFingerId) return false;
+    const charHand = charFingerId.split("-")[0];
+
+    // クロス・シフト判定！
+    // 文字が「左手」なら → 「右手の小指」を光らせる
+    if (charHand === "left" && fingerId === "right-pinky") {
+      return true;
+    }
+    // 文字が「右手」なら → 「左手の小指」を光らせる
+    if (charHand === "right" && fingerId === "left-pinky") {
+      return true;
+    }
   }
 
   return false;
@@ -1247,10 +1442,10 @@ onUnmounted(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 5rem;
-    height: 5rem;
+    width: 4.5rem;
+    height: 4.5rem;
     font-family: $roboto-mono;
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     font-weight: $bold;
     background-color: $white;
     border-radius: $radius-md;
@@ -1258,24 +1453,40 @@ onUnmounted(() => {
     transition: box-shadow $transition-base, transform $transition-base;
     user-select: none;
 
+    &.key-backspace {
+      visibility: hidden;
+    }
+
     &.key-tab {
       width: 8rem;
+      visibility: hidden;
     }
 
     &.key-caps {
       width: 9rem;
+      visibility: hidden;
     }
 
     &.key-shift {
-      width: 11rem;
-    }
-
-    &.key-backspace {
-      width: 8rem;
+      width: 10.5rem;
     }
 
     &.key-space {
-      width: 30rem;
+      width: 27rem;
+    }
+
+    &.key-spacer-1 {
+      visibility: hidden;
+    }
+
+    &.key-spacer-2 {
+      width: 7rem;
+      visibility: hidden;
+    }
+
+    &.key-spacer-3 {
+      width: 6rem;
+      visibility: hidden;
     }
 
     &.active {
@@ -1283,6 +1494,45 @@ onUnmounted(() => {
       color: white;
       box-shadow: 0 4px 0 rgba($orange, 0.5);
       transform: translateY(2px);
+    }
+  }
+
+  &__hands-container {
+    display: flex;
+    justify-content: center;
+    gap: 4rem;
+    margin-top: -2rem;
+    padding-bottom: 2rem;
+  }
+
+  &__hand {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.8rem;
+  }
+
+  &__finger {
+    width: 3rem;
+    height: 6rem;
+    background-color: $gray;
+    border-radius: 1.5rem 1.5rem 0 0;
+    transition: background-color $transition-base;
+
+    &--pinky {
+      height: 5rem;
+    }
+
+    &--middle {
+      height: 7rem;
+    }
+
+    &--thumb {
+      height: 4.5rem;
+      border-radius: 2rem 1.5rem 0 0;
+    }
+
+    &.active {
+      background-color: $orange;
     }
   }
 }
