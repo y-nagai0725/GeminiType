@@ -924,6 +924,10 @@ const setupCurrentProblem = () => {
  *
  */
 const isKeyActive = (keyObj) => {
+  if (!shouldShowRomaji.value) {
+    return false;
+  }
+
   const target = nextExpectedKey.value; // 次に打つべき文字
   const keyChar = keyObj.key; // キーボード上の文字 ('a', '1', 'Shift' など)
 
