@@ -1032,14 +1032,20 @@ const setupCurrentProblem = () => {
  *
  */
 const isKeyActive = (keyObj) => {
-  if (!shouldShowRomaji.value) {
-    return false;
-  }
-
   const target = nextExpectedKey.value; // 次に打つべき文字
   const keyChar = keyObj.key; // キーボード上の文字 ('a', '1', 'Shift' など)
 
+  if (!isStarted.value && keyChar === " ") {
+    return true;
+  } else if (!isStarted.value) {
+    return false;
+  }
+
   if (!target) return false;
+
+  if (!shouldShowRomaji.value) {
+    return false;
+  }
 
   // --- A. Shiftキー自体の判定 ---
   if (keyChar === "ShiftLeft" || keyChar === "ShiftRight") {
@@ -1102,7 +1108,7 @@ const isKeyActive = (keyObj) => {
  */
 const isFingerActive = (fingerId) => {
   // 設定で非表示なら光らせない
-  if (!shouldShowRomaji.value) {
+  if (!shouldShowRomaji.value || !isStarted.value) {
     return false;
   }
 
