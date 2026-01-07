@@ -1432,9 +1432,9 @@ onUnmounted(() => {
     flex-direction: column;
     gap: 0.8rem;
     max-width: 900px;
-    padding: 2rem;
+    padding: 2.4rem;
     margin: 0 auto;
-    background-color: #f0f4f8; /* 優しい背景色 */
+    background-color: $light-blue;
     border-radius: $radius-lg;
   }
 
@@ -1464,21 +1464,21 @@ onUnmounted(() => {
     }
 
     &.key-tab {
-      width: 8rem;
+      width: 7.7rem;
       visibility: hidden;
     }
 
     &.key-caps {
-      width: 9rem;
+      width: 8.5rem;
       visibility: hidden;
     }
 
     &.key-shift {
-      width: 10.5rem;
+      width: 9.8rem;
     }
 
     &.key-space {
-      width: 27rem;
+      width: 25rem;
     }
 
     &.key-spacer-1 {
@@ -1486,12 +1486,12 @@ onUnmounted(() => {
     }
 
     &.key-spacer-2 {
-      width: 7rem;
+      width: 6.6rem;
       visibility: hidden;
     }
 
     &.key-spacer-3 {
-      width: 6rem;
+      width: 5.8rem;
       visibility: hidden;
     }
 
