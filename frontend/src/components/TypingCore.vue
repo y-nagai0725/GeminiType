@@ -1303,55 +1303,46 @@ onUnmounted(() => {
   }
 
   &__problem h2 {
-    font-size: 2rem;
-    font-weight: bold;
-    margin: 0.5rem 0;
-    color: #333;
+    font-weight: $bold;
+    font-size: 3rem;
   }
 
   &__hiragana {
-    font-size: 1.2rem;
-    color: #666; /* まだ打ってない文字の色 */
-    margin: 0.5rem 0;
-    min-height: 1.5rem; /* 高さ確保 */
+    font-weight: $bold;
+    font-size: 2.2rem;
+    color: $light-black;
 
     .hiragana-char {
-      display: inline-block; /* これがあると変な隙間ができにくい */
-      transition: color 0.1s; /* 色が変わる瞬間をちょっと滑らかに */
+      display: inline-block;
+      transition: color 0.1s ease-out;
     }
 
     .hiragana-typed {
-      color: #007bff; /* 青色（ローマ字とお揃い！） */
-      font-weight: bold; /* ちょっと強調してもいいかも？ */
+      color: $orange;
     }
   }
 
   &__romaji {
+    min-height: 3rem;
     font-family: $roboto-mono;
     font-weight: $bold;
-    font-size: 1.75rem;
-    letter-spacing: 2px;
-    background-color: #f9f9f9;
-    padding: 0.5rem;
-    border-radius: 4px;
-    min-height: 1.75rem;
-    margin-top: 1rem;
-    transition: opacity 0.2s, visibility 0.2s;
+    font-size: 2.6rem;
+    letter-spacing: 0.05em;
     opacity: 1;
     visibility: visible;
 
-    /* 隠す時のクラス */
     &.romaji-hidden {
       opacity: 0;
-      visibility: hidden; /* 場所は確保したまま見えなくする */
+      visibility: hidden;
     }
 
     &--typed {
-      color: #007bff;
-      font-weight: bold;
+      font-weight: $bold;
+      color: $orange;
     }
+
     &--remaining {
-      color: #aaa;
+      color: $light-black;
     }
   }
   &__debug {
