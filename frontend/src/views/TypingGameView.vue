@@ -330,12 +330,12 @@ const handleComplete = async (data) => {
 
 <style lang="scss" scoped>
 .game-view {
-  max-width: 900px;
-  margin: 2rem auto;
-  min-height: 60vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  max-width: 900px;
+  min-height: 50vh;
+  margin: 4.8rem auto 16rem;
 
   &__loading,
   &__error {

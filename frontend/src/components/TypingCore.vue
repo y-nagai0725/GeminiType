@@ -3,23 +3,31 @@
     <div v-if="isLoading" class="typing-core__loading">準備中...</div>
 
     <div v-else-if="isCompleted" class="typing-core__completed">
-      <h2>Finish!</h2>
+      <p>Finish!</p>
       <p>お疲れ様でした！♡</p>
       <p>集計中...</p>
     </div>
 
-    <div v-else-if="!isStarted" class="typing-core__ready" @click="startGame">
-      <h2>Ready?</h2>
-      <p>スペースキーを押してスタート！</p>
-      <p class="typing-core__sub-text">（または画面をクリック）</p>
+    <div v-else-if="!isStarted" class="typing-core__ready">
       <div class="typing-core__mode-info" v-if="gameMode !== 'normal'">
-        <span v-if="gameMode === 'time_limit'"
-          >⏱️ 制限時間: {{ timeLimit }}秒</span
-        >
-        <span v-if="gameMode === 'sudden_death'">
-          💀 ミス許容: {{ missLimit === 0 ? "即死！" : missLimit + "回" }}
-        </span>
+        <template v-if="gameMode === 'time_limit'">
+          <span class="typing-core__mode-name">⏱️ 時間制限モード</span>
+          <span class="typing-core__mode-time-limit"
+            >制限時間: <span class="typing-core__mode-count">{{ timeLimit }}秒</span></span
+          >
+        </template>
+        <template v-if="gameMode === 'sudden_death'">
+          <span class="typing-core__mode-name">💀 サドンデスモード</span>
+          <span class="typing-core__mode-sudden-death"
+            >許容ミス数: <span class="typing-core__mode-count">{{ missLimit === 0 ? "即死！" : missLimit + "回" }}</span></span
+          >
+        </template>
       </div>
+      <p class="typing-core__ready-title">Ready?</p>
+      <p class="typing-core__ready-text">
+        <span class="typing-core__ready-highlight">スペースキー</span
+        >を押してスタート！
+      </p>
     </div>
 
     <div v-else class="typing-core__playing">
@@ -1211,48 +1219,58 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .typing-core {
-  border: 2px dashed #ccc;
-  padding: 1.5rem;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 800px;
 
-  /* ローディング・完了・待機画面の共通スタイル */
   &__loading,
   &__completed,
   &__ready {
-    font-size: 1.5rem;
-    color: #555;
-    padding: 3rem 0;
-    cursor: default;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.4rem;
+    min-height: 24rem;
+    border-radius: $radius-lg;
+    background-color: $gray;
   }
 
-  /* (★) 待機画面特有のスタイル */
-  &__ready {
-    cursor: pointer; /* クリックできる感 */
-
-    h2 {
-      font-size: 2.5rem;
-      color: #007bff;
-      margin-bottom: 1rem;
-    }
-
-    .typing-core__sub-text {
-      font-size: 1rem;
-      color: #888;
-      margin-top: 0.5rem;
-    }
+  &__ready-title {
+    font-family: $roboto-mono;
+    font-size: 3.8rem;
+    font-weight: $bold;
   }
 
-  /* 待機画面のモード情報 */
+  &__ready-text {
+    font-size: 2.2rem;
+    font-weight: $bold;
+  }
+
+  &__ready-highlight {
+    color: $orange;
+  }
+
   &__mode-info {
-    margin-top: 1.5rem;
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: #dc3545;
-    background: #fff0f0;
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    border: 1px solid #ffcccc;
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    font-size: 1.8rem;
+    font-weight: $bold;
+  }
+
+  &__mode-name {
+    //color: $blue;
+  }
+
+  &__mode-time-limit,
+  &__mode-sudden-death {
+
+  }
+
+  &__mode-count {
+    color: $red;
   }
 
   &__progress {
@@ -1422,9 +1440,9 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
-    max-width: 900px;
+    width: 100%;
     padding: 2.4rem;
-    margin: 0 auto;
+    margin-top: 3.2rem;
     background-color: $light-blue;
     border-radius: $radius-lg;
   }
@@ -1497,7 +1515,7 @@ onUnmounted(() => {
   &__hands-container {
     display: flex;
     justify-content: center;
-    gap: 4rem;
+    gap: 8rem;
     margin-top: -2rem;
     padding-bottom: 2rem;
   }
@@ -1509,23 +1527,22 @@ onUnmounted(() => {
   }
 
   &__finger {
-    width: 3rem;
-    height: 6rem;
+    width: 4rem;
+    height: 8.5rem;
     background-color: $gray;
-    border-radius: 1.5rem 1.5rem 0 0;
+    border-radius: $radius-lg $radius-lg 0 0;
     transition: background-color $transition-base;
 
     &--pinky {
-      height: 5rem;
+      height: 6rem;
     }
 
     &--middle {
-      height: 7rem;
+      height: 10rem;
     }
 
     &--thumb {
-      height: 4.5rem;
-      border-radius: 2rem 1.5rem 0 0;
+      height: 4rem;
     }
 
     &.active {
