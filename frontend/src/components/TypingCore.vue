@@ -13,13 +13,17 @@
         <template v-if="gameMode === 'time_limit'">
           <span class="typing-core__mode-name">⏱️ 時間制限モード</span>
           <span class="typing-core__mode-time-limit"
-            >制限時間: <span class="typing-core__mode-count">{{ timeLimit }}秒</span></span
+            >制限時間:
+            <span class="typing-core__mode-count">{{ timeLimit }}秒</span></span
           >
         </template>
         <template v-if="gameMode === 'sudden_death'">
           <span class="typing-core__mode-name">💀 サドンデスモード</span>
           <span class="typing-core__mode-sudden-death"
-            >許容ミス数: <span class="typing-core__mode-count">{{ missLimit === 0 ? "即死！" : missLimit + "回" }}</span></span
+            >許容ミス数:
+            <span class="typing-core__mode-count">{{
+              missLimit === 0 ? "即死！" : missLimit + "回"
+            }}</span></span
           >
         </template>
       </div>
@@ -30,7 +34,11 @@
       </p>
     </div>
 
-    <div v-else class="typing-core__playing">
+    <div v-else class="typing-core__playing" :class="gameMode">
+      <div class="typing-core__progress">
+        {{ currentProblemIndex + 1 }} / {{ problems.length }}
+      </div>
+
       <div class="typing-core__hud" v-if="gameMode !== 'normal'">
         <div v-if="gameMode === 'time_limit'" class="hud-item hud-timer">
           <div class="timer-text" :class="{ danger: remainingTime <= 10 }">
@@ -52,38 +60,36 @@
         </div>
       </div>
 
-      <div class="typing-core__progress">
-        Problem: {{ currentProblemIndex + 1 }} / {{ problems.length }}
-      </div>
+      <div class="typing-core__main-text-wrapper">
+        <p v-if="targetProblem" class="typing-core__problem">
+          {{ targetProblem.problem_text }}
+        </p>
 
-      <div class="typing-core__problem">
-        <h2 v-if="targetProblem">{{ targetProblem.problem_text }}</h2>
-      </div>
+        <div class="typing-core__hiragana">
+          <template v-if="parsedProblem.length > 0">
+            <span
+              v-for="(unit, index) in parsedProblem"
+              :key="index"
+              class="hiragana-char"
+              :class="{ 'hiragana-typed': index < unitIndex }"
+            >
+              {{ unit.hiragana }}
+            </span>
+          </template>
+          <p v-else-if="targetHiragana">{{ targetHiragana }}</p>
+        </div>
 
-      <div class="typing-core__hiragana">
-        <template v-if="parsedProblem.length > 0">
-          <span
-            v-for="(unit, index) in parsedProblem"
-            :key="index"
-            class="hiragana-char"
-            :class="{ 'hiragana-typed': index < unitIndex }"
-          >
-            {{ unit.hiragana }}
+        <div
+          class="typing-core__romaji"
+          :class="{ 'romaji-hidden': !shouldShowRomaji }"
+        >
+          <span class="typing-core__romaji--typed">
+            {{ typedDisplayRomaji }}
           </span>
-        </template>
-        <p v-else-if="targetHiragana">{{ targetHiragana }}</p>
-      </div>
-
-      <div
-        class="typing-core__romaji"
-        :class="{ 'romaji-hidden': !shouldShowRomaji }"
-      >
-        <span class="typing-core__romaji--typed">
-          {{ typedDisplayRomaji }}
-        </span>
-        <span class="typing-core__romaji--remaining">
-          {{ remainingDisplayRomaji }}
-        </span>
+          <span class="typing-core__romaji--remaining">
+            {{ remainingDisplayRomaji }}
+          </span>
+        </div>
       </div>
 
       <div class="typing-core__stats-container">
@@ -1232,7 +1238,7 @@ onUnmounted(() => {
     align-items: center;
     justify-content: center;
     gap: 2.4rem;
-    min-height: 24rem;
+    min-height: 25rem;
     border-radius: $radius-lg;
     background-color: $gray;
   }
@@ -1266,17 +1272,42 @@ onUnmounted(() => {
 
   &__mode-time-limit,
   &__mode-sudden-death {
-
   }
 
   &__mode-count {
     color: $red;
   }
 
+  &__playing {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.6rem 3.2rem;
+    border-radius: $radius-lg;
+    background-color: $gray;
+
+    &.normal {
+      min-height: 25rem;
+    }
+
+    &.time_limit,
+    &.sudden_death {
+      min-height: 30rem;
+    }
+  }
+
+  &__main-text-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1.6rem;
+  }
+
   &__progress {
-    font-size: 0.9rem;
-    color: #888;
-    margin-bottom: 1rem;
+    text-align: center;
+    font-weight: $bold;
+    font-size: 1.6rem;
+    color: $light-black;
   }
 
   &__stats-container {
@@ -1320,19 +1351,20 @@ onUnmounted(() => {
     }
   }
 
-  &__problem h2 {
+  &__problem {
     font-weight: $bold;
     font-size: 3rem;
+    line-height: 1;
   }
 
   &__hiragana {
     font-weight: $bold;
-    font-size: 2.2rem;
+    font-size: 2rem;
     color: $light-black;
+    line-height: 1;
 
     .hiragana-char {
       display: inline-block;
-      transition: color 0.1s ease-out;
     }
 
     .hiragana-typed {
@@ -1346,6 +1378,7 @@ onUnmounted(() => {
     font-weight: $bold;
     font-size: 2.6rem;
     letter-spacing: 0.05em;
+    line-height: 1;
     opacity: 1;
     visibility: visible;
 
@@ -1355,7 +1388,6 @@ onUnmounted(() => {
     }
 
     &--typed {
-      font-weight: $bold;
       color: $orange;
     }
 
