@@ -92,20 +92,26 @@
         </div>
       </div>
 
-      <div class="typing-core__stats-container">
-        <div class="typing-core__stat-row">
-          <span class="stat-label">Current:</span>
-          <span class="stat-value">KPM: {{ currentKpm }}</span>
-          <span class="stat-divider">|</span>
-          <span class="stat-value">Acc: {{ currentAccuracy }}%</span>
-        </div>
-
-        <div class="typing-core__stat-row typing-core__stat-row--total">
-          <span class="stat-label">Total:</span>
-          <span class="stat-value">KPM: {{ sessionAverageKpm }}</span>
-          <span class="stat-divider">|</span>
-          <span class="stat-value">Acc: {{ sessionAverageAccuracy }}%</span>
-        </div>
+      <div class="typing-core__stats">
+        <span class="typing-core__stat-label">stats</span>
+        <span class="typing-core__stat-label"
+          >KPM:
+          <span class="typing-core__stat-value typing-core__stat-value--kpm">{{
+            sessionAverageKpm
+          }}</span></span
+        >
+        <span class="typing-core__stat-label"
+          >Acc:
+          <span class="typing-core__stat-value typing-core__stat-value--acc"
+            >{{ sessionAverageAccuracy }}%</span
+          ></span
+        >
+        <span class="typing-core__stat-label"
+          >Miss:
+          <span class="typing-core__stat-value typing-core__stat-value--miss">{{
+            totalMissCountSession
+          }}</span></span
+        >
       </div>
 
       <div class="typing-core__debug" v-if="props.showDebug && currentUnit">
@@ -1310,44 +1316,36 @@ onUnmounted(() => {
     color: $light-black;
   }
 
-  &__stats-container {
-    margin-top: 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    width: 38rem;
+    padding: 1em;
+    margin-inline: auto;
+    font-family: $roboto-mono;
+    font-size: 1.4rem;
+    font-weight: $bold;
+    background-color: $white;
+    border-radius: 100vmax;
   }
 
-  &__stat-row {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #007bff; /* Currentは青 */
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  &__stat-label {
+    display: inline-block;
+  }
 
-    .stat-label {
-      font-size: 0.9rem;
-      color: #999;
-      text-transform: uppercase;
-      margin-right: 0.5rem;
-      min-width: 60px; /* 位置を揃える */
-      text-align: right;
+  &__stat-value {
+    display: inline-block;
+
+    &--kpm {
+      color: $blue;
     }
 
-    .stat-divider {
-      color: #ddd;
-      margin: 0 0.5rem;
+    &--acc {
+      color: $green;
     }
 
-    /* Total行のスタイル */
-    &--total {
-      color: #28a745; /* Totalは緑！ */
-      font-size: 1.1rem; /* ちょっとだけ小さく */
-
-      .stat-label {
-        color: #aaa;
-      }
+    &--miss {
+      color: $red;
     }
   }
 
