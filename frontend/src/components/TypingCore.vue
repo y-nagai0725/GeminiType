@@ -93,7 +93,7 @@
       </div>
 
       <div class="typing-core__stats">
-        <span class="typing-core__stat-label">stats</span>
+        <span class="typing-core__stat-label">Stats</span>
         <span class="typing-core__stat-label"
           >KPM:
           <span class="typing-core__stat-value typing-core__stat-value--kpm">{{
@@ -1014,6 +1014,7 @@ const finishCurrentProblem = () => {
   // 次の問題へ遷移
   if (currentProblemIndex.value < props.problems.length - 1) {
     // 少し余韻を持たせて次へ
+    // TODO どうして余韻を持たせるんだっけ？
     setTimeout(() => {
       currentProblemIndex.value++;
       setupCurrentProblem();
@@ -1311,6 +1312,7 @@ onUnmounted(() => {
 
   &__progress {
     text-align: center;
+    font-family: $roboto-mono;
     font-weight: $bold;
     font-size: 1.6rem;
     color: $light-black;
@@ -1318,9 +1320,9 @@ onUnmounted(() => {
 
   &__stats {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    width: 38rem;
-    padding: 1em;
+    grid-template-columns: 1fr 1.2fr 1.2fr 1.2fr;
+    width: 37rem;
+    padding: 1.4rem 2rem;
     margin-inline: auto;
     font-family: $roboto-mono;
     font-size: 1.4rem;
@@ -1330,7 +1332,19 @@ onUnmounted(() => {
   }
 
   &__stat-label {
+    position: relative;
     display: inline-block;
+
+    &:first-of-type::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: 14px;
+      width: 1px;
+      height: 20px;
+      background-color: $light-black;
+      transform: translateY(-50%);
+    }
   }
 
   &__stat-value {
@@ -1494,8 +1508,7 @@ onUnmounted(() => {
     font-weight: $bold;
     background-color: $white;
     border-radius: $radius-md;
-    box-shadow: 0 4px 0 #dbe4eb;
-    transition: box-shadow $transition-base, transform $transition-base;
+    box-shadow: $key-shadow;
     user-select: none;
 
     &.key-backspace {
@@ -1561,7 +1574,6 @@ onUnmounted(() => {
     height: 8.5rem;
     background-color: $gray;
     border-radius: $radius-lg $radius-lg 0 0;
-    transition: background-color $transition-base;
 
     &--pinky {
       height: 6rem;

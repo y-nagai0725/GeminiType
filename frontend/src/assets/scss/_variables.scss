@@ -22,6 +22,7 @@ $orange: #f67e62;
 $blue: #3490d1;
 $light-blue: rgba($blue, 0.1);
 $red: #f44336;
+$key-shadow-color: #dbe4eb;
 
 // =================================
 // Size / Layout
@@ -49,3 +50,4 @@ $z-toast: 300;
 
 // 影
 $text-box-shadow: 0 0 7px $blue;
+$key-shadow: 0 4px 0 $key-shadow-color;
