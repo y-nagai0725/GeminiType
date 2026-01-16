@@ -11,14 +11,20 @@
     <div v-else-if="!isStarted" class="typing-core__ready">
       <div class="typing-core__mode-info" v-if="gameMode !== 'normal'">
         <template v-if="gameMode === 'time_limit'">
-          <span class="typing-core__mode-name">⏱️ 時間制限モード</span>
+          <span class="typing-core__mode-name"
+            ><TimerIcon class="typing-core__timer-icon" />時間制限モード</span
+          >
           <span class="typing-core__mode-time-limit"
             >制限時間:
             <span class="typing-core__mode-count">{{ timeLimit }}秒</span></span
           >
         </template>
         <template v-if="gameMode === 'sudden_death'">
-          <span class="typing-core__mode-name">💀 サドンデスモード</span>
+          <span class="typing-core__mode-name"
+            ><SuddenDeathIcon
+              class="typing-core__sudden-death-icon"
+            />サドンデスモード</span
+          >
           <span class="typing-core__mode-sudden-death"
             >許容ミス数:
             <span class="typing-core__mode-count">{{
@@ -201,6 +207,8 @@ import api from "../services/api";
 import romaMapData from "@/data/romanTypingParseDictionary.json";
 import { useNotificationStore } from "../stores/notificationStore";
 import { useSettingsStore } from "../stores/settingsStore";
+import TimerIcon from "@/components/icons/TimerIcon.vue";
+import SuddenDeathIcon from "@/components/icons/SuddenDeathIcon.vue";
 
 /**
  * キーボードレイアウト配列
@@ -1274,7 +1282,15 @@ onUnmounted(() => {
   }
 
   &__mode-name {
-    //color: $blue;
+    display: flex;
+    align-items: center;
+  }
+
+  &__timer-icon,
+  &__sudden-death-icon {
+    height: 1em;
+    margin-right: 0.5em;
+    fill: $black;
   }
 
   &__mode-time-limit,

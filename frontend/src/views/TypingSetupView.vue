@@ -56,7 +56,7 @@
                 v-model="settingsStore.gameMode"
                 class="setup-view__radio"
               />
-              時間制限
+              <TimerIcon class="setup-view__timer-icon" />時間制限
             </label>
             <label class="setup-view__radio-label">
               <input
@@ -65,7 +65,9 @@
                 v-model="settingsStore.gameMode"
                 class="setup-view__radio"
               />
-              サドンデス
+              <SuddenDeathIcon
+                class="setup-view__sudden-death-icon"
+              />サドンデス
             </label>
           </div>
 
@@ -170,6 +172,8 @@ import { useRoute, useRouter, RouterLink } from "vue-router";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
+import TimerIcon from "@/components/icons/TimerIcon.vue";
+import SuddenDeathIcon from "@/components/icons/SuddenDeathIcon.vue";
 
 /**
  * route
@@ -422,6 +426,13 @@ const handleStart = () => {
     &:checked::after {
       opacity: 1;
     }
+  }
+
+  &__timer-icon,
+  &__sudden-death-icon {
+    height: 1em;
+    margin-right: 0.3em;
+    fill: $black;
   }
 
   &__sub-settings {
