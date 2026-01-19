@@ -60,9 +60,14 @@
         </div>
         <div
           v-if="gameMode === 'sudden_death'"
-          :class="{ danger: remainingLives <= 1 }"
+          class="typing-core__lives-container"
         >
-          ❤️ Lives: {{ remainingLives }}
+          <HeartIcon
+            v-for="n in 10"
+            :key="n"
+            class="typing-core__heart-icon"
+            :class="{ fill: n <= remainingLives }"
+          />
         </div>
       </div>
 
@@ -209,6 +214,7 @@ import { useNotificationStore } from "../stores/notificationStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import TimerIcon from "@/components/icons/TimerIcon.vue";
 import SuddenDeathIcon from "@/components/icons/SuddenDeathIcon.vue";
+import HeartIcon from "@/components/icons/HeartIcon.vue";
 
 /**
  * キーボードレイアウト配列
@@ -1493,6 +1499,37 @@ onUnmounted(() => {
     .bar-red {
       background-color: #dc3545;
       box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
+    }
+  }
+
+  &__lives-container {
+    position: relative;
+    display: flex;
+    gap: 0.8rem;
+
+    &::before {
+      content: "残りライフ: ";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      font-weight: $bold;
+      font-size: 1.6rem;
+      line-height: 1;
+      color: $light-black;
+      transform: translate(calc(-100% - 8px), -50%);
+    }
+  }
+
+  &__heart-icon {
+    width: 20px;
+    aspect-ratio: 1;
+    fill: transparent;
+    stroke: $red;
+    stroke-width: 2px;
+    transition: fill $transition-base;
+
+    &.fill {
+      fill: $red;
     }
   }
 
