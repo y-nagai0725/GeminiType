@@ -48,7 +48,8 @@
       <div class="typing-core__hud" v-if="gameMode !== 'normal'">
         <div v-if="gameMode === 'time_limit'" class="hud-item hud-timer">
           <div class="timer-text" :class="{ danger: remainingTime <= 10 }">
-            ⏱️ Time: {{ remainingTime }}s
+            <TimerIcon class="typing-core__timer-icon" />残り時間:
+            {{ remainingTime }}秒
           </div>
           <div class="progress-bar-bg">
             <div
@@ -1468,37 +1469,34 @@ onUnmounted(() => {
       animation: pulse 1s infinite;
     }
 
-    /* ★追加: プログレスバーの背景 */
+    /* プログレスバーの背景 */
     .progress-bar-bg {
+      display: flex;
+      align-items: center;
       width: 100%;
-      height: 10px;
-      background-color: #e9ecef;
-      border-radius: 5px;
-      margin-top: 5px;
+      height: 22px;
+      padding: 0 4px;
+      border-radius: 100vmax;
+      border: 3px solid $light-black;
       overflow: hidden; /* 角丸からはみ出ないように */
-      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
-    /* ★追加: プログレスバーの中身 */
+    /* プログレスバーの中身 */
     .progress-bar-fill {
-      height: 100%;
-      border-radius: 5px;
-      /* ★ここがポイント！幅の変化を1秒かけて滑らかにする */
-      transition: width 1s linear, background-color 0.3s ease;
+      height: 50%;
+      border-radius: 100vmax;
+      transition: width 1s linear, background-color $transition-base;
     }
 
-    /* ★追加: 色の定義 */
+    /* 色の定義 */
     .bar-green {
-      background-color: #28a745;
-      box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+      background-color: $green;
     }
     .bar-yellow {
-      background-color: #ffc107;
-      box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+      background-color: $yellow;
     }
     .bar-red {
-      background-color: #dc3545;
-      box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
+      background-color: $red;
     }
   }
 
