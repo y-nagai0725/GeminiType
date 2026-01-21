@@ -46,14 +46,20 @@
       </div>
 
       <div class="typing-core__hud" v-if="gameMode !== 'normal'">
-        <div v-if="gameMode === 'time_limit'" class="hud-item hud-timer">
-          <div class="timer-text" :class="{ danger: remainingTime <= 10 }">
+        <div
+          v-if="gameMode === 'time_limit'"
+          class="typing-core__timer-container"
+        >
+          <div
+            class="typing-core__timer-text"
+            :class="{ danger: remainingTime <= 10 }"
+          >
             <TimerIcon class="typing-core__timer-icon" />残り時間:
-            {{ remainingTime }}秒
+            {{ remainingTime }} 秒
           </div>
-          <div class="progress-bar-bg">
+          <div class="typing-core__progress-bar">
             <div
-              class="progress-bar-fill"
+              class="typing-core__progress-bar-fill"
               :class="timeBarColorClass"
               :style="{ width: timeProgressPercentage + '%' }"
             ></div>
@@ -1297,7 +1303,7 @@ onUnmounted(() => {
   &__sudden-death-icon {
     height: 1em;
     margin-right: 0.5em;
-    fill: $black;
+    fill: currentColor;
   }
 
   &__mode-time-limit,
@@ -1338,6 +1344,7 @@ onUnmounted(() => {
     font-family: $roboto-mono;
     font-weight: $bold;
     font-size: 1.6rem;
+    line-height: 1;
     color: $light-black;
   }
 
@@ -1438,64 +1445,59 @@ onUnmounted(() => {
     padding: 0.5rem;
   }
 
-  /* HUD (Head-Up Display) のスタイル */
   &__hud {
     display: flex;
     justify-content: center;
-    gap: 2rem;
-    margin-bottom: 1.5rem; /* バーが入る分、少し広げる */
-    color: #333;
-    width: 100%; /* 幅を確保 */
-    max-width: 600px; /* 広がりすぎないように */
-    margin-left: auto;
-    margin-right: auto;
+    width: 100%;
+    max-width: 600px;
+    margin-inline: auto;
+  }
 
-    .hud-item {
-      font-size: 1.5rem;
-      font-weight: bold;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
+  &__timer-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    width: 100%;
+  }
 
-    .hud-timer {
-      width: 100%; /* バーのために幅を広げる */
-      max-width: 400px;
-    }
+  &__timer-text {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.4rem;
+    color: $light-black;
 
-    .danger {
-      color: #dc3545;
+    &.danger {
+      color: $red;
       animation: pulse 1s infinite;
     }
+  }
 
-    /* プログレスバーの背景 */
-    .progress-bar-bg {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      height: 22px;
-      padding: 0 4px;
-      border-radius: 100vmax;
-      border: 3px solid $light-black;
-      overflow: hidden; /* 角丸からはみ出ないように */
-    }
+  &__progress-bar {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 100vmax;
+    border: 2px solid $light-black;
+    overflow: hidden;
+  }
 
-    /* プログレスバーの中身 */
-    .progress-bar-fill {
-      height: 50%;
-      border-radius: 100vmax;
-      transition: width 1s linear, background-color $transition-base;
-    }
+  &__progress-bar-fill {
+    height: 50%;
+    border-radius: 100vmax;
+    transition: width 1s linear, background-color $transition-base;
 
-    /* 色の定義 */
-    .bar-green {
+    &.bar-green {
       background-color: $green;
     }
-    .bar-yellow {
+
+    &.bar-yellow {
       background-color: $yellow;
     }
-    .bar-red {
+
+    &.bar-red {
       background-color: $red;
     }
   }
@@ -1510,7 +1512,6 @@ onUnmounted(() => {
       position: absolute;
       left: 0;
       top: 50%;
-      font-weight: $bold;
       font-size: 1.6rem;
       line-height: 1;
       color: $light-black;
@@ -1649,7 +1650,7 @@ onUnmounted(() => {
     transform: scale(1);
   }
   50% {
-    transform: scale(1.1);
+    transform: scale(1.07);
   }
   100% {
     transform: scale(1);
