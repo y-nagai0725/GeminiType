@@ -1,118 +1,122 @@
 <template>
   <div class="mypage-view">
-    <h1 class="mypage-view__title">マイページ</h1>
+    <h1 class="mypage-view__title">
+      <span class="en">MYPAGE</span>
+      <span class="ja">マイページ</span>
+    </h1>
 
-    <div v-if="isLoading" class="mypage-view__loading">読み込み中...</div>
-
-    <div v-else class="mypage-view__content">
-      <section class="mypage-view__section">
-        <h2 class="mypage-view__subtitle">📊 プレイデータ</h2>
-        <div class="mypage-view__stats-grid">
-          <div class="stat-card">
-            <span class="stat-card__label">総タイプ数</span>
-            <span class="stat-card__value">{{
-              stats.total_types.toLocaleString()
-            }}</span>
-            <span class="stat-card__unit">keys</span>
+    <div class="mypage-view__contents-wrapper">
+      <template v-if="isLoading">
+        <div class="mypage-view__loading">読み込み中…</div>
+      </template>
+      <template v-else>
+        <section class="mypage-view__section">
+          <h2 class="mypage-view__subtitle">📊 プレイデータ</h2>
+          <div class="mypage-view__stats-grid">
+            <div class="stat-card">
+              <span class="stat-card__label">総タイプ数</span>
+              <span class="stat-card__value">{{
+                stats.total_types.toLocaleString()
+              }}</span>
+              <span class="stat-card__unit">keys</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card__label">平均 KPM</span>
+              <span class="stat-card__value">{{ stats.average_kpm }}</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card__label">平均 正確率</span>
+              <span class="stat-card__value">{{ stats.average_accuracy }}</span>
+              <span class="stat-card__unit">%</span>
+            </div>
           </div>
-          <div class="stat-card">
-            <span class="stat-card__label">平均 KPM</span>
-            <span class="stat-card__value">{{ stats.average_kpm }}</span>
+        </section>
+
+        <section class="mypage-view__section" v-if="sessions.length > 1">
+          <h2 class="mypage-view__subtitle">📈 成長グラフ</h2>
+          <div class="mypage-view__chart-container">
+            <GrowthChart :sessions="sessions" />
           </div>
-          <div class="stat-card">
-            <span class="stat-card__label">平均 正確率</span>
-            <span class="stat-card__value">{{ stats.average_accuracy }}</span>
-            <span class="stat-card__unit">%</span>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="mypage-view__section" v-if="sessions.length > 1">
-        <h2 class="mypage-view__subtitle">📈 成長グラフ</h2>
-        <div class="mypage-view__chart-container">
-          <GrowthChart :sessions="sessions" />
-        </div>
-      </section>
-
-      <section
-        class="mypage-view__section"
-        v-if="stats.missed_keys_ranking.length > 0"
-      >
-        <h2 class="mypage-view__subtitle">😱 苦手なキー (Top 5)</h2>
-        <div class="mypage-view__ranking">
-          <div
-            v-for="(item, index) in stats.missed_keys_ranking"
-            :key="item.key"
-            class="ranking-item"
-          >
-            <div class="ranking-item__rank">{{ index + 1 }}</div>
-            <div class="ranking-item__key">{{ item.key.toUpperCase() }}</div>
-            <div class="ranking-item__count">{{ item.count }}回ミス</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="mypage-view__section">
-        <h2 class="mypage-view__subtitle">📜 プレイ履歴</h2>
-
-        <div v-if="sessions.length === 0" class="mypage-view__no-data">
-          まだ履歴がありません。たくさん遊んでね！
-        </div>
-
-        <div v-else>
-          <table class="mypage-view__table">
-            <thead>
-              <tr>
-                <th>日時</th>
-                <th>モード</th>
-                <th>KPM</th>
-                <th>Acc.</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="session in sessions" :key="session.id">
-                <td>{{ formatDate(session.created_at) }}</td>
-                <td>
-                  <span v-if="session.session_type === 'db'">
-                    📚 {{ session.genre ? session.genre.name : "削除済" }}
-                  </span>
-                  <span v-else>
-                    🤖 AI: {{ truncateText(session.gemini_prompt, 10) }}
-                  </span>
-                </td>
-                <td class="text-bold">{{ Math.round(session.average_kpm) }}</td>
-                <td class="text-bold">
-                  {{ Math.round(session.average_accuracy) }}%
-                </td>
-                <td>
-                  <RouterLink
-                    :to="`/mypage/session/${session.id}`"
-                    class="mypage-view__detail-link"
-                  >
-                    詳細
-                  </RouterLink>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="mypage-view__pagination" v-if="totalPages > 1">
-            <button
-              v-for="page in totalPages"
-              :key="page"
-              :class="{ active: page === currentPage }"
-              @click="handlePageChange(page)"
+        <section
+          class="mypage-view__section"
+          v-if="stats.missed_keys_ranking.length > 0"
+        >
+          <h2 class="mypage-view__subtitle">😱 苦手なキー (Top 5)</h2>
+          <div class="mypage-view__ranking">
+            <div
+              v-for="(item, index) in stats.missed_keys_ranking"
+              :key="item.key"
+              class="ranking-item"
             >
-              {{ page }}
-            </button>
+              <div class="ranking-item__rank">{{ index + 1 }}</div>
+              <div class="ranking-item__key">{{ item.key.toUpperCase() }}</div>
+              <div class="ranking-item__count">{{ item.count }}回ミス</div>
+            </div>
           </div>
-        </div>
-      </section>
-    </div>
+        </section>
 
-    <div class="mypage-view__back">
-      <RouterLink to="/menu">メニューに戻る</RouterLink>
+        <section class="mypage-view__section">
+          <h2 class="mypage-view__subtitle">📜 プレイ履歴</h2>
+
+          <div v-if="sessions.length === 0" class="mypage-view__no-data">
+            まだ履歴がありません。たくさん遊んでね！
+          </div>
+
+          <div v-else>
+            <table class="mypage-view__table">
+              <thead>
+                <tr>
+                  <th>日時</th>
+                  <th>モード</th>
+                  <th>KPM</th>
+                  <th>Acc.</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="session in sessions" :key="session.id">
+                  <td>{{ formatDate(session.created_at) }}</td>
+                  <td>
+                    <span v-if="session.session_type === 'db'">
+                      📚 {{ session.genre ? session.genre.name : "削除済" }}
+                    </span>
+                    <span v-else>
+                      🤖 AI: {{ truncateText(session.gemini_prompt, 10) }}
+                    </span>
+                  </td>
+                  <td class="text-bold">
+                    {{ Math.round(session.average_kpm) }}
+                  </td>
+                  <td class="text-bold">
+                    {{ Math.round(session.average_accuracy) }}%
+                  </td>
+                  <td>
+                    <RouterLink
+                      :to="`/mypage/session/${session.id}`"
+                      class="mypage-view__detail-link"
+                    >
+                      詳細
+                    </RouterLink>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="mypage-view__pagination" v-if="totalPages > 1">
+              <button
+                v-for="page in totalPages"
+                :key="page"
+                :class="{ active: page === currentPage }"
+                @click="handlePageChange(page)"
+              >
+                {{ page }}
+              </button>
+            </div>
+          </div>
+        </section>
+      </template>
     </div>
   </div>
 </template>
@@ -198,21 +202,17 @@ const handlePageChange = (page) => {
 
 <style lang="scss" scoped>
 .mypage-view {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 2rem;
-  font-family: sans-serif;
+  @include contents-width;
 
   &__title {
-    text-align: center;
-    margin-bottom: 2rem;
-    color: #333;
+    @include page-title;
+  }
+
+  &__contents-wrapper {
+    @include contents-padding;
   }
 
   &__loading {
-    text-align: center;
-    font-size: 1.2rem;
-    color: #666;
   }
 
   &__section {
