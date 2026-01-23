@@ -64,21 +64,27 @@
             まだ履歴がありません。たくさん遊んでね！
           </div>
 
-          <div v-else>
+          <div v-else class="mypage-view__table-wrapper">
             <table class="mypage-view__table">
               <thead>
-                <tr>
-                  <th>日時</th>
-                  <th>モード</th>
-                  <th>KPM</th>
-                  <th>Acc.</th>
-                  <th>操作</th>
+                <tr class="mypage-view__tr">
+                  <th class="mypage-view__th mypage-view__th--date">日時</th>
+                  <th class="mypage-view__th mypage-view__th--mode">モード</th>
+                  <th class="mypage-view__th mypage-view__th--kpm">KPM</th>
+                  <th class="mypage-view__th mypage-view__th--acc">正確率</th>
+                  <th class="mypage-view__th mypage-view__th--action">操作</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="session in sessions" :key="session.id">
-                  <td>{{ formatDate(session.created_at) }}</td>
-                  <td>
+                <tr
+                  v-for="session in sessions"
+                  class="mypage-view__tr"
+                  :key="session.id"
+                >
+                  <td class="mypage-view__td mypage-view__td--date">
+                    {{ formatDate(session.created_at) }}
+                  </td>
+                  <td class="mypage-view__td mypage-view__td--mode">
                     <span v-if="session.session_type === 'db'">
                       📚 {{ session.genre ? session.genre.name : "削除済" }}
                     </span>
@@ -86,13 +92,13 @@
                       🤖 AI: {{ truncateText(session.gemini_prompt, 10) }}
                     </span>
                   </td>
-                  <td class="text-bold">
+                  <td class="mypage-view__td mypage-view__td--kpm">
                     {{ Math.round(session.average_kpm) }}
                   </td>
-                  <td class="text-bold">
+                  <td class="mypage-view__td mypage-view__td--acc">
                     {{ Math.round(session.average_accuracy) }}%
                   </td>
-                  <td>
+                  <td class="mypage-view__td mypage-view__td--action">
                     <RouterLink
                       :to="`/mypage/session/${session.id}`"
                       class="mypage-view__detail-link"
@@ -204,6 +210,10 @@ const handlePageChange = (page) => {
 .mypage-view {
   @include contents-width;
 
+  @include pc {
+    max-width: 1000px;
+  }
+
   &__title {
     @include page-title;
   }
@@ -293,33 +303,89 @@ const handlePageChange = (page) => {
     }
   }
 
-  /* 履歴テーブル */
+  &__table-wrapper {
+    overflow-x: auto;
+  }
+
   &__table {
     width: 100%;
-    border-collapse: collapse;
+    min-width: 1000px;
+  }
 
-    th {
-      background: #eee;
-      padding: 0.8rem;
+  &__tr {
+    &:nth-of-type(odd) {
+      background-color: $gray;
+    }
+  }
+
+  &__th {
+    padding: 1em;
+    font-size: 1.4rem;
+    font-weight: $bold;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    color: $white;
+    background-color: $green;
+
+    &--date {
+      width: 25%;
       text-align: left;
     }
-    td {
-      border-bottom: 1px solid #eee;
-      padding: 0.8rem;
+
+    &--mode {
+      width: 40%;
+      text-align: left;
     }
-    .text-bold {
-      font-weight: bold;
-      color: #007bff;
+
+    &--kpm {
+      width: 10%;
+      font-family: $roboto-mono;
+      letter-spacing: 0.05em;
+      text-align: right;
+    }
+
+    &--acc {
+      width: 10%;
+      text-align: right;
+    }
+
+    &--action {
+      width: 15%;
+      text-align: center;
+    }
+  }
+
+  &__td {
+    padding: 1em;
+    font-size: 1.4rem;
+    line-height: 1;
+
+    &--date {
+      text-align: left;
+    }
+
+    &--mode {
+      text-align: left;
+    }
+
+    &--kpm {
+      font-family: $roboto-mono;
+      color: $blue;
+      text-align: right;
+    }
+
+    &--acc {
+      color: $green;
+      text-align: right;
+    }
+
+    &--action {
+      text-align: center;
     }
   }
 
   &__detail-link {
-    color: #007bff;
-    text-decoration: none;
-    font-size: 0.9rem;
-    &:hover {
-      text-decoration: underline;
-    }
+    color: $blue;
   }
 
   &__pagination {
