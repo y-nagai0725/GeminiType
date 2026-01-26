@@ -10,54 +10,67 @@
         <div class="mypage-view__loading">読み込み中…</div>
       </template>
       <template v-else>
-        <section class="mypage-view__section">
-          <h2 class="mypage-view__subtitle">📊 プレイデータ</h2>
-          <div class="mypage-view__stats-grid">
-            <div class="stat-card">
-              <span class="stat-card__label">総タイプ数</span>
-              <span class="stat-card__value">{{
-                stats.total_types.toLocaleString()
-              }}</span>
-              <span class="stat-card__unit">keys</span>
+        <div class="mypage-view__top-grid-wrapper">
+          <section
+            class="mypage-view__section mypage-view__section--total-rank"
+          >
+            <h2 class="mypage-view__subtitle">総合ランク</h2>
+          </section>
+          <section class="mypage-view__section mypage-view__section--play-data">
+            <h2 class="mypage-view__subtitle">📊 プレイデータ</h2>
+            <div class="mypage-view__stats-grid">
+              <div class="stat-card">
+                <span class="stat-card__label">総タイプ数</span>
+                <span class="stat-card__value">{{
+                  stats.total_types.toLocaleString()
+                }}</span>
+                <span class="stat-card__unit">keys</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-card__label">平均 KPM</span>
+                <span class="stat-card__value">{{ stats.average_kpm }}</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-card__label">平均 正確率</span>
+                <span class="stat-card__value">{{
+                  stats.average_accuracy
+                }}</span>
+                <span class="stat-card__unit">%</span>
+              </div>
             </div>
-            <div class="stat-card">
-              <span class="stat-card__label">平均 KPM</span>
-              <span class="stat-card__value">{{ stats.average_kpm }}</span>
+          </section>
+          <section
+            class="mypage-view__section mypage-view__section--weak-keys"
+            v-if="stats.missed_keys_ranking.length > 0"
+          >
+            <h2 class="mypage-view__subtitle">😱 苦手なキー (Top 5)</h2>
+            <div class="mypage-view__ranking">
+              <div
+                v-for="(item, index) in stats.missed_keys_ranking"
+                :key="item.key"
+                class="ranking-item"
+              >
+                <div class="ranking-item__rank">{{ index + 1 }}</div>
+                <div class="ranking-item__key">
+                  {{ item.key.toUpperCase() }}
+                </div>
+                <div class="ranking-item__count">{{ item.count }}回ミス</div>
+              </div>
             </div>
-            <div class="stat-card">
-              <span class="stat-card__label">平均 正確率</span>
-              <span class="stat-card__value">{{ stats.average_accuracy }}</span>
-              <span class="stat-card__unit">%</span>
-            </div>
-          </div>
-        </section>
+          </section>
+        </div>
 
-        <section class="mypage-view__section" v-if="sessions.length > 1">
+        <section
+          class="mypage-view__section mypage-view__section--chart"
+          v-if="sessions.length > 1"
+        >
           <h2 class="mypage-view__subtitle">📈 成長グラフ</h2>
           <div class="mypage-view__chart-container">
             <GrowthChart :sessions="sessions" />
           </div>
         </section>
 
-        <section
-          class="mypage-view__section"
-          v-if="stats.missed_keys_ranking.length > 0"
-        >
-          <h2 class="mypage-view__subtitle">😱 苦手なキー (Top 5)</h2>
-          <div class="mypage-view__ranking">
-            <div
-              v-for="(item, index) in stats.missed_keys_ranking"
-              :key="item.key"
-              class="ranking-item"
-            >
-              <div class="ranking-item__rank">{{ index + 1 }}</div>
-              <div class="ranking-item__key">{{ item.key.toUpperCase() }}</div>
-              <div class="ranking-item__count">{{ item.count }}回ミス</div>
-            </div>
-          </div>
-        </section>
-
-        <section class="mypage-view__section">
+        <section class="mypage-view__section mypage-view__section--history">
           <h2 class="mypage-view__subtitle">📜 プレイ履歴</h2>
 
           <div v-if="sessions.length === 0" class="mypage-view__no-data">
@@ -219,22 +232,47 @@ const handlePageChange = (page) => {
   }
 
   &__contents-wrapper {
+    display: flex;
+    flex-direction: column;
+    @include fluid-style(gap, 24, 32);
     @include contents-padding;
   }
 
   &__loading {
   }
 
+  &__top-grid-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+
+    @include pc {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      row-gap: 3.2rem;
+      column-gap: 4rem;
+    }
+  }
+
   &__section {
-    margin-bottom: 3rem;
+    display: flex;
+    flex-direction: column;
+    @include fluid-style(gap, 10, 16);
+
+    &--total-rank {
+      grid-row: auto;
+
+      @include pc {
+        grid-row: 1 / 3;
+      }
+    }
   }
 
   &__subtitle {
-    font-size: 1.3rem;
-    border-left: 5px solid #007bff;
-    padding-left: 1rem;
-    margin-bottom: 1.5rem;
-    color: #444;
+    @include fluid-text(14, 18);
+    font-weight: $bold;
+    letter-spacing: 0.1em;
   }
 
   /* 統計カード */
