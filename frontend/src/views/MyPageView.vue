@@ -17,25 +17,37 @@
             <h2 class="mypage-view__subtitle">総合ランク</h2>
           </section>
           <section class="mypage-view__section mypage-view__section--play-data">
-            <h2 class="mypage-view__subtitle">📊 プレイデータ</h2>
-            <div class="mypage-view__stats-grid">
-              <div class="stat-card">
-                <span class="stat-card__label">総タイプ数</span>
-                <span class="stat-card__value">{{
-                  stats.total_types.toLocaleString()
-                }}</span>
-                <span class="stat-card__unit">keys</span>
+            <h2 class="mypage-view__subtitle">プレイデータ</h2>
+            <div class="mypage-view__stats-card-wrapper">
+              <div class="mypage-view__stat-card">
+                <KpmIcon
+                  class="mypage-view__card-icon mypage-view__card-icon--kpm"
+                />
+                <span class="mypage-view__card-title">平均 KPM</span>
+                <span
+                  class="mypage-view__card-value mypage-view__card-value--kpm"
+                  >{{ stats.average_kpm }}</span
+                >
               </div>
-              <div class="stat-card">
-                <span class="stat-card__label">平均 KPM</span>
-                <span class="stat-card__value">{{ stats.average_kpm }}</span>
+              <div class="mypage-view__stat-card">
+                <AccuracyIcon
+                  class="mypage-view__card-icon mypage-view__card-icon--accuracy"
+                />
+                <span class="mypage-view__card-title">平均 正確率</span>
+                <span
+                  class="mypage-view__card-value mypage-view__card-value--accuracy"
+                  >{{ stats.average_accuracy }}%</span
+                >
               </div>
-              <div class="stat-card">
-                <span class="stat-card__label">平均 正確率</span>
-                <span class="stat-card__value">{{
-                  stats.average_accuracy
-                }}</span>
-                <span class="stat-card__unit">%</span>
+              <div class="mypage-view__stat-card">
+                <TotalTypeCountIcon
+                  class="mypage-view__card-icon mypage-view__card-icon--total-type-count"
+                />
+                <span class="mypage-view__card-title">総タイプ数</span>
+                <span
+                  class="mypage-view__card-value mypage-view__card-value--total-type-count"
+                  >{{ stats.total_types.toLocaleString() }}</span
+                >
               </div>
             </div>
           </section>
@@ -148,6 +160,10 @@ import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import GrowthChart from "../components/GrowthChart.vue";
 import { formatDate, truncateText } from "../utils/formatters";
+import KpmIcon from "@/components/icons/KpmIcon.vue";
+import AccuracyIcon from "@/components/icons/AccuracyIcon.vue";
+import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
+import ScoreIcon from "@/components/icons/ScoreIcon.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -275,35 +291,75 @@ const handlePageChange = (page) => {
     letter-spacing: 0.1em;
   }
 
-  /* 統計カード */
-  &__stats-grid {
+  &__stats-card-wrapper {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 2.4rem;
+
+    @include tab {
+      grid-template-columns: repeat(3, 1fr);
+      row-gap: 0;
+      column-gap: 3rem;
+    }
   }
 
-  .stat-card {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 8px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  &__stat-card {
+    justify-self: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 14rem;
+    aspect-ratio: 1;
+    padding: 1.6rem 0;
+    border-radius: $radius-lg;
+    background-color: $gray;
 
-    &__label {
-      display: block;
-      font-size: 0.9rem;
-      color: #666;
-      margin-bottom: 0.5rem;
+    @include pc {
+      justify-self: auto;
     }
-    &__value {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #007bff;
+  }
+
+  &__card-icon {
+    width: 4rem;
+    line-height: 1;
+
+    &--kpm {
+      fill: $blue;
     }
-    &__unit {
-      font-size: 1rem;
-      color: #888;
-      margin-left: 0.2rem;
+
+    &--accuracy {
+      fill: $green;
+    }
+
+    &--total-type-count {
+      fill: $light-black;
+    }
+  }
+
+  &__card-title {
+    font-size: 1.6rem;
+    font-weight: $bold;
+    letter-spacing: 0.1em;
+    line-height: 1;
+  }
+
+  &__card-value {
+    font-family: $roboto-mono;
+    font-size: 2.2rem;
+    font-weight: $bold;
+    line-height: 1;
+
+    &--kpm {
+      color: $blue;
+    }
+
+    &--accuracy {
+      color: $green;
+    }
+
+    &--total-type-count {
+      color: $light-black;
     }
   }
 
