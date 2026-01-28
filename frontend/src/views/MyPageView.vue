@@ -55,18 +55,22 @@
             class="mypage-view__section mypage-view__section--weak-keys"
             v-if="stats.missed_keys_ranking.length > 0"
           >
-            <h2 class="mypage-view__subtitle">😱 苦手なキー (Top 5)</h2>
-            <div class="mypage-view__ranking">
+            <h2 class="mypage-view__subtitle">
+              苦手なキー<span class="en">(Top5)</span>
+            </h2>
+            <div class="mypage-view__ranking-wrapper">
               <div
                 v-for="(item, index) in stats.missed_keys_ranking"
                 :key="item.key"
-                class="ranking-item"
+                class="mypage-view__ranking-item"
               >
-                <div class="ranking-item__rank">{{ index + 1 }}</div>
-                <div class="ranking-item__key">
+                <div class="mypage-view__ranking-rank">{{ index + 1 }}</div>
+                <div class="mypage-view__ranking-key">
                   {{ item.key.toUpperCase() }}
                 </div>
-                <div class="ranking-item__count">{{ item.count }}回ミス</div>
+                <div class="mypage-view__ranking-count">
+                  <span class="en">{{ item.count }}</span> miss
+                </div>
               </div>
             </div>
           </section>
@@ -252,6 +256,13 @@ const handlePageChange = (page) => {
     flex-direction: column;
     @include fluid-style(gap, 24, 32);
     @include contents-padding;
+    max-width: 600px;
+    margin-inline: auto;
+
+    @include pc {
+      max-width: none;
+      margin-inline: 0;
+    }
   }
 
   &__loading {
@@ -286,9 +297,14 @@ const handlePageChange = (page) => {
   }
 
   &__subtitle {
-    @include fluid-text(14, 18);
+    @include fluid-text(16, 18);
     font-weight: $bold;
     letter-spacing: 0.1em;
+
+    .en {
+      font-family: $roboto-mono;
+      letter-spacing: 0;
+    }
   }
 
   &__stats-card-wrapper {
@@ -363,37 +379,54 @@ const handlePageChange = (page) => {
     }
   }
 
-  /* ランキング */
-  &__ranking {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    justify-content: center;
+  &__ranking-wrapper {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 2.4rem;
+    padding: 1.6rem 2.4rem;
+    background-color: $gray;
+    border-radius: $radius-lg;
+
+    @include pc {
+      grid-template-columns: repeat(5, 1fr);
+    }
   }
 
-  .ranking-item {
-    background: #fff0f0;
-    border: 1px solid #ffcccc;
-    padding: 1rem;
-    border-radius: 8px;
-    text-align: center;
-    min-width: 100px;
+  &__ranking-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
 
-    &__rank {
-      font-size: 0.9rem;
-      font-weight: bold;
-      color: #dc3545;
-      margin-bottom: 0.3rem;
-    }
-    &__key {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #333;
-    }
-    &__count {
-      font-size: 0.8rem;
-      color: #666;
-      margin-top: 0.3rem;
+  &__ranking-rank {
+    font-family: $roboto-mono;
+    font-size: 1.4rem;
+    font-weight: $bold;
+    color: $green;
+  }
+
+  &__ranking-key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    font-family: $roboto-mono;
+    font-size: 1.8rem;
+    font-weight: $bold;
+    background-color: $white;
+    border-radius: $radius-md;
+    box-shadow: $key-shadow;
+  }
+
+  &__ranking-count {
+    font-family: $roboto-mono;
+    font-size: 1.2rem;
+
+    .en {
+      font-weight: $bold;
+      color: $red;
     }
   }
 
