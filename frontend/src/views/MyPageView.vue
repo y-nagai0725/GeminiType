@@ -15,6 +15,70 @@
             class="mypage-view__section mypage-view__section--total-rank"
           >
             <h2 class="mypage-view__subtitle">総合ランク</h2>
+            <div class="mypage-view__total-rank-wrapper">
+              <div class="mypage-view__profile">
+                {{authStore.user?.name}}
+                {{ totalCount }}
+              </div>
+              <div class="mypage-view__score-card">
+                <div class="mypage-view__score-item">
+                  <ScoreIcon
+                    class="mypage-view__card-icon mypage-view__card-icon--score"
+                  />
+                  <span class="mypage-view__card-title">スコア</span>
+                  <span
+                    class="mypage-view__card-value mypage-view__card-value--score"
+                    >{{ score }}</span
+                  >
+                </div>
+                <div class="mypage-view__rank-item">
+                  <div class="mypage-view__rank-circle-wrapper">
+                    <svg
+                      class="mypage-view__progress-ring"
+                      viewBox="0 0 100 100"
+                    >
+                      <circle
+                        class="mypage-view__progress-ring-background"
+                        stroke-width="10"
+                        fill="transparent"
+                        r="45"
+                        cx="50"
+                        cy="50"
+                      />
+                      <circle
+                        class="mypage-view__progress-ring-circle"
+                        stroke-width="10"
+                        fill="transparent"
+                        r="45"
+                        cx="50"
+                        cy="50"
+                        :class="{
+                          'rank-s': rank === 'S',
+                          'rank-a': rank === 'A',
+                          'rank-b': rank === 'B',
+                          'rank-c': rank === 'C',
+                        }"
+                        :stroke-dasharray="circumference"
+                        :style="{ strokeDashoffset: currentOffset }"
+                      />
+                    </svg>
+                  </div>
+                  <div class="mypage-view__rank-wrapper">
+                    <span
+                      class="mypage-view__rank-text"
+                      :class="{
+                        'rank-s': rank === 'S',
+                        'rank-a': rank === 'A',
+                        'rank-b': rank === 'B',
+                        'rank-c': rank === 'C',
+                      }"
+                      >{{ rank }}</span
+                    >
+                    <span class="mypage-view__rank-title">Rank</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </section>
           <section class="mypage-view__section mypage-view__section--play-data">
             <h2 class="mypage-view__subtitle">プレイデータ</h2>
@@ -157,7 +221,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import api from "../services/api";
 import { useAuthStore } from "../stores/authStore";
@@ -182,7 +246,51 @@ const stats = ref({
 });
 const sessions = ref([]);
 const currentPage = ref(1);
+const totalCount = ref(0);
 const totalPages = ref(1);
+
+/**
+ * 円の半径
+ */
+const radius = 45;
+
+/**
+ * 円周の長さ（2 * π * r）
+ */
+const circumference = 2 * Math.PI * radius;
+
+const maxScore = 350;
+
+const currentOffset = computed(() => {
+  const validPercent = Math.min(100, Math.max(0, percent.value));
+
+  // 計算式：円周 - (進捗割合 * 円周)
+  return circumference - (validPercent / 100) * circumference;
+});
+
+const score = computed(() => {
+  if (stats.value.average_kpm === 0 && stats.value.average_accuracy === 0) return "-";
+  const kpm = stats.value.average_kpm;
+  const acc = stats.value.average_accuracy;
+  return Math.round(kpm * (acc / 100));
+});
+
+const percent = computed(() => {
+  if (!score.value || score.value === "-") {
+    return "-";
+  }
+
+  return Math.round((score.value / maxScore) * 100);
+});
+
+const rank = computed(() => {
+  if (!percent.value) return "-";
+
+  if (percent.value >= 95) return "S";
+  if (percent.value >= 75) return "A";
+  if (percent.value >= 60) return "B";
+  return "C";
+});
 
 /**
  * 初期データ読み込み
@@ -225,6 +333,7 @@ const fetchSessions = async (page) => {
     const response = await api.get(`/api/mypage/sessions?page=${page}`);
     sessions.value = response.data.sessions;
     totalPages.value = response.data.totalPages;
+    totalCount.value = response.data.totalCount;
     currentPage.value = response.data.currentPage;
   } catch (error) {
     notificationStore.addNotification("履歴の取得に失敗しました", "error");
@@ -307,6 +416,122 @@ const handlePageChange = (page) => {
     }
   }
 
+  &__total-rank-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    background-color: $gray;
+    border-radius: $radius-lg;
+
+    @include pc {
+      height: 100%;
+    }
+  }
+
+  &__score-card {
+    display: flex;
+    justify-content: center;
+    gap: 4rem;
+    width: 100%;
+    height: 14rem;
+    padding: 1.6rem 0;
+    border-radius: $radius-lg;
+    background-color: $gray;
+  }
+
+  &__score-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__rank-item {
+    position: relative;
+    display: grid;
+    place-content: center;
+    width: 10.8rem;
+    height: 10.8rem;
+  }
+
+  &__rank-circle-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    transform: translate(-50%, -50%);
+  }
+
+  &__progress-ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  &__progress-ring-background {
+    stroke: $light-black;
+  }
+
+  &__progress-ring-circle {
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.4s linear, stroke $transition-base;
+
+    &.rank-c {
+      stroke: $blue;
+    }
+
+    &.rank-b {
+      stroke: $green;
+    }
+
+    &.rank-a {
+      stroke: $orange;
+    }
+
+    &.rank-s {
+      stroke: $yellow;
+    }
+  }
+
+  &__rank-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &__rank-text {
+    font-family: $roboto-mono;
+    font-size: 5rem;
+    font-weight: $bold;
+    line-height: 1;
+
+    &.rank-s {
+      color: $yellow;
+    }
+
+    &.rank-a {
+      color: $orange;
+    }
+
+    &.rank-b {
+      color: $green;
+    }
+
+    &.rank-c {
+      color: $blue;
+    }
+  }
+
+  &__rank-title {
+    font-family: $roboto-mono;
+    font-size: 1.6rem;
+    font-weight: $bold;
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+
   &__stats-card-wrapper {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -340,6 +565,10 @@ const handlePageChange = (page) => {
     width: 4rem;
     line-height: 1;
 
+    &--score {
+      stroke: $orange;
+    }
+
     &--kpm {
       fill: $blue;
     }
@@ -365,6 +594,10 @@ const handlePageChange = (page) => {
     font-size: 2.2rem;
     font-weight: $bold;
     line-height: 1;
+
+    &--score {
+      color: $orange;
+    }
 
     &--kpm {
       color: $blue;

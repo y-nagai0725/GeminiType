@@ -1193,6 +1193,7 @@ app.get('/api/mypage/sessions', authenticateToken, async (req, res) => {
     res.json({
       sessions,
       totalPages,
+      totalCount,
       currentPage: pageNum
     });
 
