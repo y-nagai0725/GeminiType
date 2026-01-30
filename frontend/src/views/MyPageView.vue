@@ -14,11 +14,22 @@
           <section
             class="mypage-view__section mypage-view__section--total-rank"
           >
-            <h2 class="mypage-view__subtitle">総合ランク</h2>
-            <div class="mypage-view__total-rank-wrapper">
+            <h2 class="mypage-view__subtitle">プロフィール</h2>
+            <div class="mypage-view__profile-wrapper">
               <div class="mypage-view__profile">
-                {{authStore.user?.name}}
-                {{ totalCount }}
+                <UserIcon class="mypage-view__profile-user-icon" />
+                <dl class="mypage-view__profile-info">
+                  <dt class="mypage-view__profile-heading">お名前</dt>
+                  <dd class="mypage-view__profile-value">
+                    {{ authStore.user?.name }}
+                  </dd>
+                  <dt class="mypage-view__profile-heading">総プレイ回数</dt>
+                  <dd class="mypage-view__profile-value">{{ totalCount }}</dd>
+                  <dt class="mypage-view__profile-heading">初回プレイ日時</dt>
+                  <dd class="mypage-view__profile-value"></dd>
+                  <dt class="mypage-view__profile-heading">最新プレイ日時</dt>
+                  <dd class="mypage-view__profile-value"></dd>
+                </dl>
               </div>
               <div class="mypage-view__score-card">
                 <div class="mypage-view__score-item">
@@ -232,6 +243,7 @@ import KpmIcon from "@/components/icons/KpmIcon.vue";
 import AccuracyIcon from "@/components/icons/AccuracyIcon.vue";
 import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 import ScoreIcon from "@/components/icons/ScoreIcon.vue";
+import UserIcon from "@/components/icons/UserIcon.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -269,7 +281,8 @@ const currentOffset = computed(() => {
 });
 
 const score = computed(() => {
-  if (stats.value.average_kpm === 0 && stats.value.average_accuracy === 0) return "-";
+  if (stats.value.average_kpm === 0 && stats.value.average_accuracy === 0)
+    return "-";
   const kpm = stats.value.average_kpm;
   const acc = stats.value.average_accuracy;
   return Math.round(kpm * (acc / 100));
@@ -416,10 +429,10 @@ const handlePageChange = (page) => {
     }
   }
 
-  &__total-rank-wrapper {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
+  &__profile-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    @include fluid-style(padding, 16, 24);
     background-color: $gray;
     border-radius: $radius-lg;
 
@@ -428,7 +441,35 @@ const handlePageChange = (page) => {
     }
   }
 
+  &__profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    @include fluid-style(gap, 8, 16);
+  }
+
+  &__profile-user-icon {
+    width: 6rem;
+    fill: $black;
+
+    @include pc {
+      width: 8rem;
+    }
+  }
+
+  &__profile-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    @include fluid-style(gap, 8, 16);
+  }
+
+  &__profile-heading {
+    font-weight: $bold;
+    @include fluid-text(12, 14);
+  }
+
   &__score-card {
+    align-self: center;
     display: flex;
     justify-content: center;
     gap: 4rem;
