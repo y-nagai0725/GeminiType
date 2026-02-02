@@ -19,16 +19,36 @@
               <div class="mypage-view__profile">
                 <UserIcon class="mypage-view__profile-user-icon" />
                 <dl class="mypage-view__profile-info">
-                  <dt class="mypage-view__profile-heading">お名前</dt>
-                  <dd class="mypage-view__profile-value">
-                    {{ authStore.user?.name }}
-                  </dd>
-                  <dt class="mypage-view__profile-heading">総プレイ回数</dt>
-                  <dd class="mypage-view__profile-value">{{ totalCount }}</dd>
-                  <dt class="mypage-view__profile-heading">初回プレイ日時</dt>
-                  <dd class="mypage-view__profile-value"></dd>
-                  <dt class="mypage-view__profile-heading">最新プレイ日時</dt>
-                  <dd class="mypage-view__profile-value"></dd>
+                  <div class="mypage-view__profile-item">
+                    <dt class="mypage-view__profile-heading">お名前</dt>
+                    <dd class="mypage-view__profile-value">
+                      {{ authStore.user?.name }}
+                    </dd>
+                  </div>
+                  <div class="mypage-view__profile-item">
+                    <dt class="mypage-view__profile-heading">総プレイ回数</dt>
+                    <dd
+                      class="mypage-view__profile-value mypage-view__profile-value--number"
+                    >
+                      {{ totalCount }}
+                    </dd>
+                  </div>
+                  <div class="mypage-view__profile-item">
+                    <dt class="mypage-view__profile-heading">初回プレイ日時</dt>
+                    <dd
+                      class="mypage-view__profile-value mypage-view__profile-value--number"
+                    >
+                      2111/11/11
+                    </dd>
+                  </div>
+                  <div class="mypage-view__profile-item">
+                    <dt class="mypage-view__profile-heading">最新プレイ日時</dt>
+                    <dd
+                      class="mypage-view__profile-value mypage-view__profile-value--number"
+                    >
+                      2222/33/44
+                    </dd>
+                  </div>
                 </dl>
               </div>
               <div class="mypage-view__score-card">
@@ -36,7 +56,7 @@
                   <ScoreIcon
                     class="mypage-view__card-icon mypage-view__card-icon--score"
                   />
-                  <span class="mypage-view__card-title">スコア</span>
+                  <span class="mypage-view__card-title">総合スコア</span>
                   <span
                     class="mypage-view__card-value mypage-view__card-value--score"
                     >{{ score }}</span
@@ -430,22 +450,24 @@ const handlePageChange = (page) => {
   }
 
   &__profile-wrapper {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
+    @include fluid-style(gap, 20, 24);
     @include fluid-style(padding, 16, 24);
     background-color: $gray;
     border-radius: $radius-lg;
 
     @include pc {
+      justify-content: space-around;
       height: 100%;
     }
   }
 
   &__profile {
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    @include fluid-style(gap, 8, 16);
+    @include fluid-style(gap, 16, 32);
   }
 
   &__profile-user-icon {
@@ -460,12 +482,27 @@ const handlePageChange = (page) => {
   &__profile-info {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    @include fluid-style(gap, 8, 16);
+    @include fluid-style(gap, 16, 24);
+  }
+
+  &__profile-item {
+    display: grid;
+    @include fluid-style(gap, 4, 8);
   }
 
   &__profile-heading {
     font-weight: $bold;
     @include fluid-text(12, 14);
+    color: $light-black;
+  }
+
+  &__profile-value {
+    font-weight: $bold;
+    @include fluid-text(12, 14);
+
+    &--number {
+      font-family: $roboto-mono;
+    }
   }
 
   &__score-card {
@@ -474,8 +511,6 @@ const handlePageChange = (page) => {
     justify-content: center;
     gap: 4rem;
     width: 100%;
-    height: 14rem;
-    padding: 1.6rem 0;
     border-radius: $radius-lg;
     background-color: $gray;
   }
@@ -491,8 +526,8 @@ const handlePageChange = (page) => {
     position: relative;
     display: grid;
     place-content: center;
-    width: 10.8rem;
-    height: 10.8rem;
+    @include fluid-style(width, 90, 108);
+    @include fluid-style(height, 90, 108);
   }
 
   &__rank-circle-wrapper {
@@ -544,7 +579,7 @@ const handlePageChange = (page) => {
 
   &__rank-text {
     font-family: $roboto-mono;
-    font-size: 5rem;
+    @include fluid-text(40, 50);
     font-weight: $bold;
     line-height: 1;
 
@@ -567,7 +602,7 @@ const handlePageChange = (page) => {
 
   &__rank-title {
     font-family: $roboto-mono;
-    font-size: 1.6rem;
+    @include fluid-text(13, 16);
     font-weight: $bold;
     letter-spacing: 0.05em;
     line-height: 1;
@@ -591,7 +626,7 @@ const handlePageChange = (page) => {
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    width: 14rem;
+    @include fluid-style(width, 120, 140);
     aspect-ratio: 1;
     padding: 1.6rem 0;
     border-radius: $radius-lg;
@@ -603,7 +638,7 @@ const handlePageChange = (page) => {
   }
 
   &__card-icon {
-    width: 4rem;
+    @include fluid-style(width, 32, 40);
     line-height: 1;
 
     &--score {
@@ -624,7 +659,7 @@ const handlePageChange = (page) => {
   }
 
   &__card-title {
-    font-size: 1.6rem;
+    @include fluid-text(13, 16);
     font-weight: $bold;
     letter-spacing: 0.1em;
     line-height: 1;
@@ -632,7 +667,7 @@ const handlePageChange = (page) => {
 
   &__card-value {
     font-family: $roboto-mono;
-    font-size: 2.2rem;
+    @include fluid-text(18, 22);
     font-weight: $bold;
     line-height: 1;
 
@@ -677,7 +712,7 @@ const handlePageChange = (page) => {
     font-family: $roboto-mono;
     font-size: 1.4rem;
     font-weight: $bold;
-    color: $green;
+    color: $light-black;
   }
 
   &__ranking-key {
