@@ -175,14 +175,14 @@
           class="mypage-view__section mypage-view__section--chart"
           v-if="sessions.length > 1"
         >
-          <h2 class="mypage-view__subtitle">📈 成長グラフ</h2>
+          <h2 class="mypage-view__subtitle">成長グラフ</h2>
           <div class="mypage-view__chart-container">
             <GrowthChart :sessions="sessions" />
           </div>
         </section>
 
         <section class="mypage-view__section mypage-view__section--history">
-          <h2 class="mypage-view__subtitle">📜 プレイ履歴</h2>
+          <h2 class="mypage-view__subtitle">プレイ履歴</h2>
 
           <div v-if="sessions.length === 0" class="mypage-view__no-data">
             まだ履歴がありません。たくさん遊んでね！
