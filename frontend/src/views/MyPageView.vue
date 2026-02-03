@@ -193,10 +193,12 @@
               <thead>
                 <tr class="mypage-view__tr">
                   <th class="mypage-view__th mypage-view__th--date">日時</th>
-                  <th class="mypage-view__th mypage-view__th--mode">モード</th>
+                  <th class="mypage-view__th mypage-view__th--mode">
+                    モード: お題
+                  </th>
                   <th class="mypage-view__th mypage-view__th--kpm">KPM</th>
                   <th class="mypage-view__th mypage-view__th--acc">正確率</th>
-                  <th class="mypage-view__th mypage-view__th--action">操作</th>
+                  <th class="mypage-view__th mypage-view__th--action"></th>
                 </tr>
               </thead>
               <tbody>
@@ -210,7 +212,7 @@
                   </td>
                   <td class="mypage-view__td mypage-view__td--mode">
                     <span v-if="session.session_type === 'db'">
-                      📚 {{ session.genre ? session.genre.name : "削除済" }}
+                      📚 DB: {{ session.genre ? session.genre.name : "削除済" }}
                     </span>
                     <span v-else>
                       🤖 AI: {{ truncateText(session.gemini_prompt, 10) }}
@@ -228,6 +230,7 @@
                       class="mypage-view__detail-link"
                     >
                       詳細
+                      <ArrowIcon class="mypage-view__arrow-icon" />
                     </RouterLink>
                   </td>
                 </tr>
@@ -264,6 +267,7 @@ import AccuracyIcon from "@/components/icons/AccuracyIcon.vue";
 import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 import ScoreIcon from "@/components/icons/ScoreIcon.vue";
 import UserIcon from "@/components/icons/UserIcon.vue";
+import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -825,12 +829,20 @@ const handlePageChange = (page) => {
     }
 
     &--action {
+      font-size: 1.2rem;
       text-align: center;
     }
   }
 
   &__detail-link {
-    color: $blue;
+    @include button-style-border($black);
+    width: 66%;
+    margin-inline: auto;
+    padding: 1em 0;
+  }
+
+  &__arrow-icon {
+    @include button-arrow-icon-style;
   }
 
   &__pagination {

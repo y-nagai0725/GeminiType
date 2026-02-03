@@ -122,8 +122,8 @@
   letter-spacing: 0.1em;
   border-radius: 100vmax;
   transition:
-    color 0.3s ease-out,
-    background-color 0.3s ease-out;
+    color $transition-base,
+    background-color $transition-base;
 
   @include hover {
     svg {
