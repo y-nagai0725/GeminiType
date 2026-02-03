@@ -176,8 +176,8 @@
           v-if="sessions.length > 1"
         >
           <h2 class="mypage-view__subtitle">成長グラフ</h2>
-          <div class="mypage-view__chart-container">
-            <GrowthChart :sessions="sessions" />
+          <div class="mypage-view__chart-wrapper">
+            <GrowthChart class="mypage-view__chart" :sessions="sessions" />
           </div>
         </section>
 
@@ -737,6 +737,15 @@ const handlePageChange = (page) => {
       font-weight: $bold;
       color: $red;
     }
+  }
+
+  &__chart-wrapper {
+    overflow-x: auto;
+  }
+
+  &__chart {
+    width: 100%;
+    min-width: 1000px;
   }
 
   &__table-wrapper {

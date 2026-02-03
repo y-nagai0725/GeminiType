@@ -64,17 +64,17 @@ const chartData = computed(() => {
     labels,
     datasets: [
       {
-        label: "KPM (速度)",
-        borderColor: "#007bff", // 青
-        backgroundColor: "#007bff",
+        label: "KPM",
+        borderColor: "#3490d1", // 青
+        backgroundColor: "#3490d1",
         data: kpmData,
         yAxisID: "y", // 左の軸を使う
         tension: 0.3, // (★) 線をちょっと滑らかにする
       },
       {
-        label: "Accuracy (正確率 %)",
-        borderColor: "#28a745", // 緑
-        backgroundColor: "#28a745",
+        label: "正確率 (%)",
+        borderColor: "#41a9a5", // 緑
+        backgroundColor: "#41a9a5",
         data: accData,
         yAxisID: "y1", // 右の軸を使う
         tension: 0.3,
@@ -93,7 +93,7 @@ const chartOptions = {
   },
   plugins: {
     legend: { position: "top" },
-    title: { display: true, text: "成長の記録" },
+    title: { display: true, text: "成長グラフ" },
   },
   scales: {
     y: {
@@ -108,7 +108,7 @@ const chartOptions = {
       position: "right",
       min: 0,
       max: 100,
-      title: { display: true, text: "Accuracy (%)" },
+      title: { display: true, text: "正確率 (%)" },
       grid: {
         drawOnChartArea: false, // グリッド線が重なると見にくいから消す
       },
@@ -120,7 +120,7 @@ const chartOptions = {
 <style lang="scss" scoped>
 .growth-chart {
   width: 100%;
-  height: 300px; /* (★) グラフの高さ */
+  height: 400px; /* (★) グラフの高さ */
 
   &__no-data {
     text-align: center;
