@@ -194,7 +194,7 @@
                 <tr class="mypage-view__tr">
                   <th class="mypage-view__th mypage-view__th--date">日時</th>
                   <th class="mypage-view__th mypage-view__th--mode">
-                    モード: お題
+                    モード(AI or DB): お題
                   </th>
                   <th class="mypage-view__th mypage-view__th--kpm">KPM</th>
                   <th class="mypage-view__th mypage-view__th--acc">正確率</th>
@@ -211,11 +211,13 @@
                     {{ formatDate(session.created_at) }}
                   </td>
                   <td class="mypage-view__td mypage-view__td--mode">
-                    <span v-if="session.session_type === 'db'">
-                      📚 DB: {{ session.genre ? session.genre.name : "削除済" }}
+                    <span v-if="session.session_type === 'db'" class="db">
+                      DB:
+                      {{ session.genre ? session.genre.name : "削除済" }}
                     </span>
-                    <span v-else>
-                      🤖 AI: {{ truncateText(session.gemini_prompt, 10) }}
+                    <span v-else class="ai"
+                      >AI:
+                      {{ truncateText(session.gemini_prompt, 15) }}
                     </span>
                   </td>
                   <td class="mypage-view__td mypage-view__td--kpm">
@@ -815,6 +817,14 @@ const handlePageChange = (page) => {
 
     &--mode {
       text-align: left;
+
+      .ai {
+        color: $orange;
+      }
+
+      .db {
+        color: $black;
+      }
     }
 
     &--kpm {
@@ -879,14 +889,5 @@ const handlePageChange = (page) => {
       }
     }
   }
-}
-
-/* (★) グラフ用のコンテナスタイルを追加 */
-.mypage-view__chart-container {
-  background: white;
-  padding: 1rem;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 </style>
