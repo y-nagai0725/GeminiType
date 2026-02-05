@@ -238,17 +238,16 @@
                 </tr>
               </tbody>
             </table>
-
-            <div class="mypage-view__pagination" v-if="totalPages > 1">
-              <button
-                v-for="page in totalPages"
-                :key="page"
-                :class="{ active: page === currentPage }"
-                @click="handlePageChange(page)"
-              >
-                {{ page }}
-              </button>
-            </div>
+          </div>
+          <div class="mypage-view__pagination" v-if="totalPages > 1">
+            <button
+              v-for="page in totalPages"
+              :key="page"
+              :class="{ active: page === currentPage }"
+              @click="handlePageChange(page)"
+            >
+              {{ page }}
+            </button>
           </div>
         </section>
       </template>
