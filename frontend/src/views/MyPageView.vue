@@ -616,12 +616,10 @@ const handlePageChange = (page) => {
   &__stats-card-wrapper {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    row-gap: 2.4rem;
+    @include fluid-style(gap, 16, 30);
 
     @include tab {
       grid-template-columns: repeat(3, 1fr);
-      row-gap: 0;
-      column-gap: 3rem;
     }
   }
 
@@ -631,7 +629,7 @@ const handlePageChange = (page) => {
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    @include fluid-style(width, 120, 140);
+    width: 100%;
     aspect-ratio: 1;
     padding: 1.6rem 0;
     border-radius: $radius-lg;
@@ -664,9 +662,8 @@ const handlePageChange = (page) => {
   }
 
   &__card-title {
-    @include fluid-text(13, 16);
+    @include fluid-text(14, 16);
     font-weight: $bold;
-    letter-spacing: 0.1em;
     line-height: 1;
   }
 
