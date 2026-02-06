@@ -34,40 +34,40 @@
 
         <div class="session-detail__score-board">
           <div class="session-detail__score-item">
-            <span class="session-detail__score-label">平均 KPM</span>
             <KpmIcon
               class="session-detail__score-icon session-detail__score-icon--kpm"
             />
+            <span class="session-detail__score-label">平均 KPM</span>
             <span
               class="session-detail__score-value session-detail__score-value--kpm"
               >{{ Math.round(session.average_kpm) }}</span
             >
           </div>
           <div class="session-detail__score-item">
-            <span class="session-detail__score-label">平均 正確率</span>
             <AccuracyIcon
               class="session-detail__score-icon session-detail__score-icon--acc"
             />
+            <span class="session-detail__score-label">平均 正確率</span>
             <span
               class="session-detail__score-value session-detail__score-value--acc"
               >{{ Math.round(session.average_accuracy) }}%</span
             >
           </div>
           <div class="session-detail__score-item">
-            <span class="session-detail__score-label">総タイプ数</span>
             <TotalTypeCountIcon
               class="session-detail__score-icon session-detail__score-icon--total-type-count"
             />
+            <span class="session-detail__score-label">総タイプ数</span>
             <span
               class="session-detail__score-value session-detail__score-value--total-type-count"
               >{{ session.total_types }}</span
             >
           </div>
           <div class="session-detail__score-item">
-            <span class="session-detail__score-label">総ミス数</span>
             <TotalMissCountIcon
               class="session-detail__score-icon session-detail__score-icon--total-miss-count"
             />
+            <span class="session-detail__score-label">総ミス数</span>
             <span
               class="session-detail__score-value session-detail__score-value--total-miss-count"
               >{{ session.total_miss_count }}</span
@@ -77,10 +77,10 @@
             class="session-detail__score-item"
             v-if="session.most_missed_key"
           >
-            <span class="session-detail__score-label">苦手キー</span>
-            <KpmIcon
-              class="session-detail__score-icon session-detail__score-icon--kpm"
+            <WorstKeyIcon
+              class="session-detail__score-icon session-detail__score-icon--worst-key"
             />
+            <span class="session-detail__score-label">苦手キー</span>
             <span
               class="session-detail__score-value session-detail__score-value--worst-key"
               >{{ session.most_missed_key.toUpperCase() }}</span
@@ -166,6 +166,7 @@ import KpmIcon from "@/components/icons/KpmIcon.vue";
 import AccuracyIcon from "@/components/icons/AccuracyIcon.vue";
 import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 import TotalMissCountIcon from "@/components/icons/TotalMissCountIcon.vue";
+import WorstKeyIcon from "@/components/icons/WorstKeyIcon.vue";
 
 /**
  * route
@@ -348,7 +349,7 @@ onMounted(async () => {
     }
 
     &--worst-key {
-      color: $red;
+      color: $black;
     }
   }
 
@@ -372,7 +373,7 @@ onMounted(async () => {
     }
 
     &--worst-key {
-      fill: $blue;
+      fill: $black;
     }
   }
 
