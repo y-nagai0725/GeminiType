@@ -33,29 +33,58 @@
         </div>
 
         <div class="session-detail__score-board">
-          <div class="score-item">
-            <span class="label">平均 KPM</span>
-            <span class="value">{{ Math.round(session.average_kpm) }}</span>
+          <div class="session-detail__score-item">
+            <span class="session-detail__score-label">平均 KPM</span>
+            <KpmIcon
+              class="session-detail__score-icon session-detail__score-icon--kpm"
+            />
+            <span
+              class="session-detail__score-value session-detail__score-value--kpm"
+              >{{ Math.round(session.average_kpm) }}</span
+            >
           </div>
-          <div class="score-item">
-            <span class="label">平均 正確率</span>
-            <span class="value"
+          <div class="session-detail__score-item">
+            <span class="session-detail__score-label">平均 正確率</span>
+            <AccuracyIcon
+              class="session-detail__score-icon session-detail__score-icon--acc"
+            />
+            <span
+              class="session-detail__score-value session-detail__score-value--acc"
               >{{ Math.round(session.average_accuracy) }}%</span
             >
           </div>
-          <div class="score-item">
-            <span class="label">総タイプ数</span>
-            <span class="value">{{ session.total_types }}</span>
+          <div class="session-detail__score-item">
+            <span class="session-detail__score-label">総タイプ数</span>
+            <TotalTypeCountIcon
+              class="session-detail__score-icon session-detail__score-icon--total-type-count"
+            />
+            <span
+              class="session-detail__score-value session-detail__score-value--total-type-count"
+              >{{ session.total_types }}</span
+            >
           </div>
-          <div class="score-item">
-            <span class="label">総ミス数</span>
-            <span class="value error-text">{{ session.total_miss_count }}</span>
+          <div class="session-detail__score-item">
+            <span class="session-detail__score-label">総ミス数</span>
+            <TotalMissCountIcon
+              class="session-detail__score-icon session-detail__score-icon--total-miss-count"
+            />
+            <span
+              class="session-detail__score-value session-detail__score-value--total-miss-count"
+              >{{ session.total_miss_count }}</span
+            >
           </div>
-          <div class="score-item" v-if="session.most_missed_key">
-            <span class="label">ワーストキー</span>
-            <span class="value error-text">{{
-              session.most_missed_key.toUpperCase()
-            }}</span>
+          <div
+            class="session-detail__score-item"
+            v-if="session.most_missed_key"
+          >
+            <span class="session-detail__score-label">苦手キー</span>
+            <KpmIcon
+              class="session-detail__score-icon session-detail__score-icon--kpm"
+            />
+            <span
+              class="session-detail__score-value session-detail__score-value--worst-key"
+              >{{ session.most_missed_key.toUpperCase() }}</span
+            >
           </div>
         </div>
 
@@ -133,6 +162,10 @@ import {
   formatMissedKeys,
 } from "../utils/formatters";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
+import KpmIcon from "@/components/icons/KpmIcon.vue";
+import AccuracyIcon from "@/components/icons/AccuracyIcon.vue";
+import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
+import TotalMissCountIcon from "@/components/icons/TotalMissCountIcon.vue";
 
 /**
  * route
@@ -246,8 +279,11 @@ onMounted(async () => {
     row-gap: 1em;
     width: 100%;
     max-width: 500px;
-    margin-inline: auto;
     @include fluid-text(14, 18);
+
+    @include pc {
+      margin-inline: auto;
+    }
   }
 
   &__information-label {
@@ -260,34 +296,83 @@ onMounted(async () => {
     }
   }
 
-  /* スコアボード */
   &__score-board {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 3rem;
-    padding: 2rem;
-    background-color: #f8f9fa;
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    grid-template-columns: repeat(2, 1fr);
+    @include fluid-style(gap, 16, 32);
+
+    @include tab {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    @include pc {
+      grid-template-columns: repeat(5, 1fr);
+    }
   }
 
-  .score-item {
+  &__score-item {
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    @include fluid-style(padding, 16, 24);
+    aspect-ratio: 1;
+    background-color: $gray;
+    border-radius: $radius-lg;
+  }
 
-    .label {
-      font-size: 0.9rem;
-      color: #666;
-      margin-bottom: 0.5rem;
+  &__score-label {
+    font-weight: $bold;
+    @include fluid-text(14, 16);
+  }
+
+  &__score-value {
+    font-family: $roboto-mono;
+    font-weight: $bold;
+    @include fluid-text(18, 22);
+
+    &--kpm {
+      color: $blue;
     }
-    .value {
-      font-size: 1.8rem;
-      font-weight: bold;
-      color: #007bff;
+
+    &--acc {
+      color: $green;
     }
-    .error-text {
-      color: #dc3545;
+
+    &--total-type-count {
+      color: $light-black;
+    }
+
+    &--total-miss-count {
+      color: $red;
+    }
+
+    &--worst-key {
+      color: $red;
+    }
+  }
+
+  &__score-icon {
+    @include fluid-style(width, 32, 40);
+
+    &--kpm {
+      fill: $blue;
+    }
+
+    &--acc {
+      fill: $green;
+    }
+
+    &--total-type-count {
+      fill: $light-black;
+    }
+
+    &--total-miss-count {
+      fill: $red;
+    }
+
+    &--worst-key {
+      fill: $blue;
     }
   }
 
