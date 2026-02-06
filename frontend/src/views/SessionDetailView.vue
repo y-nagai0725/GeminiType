@@ -76,7 +76,7 @@
                     KPM
                   </th>
                   <th class="session-detail__th session-detail__th--acc">
-                    Acc.
+                    正確率
                   </th>
                   <th class="session-detail__th session-detail__th--miss-keys">
                     ミスしたキー
@@ -376,6 +376,7 @@ onMounted(async () => {
     }
 
     &--romaji {
+      font-family: $roboto-mono;
       text-align: left;
     }
 
@@ -386,11 +387,13 @@ onMounted(async () => {
     }
 
     &--acc {
+      font-family: $roboto-mono;
       color: $green;
       text-align: right;
     }
 
     &--miss-keys {
+      font-family: $roboto-mono;
       color: $red;
     }
   }
