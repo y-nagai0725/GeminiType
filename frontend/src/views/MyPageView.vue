@@ -382,7 +382,31 @@ const fetchSessions = async (page) => {
  * ページ切り替え
  */
 const handlePageChange = (page) => {
+  // 「...」や無効なページ番号の場合は何もしない
+  if (page === "..." || page < 1 || page > totalPages.value) return;
+
+  // 該当ページの履歴データ取得
   fetchSessions(page);
+};
+
+/**
+ * 次へボタンの処理
+ */
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+    handlePageChange(currentPage.value);
+  }
+};
+
+/**
+ * 前へボタンの処理
+ */
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    handlePageChange(currentPage.value);
+  }
 };
 </script>
 
