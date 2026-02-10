@@ -239,15 +239,43 @@
               </tbody>
             </table>
           </div>
-          <div class="mypage-view__pagination" v-if="totalPages > 1">
-            <button
-              v-for="page in totalPages"
-              :key="page"
-              :class="{ active: page === currentPage }"
-              @click="handlePageChange(page)"
-            >
-              {{ page }}
-            </button>
+          <div class="mypage-view__pagination-container" v-if="totalPages > 1">
+            <p class="mypage-view__status">
+              現在: {{ currentPage }} / 全 {{ totalPages }} ページ
+            </p>
+
+            <div class="mypage-view__pagination">
+              <button
+                class="mypage-view__page-button prev-btn"
+                :class="{ 'is-disabled': currentPage === 1 }"
+                @click="prevPage"
+                :disabled="currentPage === 1"
+              >
+                &lt;
+              </button>
+
+              <button
+                v-for="item in paginationItems"
+                :key="item"
+                class="mypage-view__page-button number-btn"
+                :class="{
+                  'is-active': item === currentPage,
+                  'is-clickable': item !== currentPage,
+                }"
+                @click="handlePageChange(item)"
+              >
+                {{ item }}
+              </button>
+
+              <button
+                class="mypage-view__page-button next-btn"
+                :class="{ 'is-disabled': currentPage === totalPages }"
+                @click="nextPage"
+                :disabled="currentPage === totalPages"
+              >
+                &gt;
+              </button>
+            </div>
           </div>
         </section>
       </template>
@@ -328,6 +356,50 @@ const rank = computed(() => {
   if (percent.value >= 75) return "A";
   if (percent.value >= 60) return "B";
   return "C";
+});
+
+/**
+ *
+ */
+const paginationItems = computed(() => {
+  const current = currentPage.value;
+  const total = totalPages.value;
+
+  // 1. 必ず表示したいページ番号をリストアップするよ
+  //    (1ページ目、最後のページ、現在のページ、現在の前後のページ)
+  const pages = new Set([1, total, current, current - 1, current + 1]);
+
+  // 2. 範囲外のページ（0以下や最大ページ超え）を除外して、昇順に並べ替えるよ
+  const sortedPages = Array.from(pages)
+    .filter((page) => page > 0 && page <= total)
+    .sort((a, b) => a - b);
+
+  // 3. ページ間の隙間をチェックして、必要なら「...」を挿入するよ
+  const result = [];
+
+  for (let i = 0; i < sortedPages.length; i++) {
+    const page = sortedPages[i];
+
+    if (i > 0) {
+      const prevPage = sortedPages[i - 1];
+
+      // 前のページとの差が2以上ある場合（例：1と4の間）
+      if (page - prevPage > 1) {
+        // もし差が2ちょうどなら（例：1と3）、間の数字（2）を埋める方が親切かも？
+        // でも今回はお兄ちゃんの要望通り、隙間があれば「...」を入れるロジックにするね
+        // ※ここを調整すると「1 ... 4」じゃなくて「1 2 3 4」みたいに吸着させることもできるよ
+        if (page - prevPage === 2) {
+          result.push(prevPage + 1); // 間の数字が1個だけなら数字を表示
+        } else {
+          result.push("..."); // 間の数字がいっぱいあるなら「...」を表示
+        }
+      }
+    }
+
+    result.push(page);
+  }
+
+  return result;
 });
 
 /**
@@ -875,26 +947,57 @@ const prevPage = () => {
     @include button-arrow-icon-style;
   }
 
+  &__pagination-container {
+    font-family: "M PLUS Rounded 1c", sans-serif; /* お兄ちゃんの好きな丸文字フォント♡ */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
   &__pagination {
-    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ボタンの基本スタイル */
+  &__page-button {
+    border: 1px solid #ddd;
+    background-color: #fff;
+    border-radius: 4px;
+    min-width: 40px;
+    height: 40px;
     display: flex;
     justify-content: center;
-    gap: 0.5rem;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+    color: #333;
 
-    button {
-      padding: 0.5rem 0.8rem;
-      border: 1px solid #ddd;
-      background: white;
-      cursor: pointer;
+    /* 活性状態（現在のページ） */
+    &.is-active {
+      background-color: #42b983; /* Vueっぽい色にしたけど変えてもいいよ */
+      color: white;
+      border-color: #42b983;
+      cursor: default; /* クリックできない感じを出す */
+      pointer-events: none; /* 実際にクリック無効化 */
+    }
 
-      &.active {
-        background: #007bff;
-        color: white;
-        border-color: #007bff;
-      }
-      &:hover:not(.active) {
-        background: #f4f4f4;
-      }
+    /* 非活性状態（前へ・次へが押せない時） */
+    &.is-disabled {
+      background-color: #f5f5f5;
+      color: #bbb;
+      border-color: #eee;
+      cursor: not-allowed;
+    }
+
+    /* クリック可能な数字のホバー時 */
+    &.is-clickable:hover {
+      background-color: #e6f7ff;
+      border-color: #1890ff;
     }
   }
 
