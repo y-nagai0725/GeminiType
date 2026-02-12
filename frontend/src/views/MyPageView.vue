@@ -240,10 +240,6 @@
             </table>
           </div>
           <div class="mypage-view__pagination-container" v-if="totalPages > 1">
-            <p class="mypage-view__status">
-              現在: {{ currentPage }} / 全 {{ totalPages }} ページ
-            </p>
-
             <div class="mypage-view__pagination">
               <button
                 class="mypage-view__page-button prev-btn"
@@ -948,7 +944,6 @@ const prevPage = () => {
   }
 
   &__pagination-container {
-    font-family: "M PLUS Rounded 1c", sans-serif; /* お兄ちゃんの好きな丸文字フォント♡ */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -959,45 +954,43 @@ const prevPage = () => {
   &__pagination {
     display: flex;
     align-items: center;
-    gap: 8px;
+    @include fluid-style(gap, 8, 16);
   }
 
   /* ボタンの基本スタイル */
   &__page-button {
-    border: 1px solid #ddd;
-    background-color: #fff;
-    border-radius: 4px;
-    min-width: 40px;
-    height: 40px;
+    cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    cursor: pointer;
-    font-size: 1rem;
+    min-width: 40px;
+    height: 40px;
+    font-family: $roboto-mono;
+    @include fluid-text(12, 14);
+    border: 1px solid $light-black;
+    border-radius: $radius-sm;
     transition: all 0.2s;
-    color: #333;
 
     /* 活性状態（現在のページ） */
     &.is-active {
-      background-color: #42b983; /* Vueっぽい色にしたけど変えてもいいよ */
-      color: white;
-      border-color: #42b983;
+      background-color: $green;
+      color: $white;
+      border-color: $green;
       cursor: default; /* クリックできない感じを出す */
       pointer-events: none; /* 実際にクリック無効化 */
     }
 
     /* 非活性状態（前へ・次へが押せない時） */
     &.is-disabled {
-      background-color: #f5f5f5;
-      color: #bbb;
-      border-color: #eee;
+      background-color: $gray;
+      color: $light-black;
+      border-color: $gray;
       cursor: not-allowed;
     }
 
     /* クリック可能な数字のホバー時 */
     &.is-clickable:hover {
-      background-color: #e6f7ff;
-      border-color: #1890ff;
+      border-color: $blue;
     }
   }
 
