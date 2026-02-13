@@ -1,6 +1,9 @@
 <template>
   <div class="admin-view">
-    <h1 class="admin-view__title">管理画面</h1>
+    <h1 class="admin-view__title">
+      <span class="en">ADMIN</span>
+      <span class="ja">管理</span>
+    </h1>
 
     <div v-if="authStore.user">
       <p>こんにちは、{{ authStore.user.name }} さん！</p>
@@ -800,16 +803,14 @@ const handleEscClose = (e) => {
 <style lang="scss" scoped>
 /* (BEM) ブロック: .admin-view */
 .admin-view {
-  width: 100%;
-  max-width: 1000px;
-  margin: 2rem auto;
-  padding: 2rem;
-  font-family: sans-serif;
+  @include contents-width;
+
+  @include pc {
+    max-width: 1000px;
+  }
 
   &__title {
-    color: #333;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 0.5rem;
+    @include page-title;
   }
 
   &__content {
