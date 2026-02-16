@@ -7,7 +7,9 @@
 
     <div class="admin-view__contents-wrapper">
       <div v-if="authStore.user" class="admin-view__welcome">
-        <p class="admin-view__welcome-message admin-view__welcome-message--blue">
+        <p
+          class="admin-view__welcome-message admin-view__welcome-message--blue"
+        >
           こんにちは、{{ authStore.user.name }} さん
         </p>
         <template v-if="authStore.isAdmin">
@@ -15,7 +17,7 @@
         </template>
         <template v-else>
           <p class="admin-view__welcome-message">
-            あなたは「管理者」ではありませんので、<br>このページでの管理操作が許可されていません。
+            あなたは「管理者」ではありませんので、<br />このページでの管理操作が許可されていません。
           </p>
           <RouterLink to="/menu" class="admin-view__welcome-link">
             メインメニューへ
@@ -134,47 +136,81 @@
             </button>
           </div>
 
-          <table class="admin-view__table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>ジャンル</th>
-                <th>問題文</th>
-                <th>ひらがな</th>
-                <th>(操作)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="problem in adminStore.problems" :key="problem.id">
-                <td>{{ problem.id }}</td>
-                <td>{{ problem.genre.name }}</td>
-                <td>{{ problem.problem_text }}</td>
-                <td>{{ problem.problem_hiragana }}</td>
-                <td class="admin-view__actions">
-                  <button
-                    class="admin-view__button--try"
-                    @click="openTryModal(problem)"
+          <div class="admin-view__table-wrapper">
+            <table class="admin-view__problem-table">
+              <thead>
+                <tr class="admin-view__problem-table-tr">
+                  <th
+                    class="admin-view__problem-table-th admin-view__problem-table-th--genre"
                   >
-                    試し打ち
-                  </button>
-                  <button
-                    class="admin-view__button--edit"
-                    @click="openEditModal(problem, 'problem')"
+                    ジャンル
+                  </th>
+                  <th
+                    class="admin-view__problem-table-th admin-view__problem-table-th--problem"
                   >
-                    編集
-                  </button>
-                  <button
-                    class="admin-view__button--delete"
-                    @click="
-                      handleDeleteProblem(problem.id, problem.problem_text)
-                    "
+                    問題文
+                  </th>
+                  <th
+                    class="admin-view__problem-table-th admin-view__problem-table-th--hiragana"
                   >
-                    削除
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                    ひらがな
+                  </th>
+                  <th
+                    class="admin-view__problem-table-th admin-view__problem-table-th--action"
+                  >
+                    操作
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="problem in adminStore.problems"
+                  :key="problem.id"
+                  class="admin-view__problem-table-tr"
+                >
+                  <td
+                    class="admin-view__problem-table-td admin-view__problem-table-td--genre"
+                  >
+                    {{ problem.genre.name }}
+                  </td>
+                  <td
+                    class="admin-view__problem-table-td admin-view__problem-table-td--problem"
+                  >
+                    {{ problem.problem_text }}
+                  </td>
+                  <td
+                    class="admin-view__problem-table-td admin-view__problem-table-td--hiragana"
+                  >
+                    {{ problem.problem_hiragana }}
+                  </td>
+                  <td
+                    class="admin-view__problem-table-td admin-view__problem-table-td--action"
+                  >
+                    <button
+                      class="admin-view__problem-table-button admin-view__problem-table-button--try"
+                      @click="openTryModal(problem)"
+                    >
+                      試し打ち
+                    </button>
+                    <button
+                      class="admin-view__problem-table-button admin-view__problem-table-button--edit"
+                      @click="openEditModal(problem, 'problem')"
+                    >
+                      編集
+                    </button>
+                    <button
+                      class="admin-view__problem-table-button admin-view__problem-table-button--delete"
+                      @click="
+                        handleDeleteProblem(problem.id, problem.problem_text)
+                      "
+                    >
+                      削除
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           <div class="admin-view__pagination">
             <button
@@ -821,7 +857,7 @@ const handleEscClose = (e) => {
   @include contents-width;
 
   @include pc {
-    max-width: 1000px;
+    max-width: 1100px;
   }
 
   &__title {
@@ -864,7 +900,6 @@ const handleEscClose = (e) => {
     @include fluid-style(width, 276, 432);
     @include fluid-style(padding-block, 17, 22);
     margin-inline: auto;
-    padding: 1em 0;
     @include fluid-text(14, 18);
   }
 
@@ -873,11 +908,9 @@ const handleEscClose = (e) => {
   }
 
   &__content {
-
   }
 
   &__section {
-
   }
 
   &__subtitle {
@@ -914,21 +947,89 @@ const handleEscClose = (e) => {
     }
   }
 
-  /* (★) テーブル（仮） */
-  &__table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
+  &__table-wrapper {
+    overflow-x: auto;
+  }
 
-    th,
-    td {
-      border: 1px solid #ddd;
-      padding: 0.5rem;
+  &__problem-table {
+    width: 100%;
+    min-width: 1100px;
+  }
+
+  &__problem-table-tr {
+    &:nth-of-type(odd) {
+      background-color: $gray;
+    }
+  }
+
+  &__problem-table-th {
+    padding: 1em;
+    font-size: 1.4rem;
+    font-weight: $bold;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    color: $white;
+    background-color: $green;
+
+    &--genre {
+      width: 15%;
       text-align: left;
     }
 
-    th {
-      background-color: #f4f4f4;
+    &--problem {
+      width: 30%;
+      text-align: left;
+    }
+
+    &--hiragana {
+      width: 30%;
+      text-align: left;
+    }
+
+    &--action {
+      width: 25%;
+      text-align: center;
+    }
+  }
+
+  &__problem-table-td {
+    padding: 1em;
+    font-size: 1.4rem;
+    line-height: 1;
+
+    &--genre {
+      text-align: left;
+    }
+
+    &--problem {
+      text-align: left;
+    }
+
+    &--hiragana {
+      text-align: left;
+    }
+
+    &--action {
+      display: flex;
+      justify-content: center;
+      gap: 1.6rem;
+    }
+  }
+
+  &__problem-table-button {
+    @include fluid-text(11, 13);
+    padding: 1em;
+
+    &--try {
+      @include button-style-fill($blue);
+    }
+
+    &--edit {
+      @include button-style-fill($green);
+    }
+
+    &--delete {
+      @include button-style-fill($red);
     }
   }
 
@@ -1005,12 +1106,6 @@ const handleEscClose = (e) => {
       border-color: #007bff;
       font-weight: bold;
     }
-  }
-
-  /* (★) テーブルの「操作」セル */
-  &__actions {
-    display: flex;
-    gap: 5px; /* ボタン同士をちょっと離す */
   }
 
   /* (★) 削除ボタン（仮） */
