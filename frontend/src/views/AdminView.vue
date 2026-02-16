@@ -5,179 +5,194 @@
       <span class="ja">管理</span>
     </h1>
 
-    <div v-if="authStore.user">
-      <p>こんにちは、{{ authStore.user.name }} さん！</p>
-      <p v-if="authStore.isAdmin">あなたは「管理者」さんです！♡</p>
-      <p v-else style="color: red; font-weight: bold">
-        （あなたは「管理者」さんじゃありません…！）
-      </p>
+    <div class="admin-view__contents-wrapper">
+      <div v-if="authStore.user" class="admin-view__welcome">
+        <p class="admin-view__welcome-message admin-view__welcome-message--blue">
+          こんにちは、{{ authStore.user.name }} さん
+        </p>
+        <template v-if="authStore.isAdmin">
+          <p class="admin-view__welcome-message">あなたは「管理者」です！</p>
+        </template>
+        <template v-else>
+          <p class="admin-view__welcome-message">
+            あなたは「管理者」ではありませんので、<br>このページでの管理操作が許可されていません。
+          </p>
+          <RouterLink to="/menu" class="admin-view__welcome-link">
+            メインメニューへ
+            <ArrowIcon class="admin-view__arrow-icon" />
+          </RouterLink>
+        </template>
+      </div>
+
+      <div v-if="authStore.isAdmin" class="admin-view__content">
+        <section class="admin-view__section">
+          <h2 class="admin-view__subtitle">ジャンル管理</h2>
+          <ul class="admin-view__list">
+            <li v-for="genre in adminStore.genres" :key="genre.id">
+              ({{ genre.id }}) {{ genre.name }}
+              <button
+                class="admin-view__button--edit"
+                @click="openEditModal(genre, 'genre')"
+              >
+                編集
+              </button>
+              <button
+                class="admin-view__button--delete"
+                @click="handleDeleteGenre(genre.id, genre.name)"
+              >
+                削除
+              </button>
+            </li>
+          </ul>
+          <form
+            class="admin-view__form"
+            @submit.prevent="handleAddGenre"
+            novalidate
+          >
+            <input
+              type="text"
+              placeholder="新しいジャンル名"
+              v-model="newGenreName"
+              required
+            />
+            <button type="submit">ジャンル追加</button>
+          </form>
+        </section>
+
+        <hr class="admin-view__divider" />
+
+        <section class="admin-view__section">
+          <h2 class="admin-view__subtitle">問題文 検索</h2>
+          <form
+            class="admin-view__form"
+            @submit.prevent="handleSearch"
+            novalidate
+          >
+            <select v-model="localFilterGenreId">
+              <option value="">（すべてのジャンル）</option>
+              <option
+                v-for="genre in adminStore.genres"
+                :key="genre.id"
+                :value="genre.id"
+              >
+                {{ genre.name }}
+              </option>
+            </select>
+            <input
+              type="text"
+              placeholder="（問題文）と（ひらがな）で検索"
+              v-model="localFilterSearchText"
+            />
+            <button type="submit">検索</button>
+          </form>
+        </section>
+
+        <section class="admin-view__section">
+          <h2 class="admin-view__subtitle">問題文管理</h2>
+
+          <form
+            class="admin-view__form"
+            @submit.prevent="handleAddProblem"
+            novalidate
+          >
+            <select v-model="newProblemGenreId" required>
+              <option value="" disabled>（ジャンルを選択）</option>
+              <option
+                v-for="genre in adminStore.genres"
+                :key="genre.id"
+                :value="genre.id"
+              >
+                {{ genre.name }}
+              </option>
+            </select>
+            <input
+              type="text"
+              placeholder="新しい問題文"
+              v-model="newProblemText"
+              required
+            />
+            <input
+              type="text"
+              placeholder="ひらがな"
+              v-model="newProblemHiragana"
+              required
+            />
+            <button type="submit">問題文追加</button>
+          </form>
+
+          <div class="admin-view__pagination">
+            <button
+              v-for="page in adminStore.totalPages"
+              :key="page"
+              :class="{
+                'admin-view__page-button--active':
+                  page === adminStore.currentPage,
+              }"
+              @click="handleSetPage(page)"
+            >
+              {{ page }}
+            </button>
+          </div>
+
+          <table class="admin-view__table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>ジャンル</th>
+                <th>問題文</th>
+                <th>ひらがな</th>
+                <th>(操作)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="problem in adminStore.problems" :key="problem.id">
+                <td>{{ problem.id }}</td>
+                <td>{{ problem.genre.name }}</td>
+                <td>{{ problem.problem_text }}</td>
+                <td>{{ problem.problem_hiragana }}</td>
+                <td class="admin-view__actions">
+                  <button
+                    class="admin-view__button--try"
+                    @click="openTryModal(problem)"
+                  >
+                    試し打ち
+                  </button>
+                  <button
+                    class="admin-view__button--edit"
+                    @click="openEditModal(problem, 'problem')"
+                  >
+                    編集
+                  </button>
+                  <button
+                    class="admin-view__button--delete"
+                    @click="
+                      handleDeleteProblem(problem.id, problem.problem_text)
+                    "
+                  >
+                    削除
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="admin-view__pagination">
+            <button
+              v-for="page in adminStore.totalPages"
+              :key="page"
+              :class="{
+                'admin-view__page-button--active':
+                  page === adminStore.currentPage,
+              }"
+              @click="handleSetPage(page)"
+            >
+              {{ page }}
+            </button>
+          </div>
+        </section>
+      </div>
     </div>
 
-    <div v-if="authStore.isAdmin" class="admin-view__content">
-      <section class="admin-view__section">
-        <h2 class="admin-view__subtitle">ジャンル管理</h2>
-        <ul class="admin-view__list">
-          <li v-for="genre in adminStore.genres" :key="genre.id">
-            ({{ genre.id }}) {{ genre.name }}
-            <button
-              class="admin-view__button--edit"
-              @click="openEditModal(genre, 'genre')"
-            >
-              編集
-            </button>
-            <button
-              class="admin-view__button--delete"
-              @click="handleDeleteGenre(genre.id, genre.name)"
-            >
-              削除
-            </button>
-          </li>
-        </ul>
-        <form
-          class="admin-view__form"
-          @submit.prevent="handleAddGenre"
-          novalidate
-        >
-          <input
-            type="text"
-            placeholder="新しいジャンル名"
-            v-model="newGenreName"
-            required
-          />
-          <button type="submit">ジャンル追加</button>
-        </form>
-      </section>
-
-      <hr class="admin-view__divider" />
-
-      <section class="admin-view__section">
-        <h2 class="admin-view__subtitle">問題文 検索</h2>
-        <form
-          class="admin-view__form"
-          @submit.prevent="handleSearch"
-          novalidate
-        >
-          <select v-model="localFilterGenreId">
-            <option value="">（すべてのジャンル）</option>
-            <option
-              v-for="genre in adminStore.genres"
-              :key="genre.id"
-              :value="genre.id"
-            >
-              {{ genre.name }}
-            </option>
-          </select>
-          <input
-            type="text"
-            placeholder="（問題文）と（ひらがな）で検索"
-            v-model="localFilterSearchText"
-          />
-          <button type="submit">検索</button>
-        </form>
-      </section>
-
-      <section class="admin-view__section">
-        <h2 class="admin-view__subtitle">問題文管理</h2>
-
-        <form
-          class="admin-view__form"
-          @submit.prevent="handleAddProblem"
-          novalidate
-        >
-          <select v-model="newProblemGenreId" required>
-            <option value="" disabled>（ジャンルを選択）</option>
-            <option
-              v-for="genre in adminStore.genres"
-              :key="genre.id"
-              :value="genre.id"
-            >
-              {{ genre.name }}
-            </option>
-          </select>
-          <input
-            type="text"
-            placeholder="新しい問題文"
-            v-model="newProblemText"
-            required
-          />
-          <input
-            type="text"
-            placeholder="ひらがな"
-            v-model="newProblemHiragana"
-            required
-          />
-          <button type="submit">問題文追加</button>
-        </form>
-
-        <div class="admin-view__pagination">
-          <button
-            v-for="page in adminStore.totalPages"
-            :key="page"
-            :class="{
-              'admin-view__page-button--active':
-                page === adminStore.currentPage,
-            }"
-            @click="handleSetPage(page)"
-          >
-            {{ page }}
-          </button>
-        </div>
-
-        <table class="admin-view__table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>ジャンル</th>
-              <th>問題文</th>
-              <th>ひらがな</th>
-              <th>(操作)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="problem in adminStore.problems" :key="problem.id">
-              <td>{{ problem.id }}</td>
-              <td>{{ problem.genre.name }}</td>
-              <td>{{ problem.problem_text }}</td>
-              <td>{{ problem.problem_hiragana }}</td>
-              <td class="admin-view__actions">
-                <button
-                  class="admin-view__button--try"
-                  @click="openTryModal(problem)"
-                >
-                  試し打ち
-                </button>
-                <button
-                  class="admin-view__button--edit"
-                  @click="openEditModal(problem, 'problem')"
-                >
-                  編集
-                </button>
-                <button
-                  class="admin-view__button--delete"
-                  @click="handleDeleteProblem(problem.id, problem.problem_text)"
-                >
-                  削除
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="admin-view__pagination">
-          <button
-            v-for="page in adminStore.totalPages"
-            :key="page"
-            :class="{
-              'admin-view__page-button--active':
-                page === adminStore.currentPage,
-            }"
-            @click="handleSetPage(page)"
-          >
-            {{ page }}
-          </button>
-        </div>
-      </section>
-    </div>
     <Transition name="modal-fade">
       <div
         v-if="isTryModalOpen"
@@ -293,6 +308,7 @@ import { useNotificationStore } from "../stores/notificationStore";
 import TypingCore from "../components/TypingCore.vue";
 import ConfirmModal from "../components/ConfirmModal.vue";
 import romaMapData from "@/data/romanTypingParseDictionary.json";
+import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 
 /**
  * 認証store
@@ -801,7 +817,6 @@ const handleEscClose = (e) => {
 </script>
 
 <style lang="scss" scoped>
-/* (BEM) ブロック: .admin-view */
 .admin-view {
   @include contents-width;
 
@@ -813,12 +828,56 @@ const handleEscClose = (e) => {
     @include page-title;
   }
 
+  &__contents-wrapper {
+    display: flex;
+    flex-direction: column;
+    @include fluid-style(gap, 24, 32);
+    @include contents-padding;
+    max-width: 600px;
+    margin-inline: auto;
+
+    @include pc {
+      max-width: none;
+      margin-inline: 0;
+    }
+  }
+
+  &__welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    @include fluid-style(gap, 16, 24);
+  }
+
+  &__welcome-message {
+    font-weight: $bold;
+    @include fluid-text(14, 20);
+    text-align: center;
+
+    &--blue {
+      color: $blue;
+    }
+  }
+
+  &__welcome-link {
+    @include button-style-border($green);
+    @include fluid-style(width, 276, 432);
+    @include fluid-style(padding-block, 17, 22);
+    margin-inline: auto;
+    padding: 1em 0;
+    @include fluid-text(14, 18);
+  }
+
+  &__arrow-icon {
+    @include button-arrow-icon-style;
+  }
+
   &__content {
-    margin-top: 2rem;
+
   }
 
   &__section {
-    margin-bottom: 2rem;
+
   }
 
   &__subtitle {
