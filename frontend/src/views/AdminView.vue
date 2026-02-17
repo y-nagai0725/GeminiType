@@ -61,34 +61,6 @@
           </form>
         </section>
 
-        <hr class="admin-view__divider" />
-
-        <section class="admin-view__section">
-          <h2 class="admin-view__subtitle">問題文 検索</h2>
-          <form
-            class="admin-view__form"
-            @submit.prevent="handleSearch"
-            novalidate
-          >
-            <select v-model="localFilterGenreId">
-              <option value="">（すべてのジャンル）</option>
-              <option
-                v-for="genre in adminStore.genres"
-                :key="genre.id"
-                :value="genre.id"
-              >
-                {{ genre.name }}
-              </option>
-            </select>
-            <input
-              type="text"
-              placeholder="（問題文）と（ひらがな）で検索"
-              v-model="localFilterSearchText"
-            />
-            <button type="submit">検索</button>
-          </form>
-        </section>
-
         <section class="admin-view__section">
           <h2 class="admin-view__subtitle">問題文管理</h2>
 
@@ -120,6 +92,30 @@
               required
             />
             <button type="submit">問題文追加</button>
+          </form>
+
+          <h2 class="admin-view__subtitle">問題文 検索</h2>
+          <form
+            class="admin-view__form"
+            @submit.prevent="handleSearch"
+            novalidate
+          >
+            <select v-model="localFilterGenreId">
+              <option value="">（すべてのジャンル）</option>
+              <option
+                v-for="genre in adminStore.genres"
+                :key="genre.id"
+                :value="genre.id"
+              >
+                {{ genre.name }}
+              </option>
+            </select>
+            <input
+              type="text"
+              placeholder="（問題文）と（ひらがな）で検索"
+              v-model="localFilterSearchText"
+            />
+            <button type="submit">検索</button>
           </form>
 
           <div class="admin-view__pagination">
