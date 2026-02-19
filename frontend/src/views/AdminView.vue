@@ -2,7 +2,7 @@
   <div class="admin-view">
     <h1 class="admin-view__title">
       <span class="en">ADMIN</span>
-      <span class="ja">管理</span>
+      <span class="ja">管理ページ</span>
     </h1>
 
     <div class="admin-view__contents-wrapper">
@@ -904,14 +904,20 @@ const handleEscClose = (e) => {
   }
 
   &__content {
+    display: flex;
+    flex-direction: column;
+    @include fluid-style(gap, 24, 32);
   }
 
   &__section {
+    display: flex;
+    flex-direction: column;
+    @include fluid-style(gap, 8, 16);
   }
 
   &__subtitle {
-    color: #555;
-    margin-bottom: 1rem;
+    font-weight: $bold;
+    @include fluid-text(14, 16);
   }
 
   &__divider {
