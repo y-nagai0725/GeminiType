@@ -29,7 +29,74 @@
       <div v-if="authStore.isAdmin" class="admin-view__content">
         <section class="admin-view__section">
           <h2 class="admin-view__subtitle">ジャンル管理</h2>
-          <ul class="admin-view__list">
+          <div class="admin-view__genre-table-wrapper">
+            <table class="admin-view__genre-table">
+              <thead>
+                <tr class="admin-view__genre-table-tr">
+                  <th
+                    class="admin-view__genre-table-th admin-view__genre-table-th--id"
+                  >
+                    ID
+                  </th>
+                  <th
+                    class="admin-view__genre-table-th admin-view__genre-table-th--genre"
+                  >
+                    ジャンル名
+                  </th>
+                  <th
+                    class="admin-view__genre-table-th admin-view__genre-table-th--count"
+                  >
+                    登録問題数
+                  </th>
+                  <th
+                    class="admin-view__genre-table-th admin-view__genre-table-th--action"
+                  >
+                    操作
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="genre in adminStore.genres"
+                  :key="genre.id"
+                  class="admin-view__genre-table-tr"
+                >
+                  <td
+                    class="admin-view__genre-table-td admin-view__genre-table-td--id"
+                  >
+                    {{ genre.id }}
+                  </td>
+                  <td
+                    class="admin-view__genre-table-td admin-view__genre-table-td--genre"
+                  >
+                    {{ genre.name }}
+                  </td>
+                  <td
+                    class="admin-view__genre-table-td admin-view__genre-table-td--count"
+                  >
+                    {{ 0 }}
+                  </td>
+                  <td
+                    class="admin-view__genre-table-td admin-view__genre-table-td--action"
+                  >
+                    <button
+                      class="admin-view__genre-table-button admin-view__genre-table-button--edit"
+                      @click="openEditModal(genre, 'genre')"
+                    >
+                      編集
+                    </button>
+                    <button
+                      class="admin-view__genre-table-button admin-view__genre-table-button--delete"
+                      @click="handleDeleteGenre(genre.id, genre.name)"
+                    >
+                      削除
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- <ul class="admin-view__list">
             <li v-for="genre in adminStore.genres" :key="genre.id">
               ({{ genre.id }}) {{ genre.name }}
               <button
@@ -45,7 +112,7 @@
                 削除
               </button>
             </li>
-          </ul>
+          </ul> -->
           <form
             class="admin-view__form"
             @submit.prevent="handleAddGenre"
@@ -920,10 +987,86 @@ const handleEscClose = (e) => {
     @include fluid-text(14, 16);
   }
 
-  &__divider {
-    border: 0;
-    border-top: 1px solid #eee;
-    margin: 2rem 0;
+  &__genre-table-wrapper {
+    overflow-x: auto;
+  }
+
+  &__genre-table {
+    width: 100%;
+    min-width: 1100px;
+  }
+
+  &__genre-table-tr {
+    &:nth-of-type(odd) {
+      background-color: $gray;
+    }
+  }
+
+  &__genre-table-th {
+    padding: 1em;
+    font-size: 1.4rem;
+    font-weight: $bold;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    color: $white;
+    background-color: $green;
+
+    &--id {
+      width: 15%;
+      text-align: right;
+    }
+
+    &--genre {
+      width: 40%;
+      text-align: left;
+    }
+
+    &--count {
+      width: 15%;
+      text-align: right;
+    }
+
+    &--action {
+      width: 30%;
+      text-align: center;
+    }
+  }
+
+  &__genre-table-td {
+    padding: 1em;
+    font-size: 1.4rem;
+    line-height: 1;
+
+    &--id {
+      text-align: right;
+    }
+
+    &--genre {
+      text-align: left;
+    }
+
+    &--count {
+      text-align: right;
+    }
+
+    &--action {
+      display: flex;
+      justify-content: center;
+      gap: 1.6rem;
+    }
+  }
+
+  &__genre-table-button {
+    @include fluid-text(11, 13);
+    padding: 1em;
+
+    &--edit {
+      @include button-style-fill($green);
+    }
+
+    &--delete {
+      @include button-style-fill($red);
+    }
   }
 
   &__form {
@@ -1032,20 +1175,6 @@ const handleEscClose = (e) => {
 
     &--delete {
       @include button-style-fill($red);
-    }
-  }
-
-  /* (★) 試し打ちボタン（仮） */
-  &__button--try {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
-    background-color: #28a745; // (仮の緑色)
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    &:hover {
-      background-color: #218838;
     }
   }
 
