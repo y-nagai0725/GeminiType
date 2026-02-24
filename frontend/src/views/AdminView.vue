@@ -27,6 +27,16 @@
       </div>
 
       <div v-if="authStore.isAdmin" class="admin-view__content">
+        <div class="admin-view__tab-control">
+          <button class="admin-view__tab-button admin-view__tab-button--genre">
+            ジャンル管理
+          </button>
+          <button
+            class="admin-view__tab-button admin-view__tab-button--problem"
+          >
+            問題管理
+          </button>
+        </div>
         <section class="admin-view__section">
           <h2 class="admin-view__subtitle">ジャンル管理</h2>
           <div class="admin-view__genre-table-wrapper">
@@ -96,23 +106,6 @@
               </tbody>
             </table>
           </div>
-          <!-- <ul class="admin-view__list">
-            <li v-for="genre in adminStore.genres" :key="genre.id">
-              ({{ genre.id }}) {{ genre.name }}
-              <button
-                class="admin-view__button--edit"
-                @click="openEditModal(genre, 'genre')"
-              >
-                編集
-              </button>
-              <button
-                class="admin-view__button--delete"
-                @click="handleDeleteGenre(genre.id, genre.name)"
-              >
-                削除
-              </button>
-            </li>
-          </ul> -->
           <form
             class="admin-view__form"
             @submit.prevent="handleAddGenre"
