@@ -28,17 +28,34 @@
 
       <div v-if="authStore.isAdmin" class="admin-view__content">
         <div class="admin-view__tab-control">
-          <button class="admin-view__tab-button admin-view__tab-button--genre">
+          <button
+            class="admin-view__tab-button admin-view__tab-button--genre"
+            @click="currentTab = 'genre'"
+          >
             ジャンル管理
           </button>
           <button
             class="admin-view__tab-button admin-view__tab-button--problem"
+            @click="currentTab = 'problem'"
           >
             問題管理
           </button>
         </div>
-        <section class="admin-view__section">
+        <section v-if="currentTab === 'genre'" class="admin-view__section">
           <h2 class="admin-view__subtitle">ジャンル管理</h2>
+          <form
+            class="admin-view__form"
+            @submit.prevent="handleAddGenre"
+            novalidate
+          >
+            <input
+              type="text"
+              placeholder="新しいジャンル名"
+              v-model="newGenreName"
+              required
+            />
+            <button type="submit">ジャンル追加</button>
+          </form>
           <div class="admin-view__genre-table-wrapper">
             <table class="admin-view__genre-table">
               <thead>
@@ -106,22 +123,12 @@
               </tbody>
             </table>
           </div>
-          <form
-            class="admin-view__form"
-            @submit.prevent="handleAddGenre"
-            novalidate
-          >
-            <input
-              type="text"
-              placeholder="新しいジャンル名"
-              v-model="newGenreName"
-              required
-            />
-            <button type="submit">ジャンル追加</button>
-          </form>
         </section>
 
-        <section class="admin-view__section">
+        <section
+          v-else-if="currentTab === 'problem'"
+          class="admin-view__section"
+        >
           <h2 class="admin-view__subtitle">問題文管理</h2>
 
           <form
@@ -502,6 +509,11 @@ const editForm = reactive({
   problem_text: "", // (問題用)問題文
   problem_hiragana: "", // (問題用)ひらがな
 });
+
+/**
+ * タブ切り替え
+ */
+const currentTab = ref("genre");
 
 /**
  * マウント時処理
