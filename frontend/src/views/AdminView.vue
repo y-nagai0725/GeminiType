@@ -30,19 +30,20 @@
         <div class="admin-view__tab-control">
           <button
             class="admin-view__tab-button admin-view__tab-button--genre"
+            :class="{ selected: currentTab === 'genre' }"
             @click="currentTab = 'genre'"
           >
             ジャンル管理
           </button>
           <button
             class="admin-view__tab-button admin-view__tab-button--problem"
+            :class="{ selected: currentTab === 'problem' }"
             @click="currentTab = 'problem'"
           >
             問題管理
           </button>
         </div>
         <section v-if="currentTab === 'genre'" class="admin-view__section">
-          <h2 class="admin-view__subtitle">ジャンル管理</h2>
           <form
             class="admin-view__form"
             @submit.prevent="handleAddGenre"
@@ -129,8 +130,6 @@
           v-else-if="currentTab === 'problem'"
           class="admin-view__section"
         >
-          <h2 class="admin-view__subtitle">問題文管理</h2>
-
           <form
             class="admin-view__form"
             @submit.prevent="handleAddProblem"
@@ -979,6 +978,45 @@ const handleEscClose = (e) => {
     display: flex;
     flex-direction: column;
     @include fluid-style(gap, 24, 32);
+  }
+
+  &__tab-control {
+    display: flex;
+    @include fluid-style(gap, 16, 24);
+    border-bottom: 1px solid $light-black;
+  }
+
+  &__tab-button {
+    position: relative;
+    padding: 1em;
+    font-weight: $bold;
+    @include fluid-text(14, 16);
+
+    &::before {
+      content: "";
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      border-radius: $radius-lg;
+      background-color: $green;
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform $transition-base;
+    }
+
+    @include hover {
+      &::before {
+        transform: scaleX(1);
+        transform-origin: left;
+      }
+    }
+
+    &.selected::before {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
   }
 
   &__section {
