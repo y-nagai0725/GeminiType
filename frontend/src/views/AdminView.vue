@@ -991,6 +991,9 @@ const handleEscClose = (e) => {
     padding: 1em;
     font-weight: $bold;
     @include fluid-text(14, 16);
+    opacity: 0.6;
+    transition: opacity $transition-base;
+    cursor: pointer;
 
     &::before {
       content: "";
@@ -1007,15 +1010,19 @@ const handleEscClose = (e) => {
     }
 
     @include hover {
+      opacity: 1;
       &::before {
         transform: scaleX(1);
         transform-origin: left;
       }
     }
 
-    &.selected::before {
-      transform: scaleX(1);
-      transform-origin: left;
+    &.selected {
+      opacity: 1;
+      &::before {
+        transform: scaleX(1);
+        transform-origin: left;
+      }
     }
   }
 
