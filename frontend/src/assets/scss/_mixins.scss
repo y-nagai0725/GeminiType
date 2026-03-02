@@ -111,7 +111,7 @@
   }
 }
 
-@mixin button-style {
+@mixin button-style($hover-action) {
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -125,15 +125,17 @@
     color $transition-base,
     background-color $transition-base;
 
-  @include hover {
-    svg {
-      transform: translateX(8px);
+  @if $hover-action != "none" {
+    @include hover {
+      svg {
+        transform: translateX(8px);
+      }
     }
   }
 }
 
-@mixin button-style-border($font-color, $hovered-font-color: $white) {
-  @include button-style;
+@mixin button-style-border($font-color, $hovered-font-color: $white, $hover-action: "move") {
+  @include button-style($hover-action);
   color: $font-color;
   border: 1px solid $font-color;
   background-color: transparent;
@@ -144,8 +146,8 @@
   }
 }
 
-@mixin button-style-fill($fill-color, $font-color: $white) {
-  @include button-style;
+@mixin button-style-fill($fill-color, $font-color: $white, $hover-action: "move") {
+  @include button-style($hover-action);
   color: $font-color;
   border: 1px solid $fill-color;
   background-color: $fill-color;
@@ -160,6 +162,11 @@
   width: 0.8em;
   fill: currentColor;
   transition: transform $transition-base;
+}
+
+@mixin button-icon-style {
+  width: 1em;
+  fill: currentColor;
 }
 
 // ==========================================

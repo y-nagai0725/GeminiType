@@ -51,11 +51,14 @@
           >
             <input
               type="text"
-              placeholder="新しいジャンル名"
+              class="admin-view__input"
+              placeholder="追加するジャンル名を入力…"
               v-model="newGenreName"
               required
             />
-            <button type="submit">ジャンル追加</button>
+            <button type="submit" class="admin-view__input-button">
+              <PlusIcon class="admin-view__input-button-icon" />追加
+            </button>
           </form>
           <div class="admin-view__genre-table-wrapper">
             <table class="admin-view__genre-table">
@@ -135,53 +138,67 @@
             @submit.prevent="handleAddProblem"
             novalidate
           >
-            <select v-model="newProblemGenreId" required>
-              <option value="" disabled>（ジャンルを選択）</option>
-              <option
-                v-for="genre in adminStore.genres"
-                :key="genre.id"
-                :value="genre.id"
+            <div class="admin-view__select-wrapper">
+              <select
+                class="admin-view__select"
+                v-model="newProblemGenreId"
+                required
               >
-                {{ genre.name }}
-              </option>
-            </select>
+                <option value="" disabled>（ジャンルを選択）</option>
+                <option
+                  v-for="genre in adminStore.genres"
+                  :key="genre.id"
+                  :value="genre.id"
+                >
+                  {{ genre.name }}
+                </option>
+              </select>
+            </div>
             <input
               type="text"
+              class="admin-view__input"
               placeholder="新しい問題文"
               v-model="newProblemText"
               required
             />
             <input
               type="text"
+              class="admin-view__input"
               placeholder="ひらがな"
               v-model="newProblemHiragana"
               required
             />
-            <button type="submit">問題文追加</button>
+            <button type="submit" class="admin-view__input-button">
+              <PlusIcon class="admin-view__input-button-icon" />追加
+            </button>
           </form>
 
-          <h2 class="admin-view__subtitle">問題文 検索</h2>
           <form
             class="admin-view__form"
             @submit.prevent="handleSearch"
             novalidate
           >
-            <select v-model="localFilterGenreId">
-              <option value="">（すべてのジャンル）</option>
-              <option
-                v-for="genre in adminStore.genres"
-                :key="genre.id"
-                :value="genre.id"
-              >
-                {{ genre.name }}
-              </option>
-            </select>
+            <div class="admin-view__select-wrapper">
+              <select class="admin-view__select" v-model="localFilterGenreId">
+                <option value="">（全てのジャンル）</option>
+                <option
+                  v-for="genre in adminStore.genres"
+                  :key="genre.id"
+                  :value="genre.id"
+                >
+                  {{ genre.name }}
+                </option>
+              </select>
+            </div>
             <input
               type="text"
+              class="admin-view__input"
               placeholder="（問題文）と（ひらがな）で検索"
               v-model="localFilterSearchText"
             />
-            <button type="submit">検索</button>
+            <button type="submit" class="admin-view__input-button">
+              <SearchIcon class="admin-view__input-button-icon" />検索
+            </button>
           </form>
 
           <div class="admin-view__pagination">
@@ -407,6 +424,8 @@ import TypingCore from "../components/TypingCore.vue";
 import ConfirmModal from "../components/ConfirmModal.vue";
 import romaMapData from "@/data/romanTypingParseDictionary.json";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
+import SearchIcon from "@/components/icons/SearchIcon.vue";
+import PlusIcon from "@/components/icons/PlusIcon.vue";
 
 /**
  * 認証store
@@ -1121,25 +1140,79 @@ const handleEscClose = (e) => {
 
   &__form {
     display: flex;
-    gap: 10px;
-    margin-top: 1rem;
+    flex-direction: column;
+    @include fluid-style(gap, 8, 16);
 
-    input[type="text"],
-    select {
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      flex-grow: 1; /* (★) フォームが横に広がるように（仮） */
+    @include pc {
+      flex-direction: row;
+    }
+  }
+
+  &__input {
+    padding: 1em;
+    @include fluid-text(14, 16);
+    font-weight: $bold;
+    line-height: 1;
+    border-radius: $radius-md;
+    background-color: $light-green;
+    transition: box-shadow $transition-base;
+
+    @include pc {
+      flex-grow: 1;
     }
 
-    button {
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 4px;
-      background-color: #007bff;
-      color: white;
-      cursor: pointer;
+    &:focus {
+      box-shadow: 0 0 7px $blue;
     }
+
+    &::placeholder {
+      color: $light-black;
+    }
+  }
+
+  &__select-wrapper {
+    position: relative;
+    min-width: 100px;
+    @include fluid-text(14, 16);
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: 1em;
+      width: 0.5em;
+      aspect-ratio: 1;
+      border-left: 2px solid $black;
+      border-bottom: 2px solid $black;
+      transform: translateY(-50%) rotate(-45deg);
+      pointer-events: none;
+    }
+  }
+
+  &__select {
+    width: 100%;
+    padding: 1em 2em 1em 1em;
+    border: 1px solid $black;
+    border-radius: $radius-md;
+    background-color: $gray;
+    cursor: pointer;
+  }
+
+  &__input-button {
+    @include button-style-fill($black, $hover-action: "none");
+    width: 15rem;
+    margin-inline: auto;
+    padding-block: 1em;
+    @include fluid-text(14, 16);
+    cursor: pointer;
+
+    @include pc {
+      margin-inline: 0;
+    }
+  }
+
+  &__input-button-icon {
+    @include button-icon-style;
   }
 
   &__table-wrapper {
