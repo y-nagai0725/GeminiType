@@ -114,13 +114,17 @@
                       class="admin-view__genre-table-button admin-view__genre-table-button--edit"
                       @click="openEditModal(genre, 'genre')"
                     >
-                      編集
+                      <EditIcon
+                        class="admin-view__table-button-icon admin-view__table-button-icon--edit"
+                      />
                     </button>
                     <button
                       class="admin-view__genre-table-button admin-view__genre-table-button--delete"
                       @click="handleDeleteGenre(genre.id, genre.name)"
                     >
-                      削除
+                      <DeleteIcon
+                        class="admin-view__table-button-icon admin-view__table-button-icon--delete"
+                      />
                     </button>
                   </td>
                 </tr>
@@ -269,13 +273,17 @@
                       class="admin-view__problem-table-button admin-view__problem-table-button--try"
                       @click="openTryModal(problem)"
                     >
-                      試し打ち
+                      <TotalTypeCountIcon
+                        class="admin-view__table-button-icon admin-view__table-button-icon--keyboard"
+                      />
                     </button>
                     <button
                       class="admin-view__problem-table-button admin-view__problem-table-button--edit"
                       @click="openEditModal(problem, 'problem')"
                     >
-                      編集
+                      <EditIcon
+                        class="admin-view__table-button-icon admin-view__table-button-icon--edit"
+                      />
                     </button>
                     <button
                       class="admin-view__problem-table-button admin-view__problem-table-button--delete"
@@ -283,7 +291,9 @@
                         handleDeleteProblem(problem.id, problem.problem_text)
                       "
                     >
-                      削除
+                      <DeleteIcon
+                        class="admin-view__table-button-icon admin-view__table-button-icon--delete"
+                      />
                     </button>
                   </td>
                 </tr>
@@ -426,6 +436,9 @@ import romaMapData from "@/data/romanTypingParseDictionary.json";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import SearchIcon from "@/components/icons/SearchIcon.vue";
 import PlusIcon from "@/components/icons/PlusIcon.vue";
+import DeleteIcon from "@/components/icons/DeleteIcon.vue";
+import EditIcon from "@/components/icons/EditIcon.vue";
+import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 
 /**
  * 認証store
@@ -1130,11 +1143,28 @@ const handleEscClose = (e) => {
     padding: 1em;
 
     &--edit {
-      @include button-style-fill($green);
+      @include button-style-fill($green, $hover-action: "none");
     }
 
     &--delete {
-      @include button-style-fill($red);
+      @include button-style-fill($red, $hover-action: "none");
+    }
+  }
+
+  &__table-button-icon {
+    width: 1.4em;
+
+    &--edit {
+      fill: currentColor;
+    }
+
+    &--delete {
+      fill: none;
+      stroke: currentColor;
+    }
+
+    &--keyboard {
+      fill: currentColor;
     }
   }
 
@@ -1289,15 +1319,15 @@ const handleEscClose = (e) => {
     padding: 1em;
 
     &--try {
-      @include button-style-fill($blue);
+      @include button-style-fill($blue, $hover-action: "none");
     }
 
     &--edit {
-      @include button-style-fill($green);
+      @include button-style-fill($green, $hover-action: "none");
     }
 
     &--delete {
-      @include button-style-fill($red);
+      @include button-style-fill($red, $hover-action: "none");
     }
   }
 
