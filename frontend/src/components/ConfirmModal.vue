@@ -2,7 +2,7 @@
   <Transition name="modal-fade">
     <div v-if="show" class="confirm-modal-overlay" @click.self="handleCancel">
       <div class="confirm-modal">
-        <h3 class="confirm-modal__title">{{ title }}</h3>
+        <p class="confirm-modal__title">{{ title }}</p>
 
         <p class="confirm-modal__message">{{ message }}</p>
 
@@ -68,75 +68,61 @@ const handleCancel = () => {
 </script>
 
 <style lang="scss" scoped>
-/* (★) 「AdminView」 のモーダル と「ほぼ」同じスタイルだよ！ */
-
-/* (★) モーダル の「背景（黒いモヤ）」 */
 .confirm-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.33);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
 
-/* (BEM) ブロック: .confirm-modal */
 .confirm-modal {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  min-width: 400px; /* (★) 確認 だから、ちょっと「小さめ」 */
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  @include fluid-style(gap, 16, 24);
+  width: 100%;
+  max-width: 400px;
+  margin-inline: 2rem;
+  @include fluid-style(padding, 16, 24);
+  border-radius: $radius-md;
+  background-color: $white;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
 
   &__title {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    color: #333;
+    font-weight: $bold;
+    @include fluid-text(14, 16);
+    letter-spacing: 0.1em;
+    text-align: center;
   }
 
   &__message {
-    font-size: 1rem;
-    color: #555;
-    margin-bottom: 2rem;
+    @include fluid-text(12, 14);
   }
 
   &__actions {
     display: flex;
-    justify-content: space-around; /* (★) 2つのボタンを「両端」に離す */
-    gap: 1rem;
+    justify-content: space-around;
+    gap: 2.4rem;
   }
-
-  /* (BEM) エレメント: .confirm-modal__button */
   &__button {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    font-weight: bold;
+    flex-grow: 1;
+    padding: 1em;
+    font-weight: $bold;
+    @include fluid-text(12, 14);
+    border-radius: $radius-sm;
     cursor: pointer;
-    flex-grow: 1; /* (★) 2つのボタンが「同じ幅」になるように */
 
-    /* (BEM) モディファイア: --cancel */
     &--cancel {
-      background-color: #eee;
-      color: #333;
-      &:hover {
-        background-color: #ddd;
-      }
+      @include button-style-fill($black);
     }
 
-    /* (BEM) モディファイア: --confirm */
     &--confirm {
-      background-color: #dc3545; // (★) 削除 ボタン と「同じ赤色」！
-      color: white;
-      &:hover {
-        background-color: #c82333;
-      }
+      @include button-style-fill($red);
     }
   }
 }
