@@ -2,6 +2,9 @@
   <Transition name="modal-fade">
     <div v-if="show" class="confirm-modal-overlay" @click.self="handleCancel">
       <div class="confirm-modal">
+        <button @click="handleCancel" class="confirm-modal__close">
+          <PlusIcon class="confirm-modal__close-icon" />
+        </button>
         <p class="confirm-modal__title">{{ title }}</p>
 
         <p class="confirm-modal__message">{{ message }}</p>
@@ -26,6 +29,7 @@
 </template>
 
 <script setup>
+import PlusIcon from "@/components/icons/PlusIcon.vue";
 /**
  * props定義
  */
@@ -85,6 +89,7 @@ const handleCancel = () => {
   display: flex;
   flex-direction: column;
   @include fluid-style(gap, 16, 24);
+  position: relative;
   width: 100%;
   max-width: 400px;
   margin-inline: 2rem;
@@ -93,9 +98,30 @@ const handleCancel = () => {
   background-color: $white;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
 
+  &__close {
+    position: absolute;
+    @include fluid-style(top, 16, 24);
+    @include fluid-style(right, 16, 24);
+    @include fluid-style(width, 16, 24);
+    @include fluid-style(height, 16, 24);
+    cursor: pointer;
+    color: $black;
+    transform: rotate(45deg);
+    transition: color $transition-base;
+
+    @include hover {
+      color: $red;
+    }
+  }
+
+  &__close-icon {
+    width: 100%;
+    fill: currentColor;
+  }
+
   &__title {
     font-weight: $bold;
-    @include fluid-text(14, 16);
+    @include fluid-text(16, 18);
     letter-spacing: 0.1em;
     text-align: center;
   }

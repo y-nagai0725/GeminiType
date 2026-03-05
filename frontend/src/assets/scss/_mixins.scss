@@ -169,6 +169,52 @@
   fill: currentColor;
 }
 
+@mixin input-style {
+  padding: 1em;
+  @include fluid-text(14, 16);
+  font-weight: $bold;
+  line-height: 1;
+  border-radius: $radius-md;
+  background-color: $light-green;
+  transition: box-shadow $transition-base;
+
+  &:focus {
+    box-shadow: 0 0 7px $blue;
+  }
+
+  &::placeholder {
+    color: $light-black;
+  }
+}
+
+@mixin select-wrapper-style {
+  position: relative;
+  min-width: 100px;
+  @include fluid-text(14, 16);
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 1em;
+    width: 0.5em;
+    aspect-ratio: 1;
+    border-left: 2px solid $black;
+    border-bottom: 2px solid $black;
+    transform: translateY(-50%) rotate(-45deg);
+    pointer-events: none;
+  }
+}
+
+@mixin select-style {
+  width: 100%;
+  padding: 1em 2em 1em 1em;
+  border: 1px solid $black;
+  border-radius: $radius-md;
+  background-color: $gray;
+  cursor: pointer;
+}
+
 // ==========================================
 //  ページタイトル用Mixin
 // ==========================================
@@ -324,17 +370,7 @@
   }
 
   &__input {
-    padding: 1em;
-    @include fluid-text(14, 16);
-    font-weight: $bold;
-    line-height: 1;
-    border-radius: $radius-md;
-    background-color: $light-green;
-    transition: box-shadow $transition-base;
-
-    &:focus {
-      box-shadow: 0 0 7px $blue;
-    }
+    @include input-style;
   }
 
   &__button {

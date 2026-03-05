@@ -465,31 +465,11 @@ const handleStart = () => {
   }
 
   &__selectbox-wrapper {
-    position: relative;
-    min-width: 100px;
-    @include fluid-text(14, 16);
-
-    &::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      right: 1em;
-      width: 0.5em;
-      aspect-ratio: 1;
-      border-left: 2px solid $black;
-      border-bottom: 2px solid $black;
-      transform: translateY(-50%) rotate(-45deg);
-      pointer-events: none;
-    }
+    @include select-wrapper-style;
   }
 
   &__selectbox {
-    width: 100%;
-    padding: 1em 2em 1em 1em;
-    border: 1px solid $black;
-    border-radius: $radius-md;
-    background-color: $gray;
-    cursor: pointer;
+    @include select-style;
   }
 
   &__start-button {

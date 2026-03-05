@@ -322,21 +322,21 @@
       <div
         v-if="isTryModalOpen"
         class="admin-view__modal-overlay"
-        @click="closeTryModal"
+        @click.self="closeTryModal"
       >
-        <div class="admin-view__modal-content" @click.stop>
-          <h3>試し打ち♡</h3>
-          <p>（ESCキーでも閉じれるよ！）</p>
+        <div
+          class="admin-view__modal-content admin-view__modal-content--typing-test"
+        >
+          <button @click="closeTryModal" class="admin-view__modal-close">
+            <PlusIcon class="admin-view__modal-close-icon" />
+          </button>
+          <p class="admin-view__modal-title">試し打ち</p>
 
           <TypingCore
             v-if="problemToTry"
             :problems="[problemToTry]"
             :showDebug="true"
           />
-
-          <button @click="closeTryModal" class="admin-view__modal-close">
-            閉じる
-          </button>
         </div>
       </div>
     </Transition>
@@ -354,13 +354,25 @@
         @click.self="closeEditModal"
       >
         <div class="admin-view__modal-content" @click.stop>
-          <h3 v-if="editType === 'genre'">ジャンル の編集</h3>
-          <h3 v-else>問題文 の編集</h3>
+          <button @click="closeEditModal" class="admin-view__modal-close">
+            <PlusIcon class="admin-view__modal-close-icon" />
+          </button>
+          <p v-if="editType === 'genre'" class="admin-view__modal-title">
+            ジャンルの編集
+          </p>
+          <p v-else class="admin-view__modal-title">問題文の編集</p>
 
-          <form @submit.prevent="handleUpdateItem" novalidate>
+          <form
+            class="admin-view__modal-form"
+            @submit.prevent="handleUpdateItem"
+            novalidate
+          >
             <div v-if="editType === 'genre'" class="admin-view__form-group">
-              <label for="edit-genre-name">ジャンル名</label>
+              <label class="admin-view__form-label" for="edit-genre-name"
+                >ジャンル名</label
+              >
               <input
+                class="admin-view__form-input"
                 id="edit-genre-name"
                 type="text"
                 v-model="editForm.name"
@@ -370,24 +382,32 @@
 
             <template v-else>
               <div class="admin-view__form-group">
-                <label for="edit-problem-genre">ジャンル</label>
-                <select
-                  id="edit-problem-genre"
-                  v-model="editForm.genre_id"
-                  required
+                <label class="admin-view__form-label" for="edit-problem-genre"
+                  >ジャンル</label
                 >
-                  <option
-                    v-for="genre in adminStore.genres"
-                    :key="genre.id"
-                    :value="genre.id"
+                <div class="admin-view__form-select-wrapper">
+                  <select
+                    class="admin-view__form-select"
+                    id="edit-problem-genre"
+                    v-model="editForm.genre_id"
+                    required
                   >
-                    {{ genre.name }}
-                  </option>
-                </select>
+                    <option
+                      v-for="genre in adminStore.genres"
+                      :key="genre.id"
+                      :value="genre.id"
+                    >
+                      {{ genre.name }}
+                    </option>
+                  </select>
+                </div>
               </div>
               <div class="admin-view__form-group">
-                <label for="edit-problem-text">問題文</label>
+                <label class="admin-view__form-label" for="edit-problem-text"
+                  >問題文</label
+                >
                 <input
+                  class="admin-view__form-input"
                   id="edit-problem-text"
                   type="text"
                   v-model="editForm.problem_text"
@@ -395,8 +415,13 @@
                 />
               </div>
               <div class="admin-view__form-group">
-                <label for="edit-problem-hiragana">ひらがな</label>
+                <label
+                  class="admin-view__form-label"
+                  for="edit-problem-hiragana"
+                  >ひらがな</label
+                >
                 <input
+                  class="admin-view__form-input"
                   id="edit-problem-hiragana"
                   type="text"
                   v-model="editForm.problem_hiragana"
@@ -408,12 +433,15 @@
             <div class="admin-view__modal-actions">
               <button
                 type="button"
-                class="admin-view__button--cancel"
+                class="admin-view__modal-button admin-view__modal-button--cancel"
                 @click="closeEditModal"
               >
                 キャンセル
               </button>
-              <button type="submit" class="admin-view__button--confirm">
+              <button
+                type="submit"
+                class="admin-view__modal-button admin-view__modal-button--confirm"
+              >
                 更新する
               </button>
             </div>
@@ -1179,53 +1207,19 @@ const handleEscClose = (e) => {
   }
 
   &__input {
-    padding: 1em;
-    @include fluid-text(14, 16);
-    font-weight: $bold;
-    line-height: 1;
-    border-radius: $radius-md;
-    background-color: $light-green;
-    transition: box-shadow $transition-base;
+    @include input-style;
 
     @include pc {
       flex-grow: 1;
     }
-
-    &:focus {
-      box-shadow: 0 0 7px $blue;
-    }
-
-    &::placeholder {
-      color: $light-black;
-    }
   }
 
   &__select-wrapper {
-    position: relative;
-    min-width: 100px;
-    @include fluid-text(14, 16);
-
-    &::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      right: 1em;
-      width: 0.5em;
-      aspect-ratio: 1;
-      border-left: 2px solid $black;
-      border-bottom: 2px solid $black;
-      transform: translateY(-50%) rotate(-45deg);
-      pointer-events: none;
-    }
+    @include select-wrapper-style;
   }
 
   &__select {
-    width: 100%;
-    padding: 1em 2em 1em 1em;
-    border: 1px solid $black;
-    border-radius: $radius-md;
-    background-color: $gray;
-    cursor: pointer;
+    @include select-style;
   }
 
   &__input-button {
@@ -1331,39 +1325,114 @@ const handleEscClose = (e) => {
     }
   }
 
-  /* (★) モーダルの「背景（黒いモヤ）」 */
   &__modal-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: fixed;
+    z-index: 1000;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.33);
   }
 
-  /* (★) モーダルの「本体（白い箱）」 */
   &__modal-content {
-    background-color: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    min-width: 600px; /* (★) タイピングしやすいように、横幅を広く（仮） */
     position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin-inline: 2rem;
+    @include fluid-style(padding, 16, 24);
+    border-radius: $radius-md;
+    background-color: $white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+
+    &--typing-test {
+      width: 900px;
+      max-width: none;
+    }
   }
 
-  /* (★) モーダルの「閉じる」ボタン（仮） */
   &__modal-close {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
-    padding: 0.5rem;
-    border: none;
-    background: #eee;
+    @include fluid-style(top, 16, 24);
+    @include fluid-style(right, 16, 24);
+    @include fluid-style(width, 16, 24);
+    @include fluid-style(height, 16, 24);
     cursor: pointer;
+    color: $black;
+    transform: rotate(45deg);
+    transition: color $transition-base;
+
+    @include hover {
+      color: $red;
+    }
+  }
+
+  &__modal-close-icon {
+    width: 100%;
+    fill: currentColor;
+  }
+
+  &__modal-title {
+    @include fluid-style(margin-bottom, 16, 24);
+    font-weight: $bold;
+    @include fluid-text(16, 18);
+    letter-spacing: 0.1em;
+    text-align: center;
+  }
+
+  &__modal-form {
+    display: flex;
+    flex-direction: column;
+    @include fluid-style(gap, 16, 24);
+  }
+
+  &__form-group {
+    display: flex;
+    flex-direction: column;
+    @include fluid-style(gap, 4, 8);
+  }
+
+  &__form-label {
+    font-weight: $bold;
+    @include fluid-text(12, 14);
+  }
+
+  &__form-select-wrapper {
+    @include select-wrapper-style;
+  }
+
+  &__form-select {
+    @include select-style;
+  }
+
+  &__form-input {
+    @include input-style;
+  }
+
+  &__modal-actions {
+    display: flex;
+    justify-content: space-around;
+    gap: 2.4rem;
+  }
+
+  &__modal-button {
+    flex-grow: 1;
+    padding: 1em;
+    font-weight: $bold;
+    @include fluid-text(12, 14);
+    border-radius: $radius-sm;
+    cursor: pointer;
+
+    &--cancel {
+      @include button-style-border($black);
+    }
+
+    &--confirm {
+      @include button-style-fill($green);
+    }
   }
 
   /* 「ページネーション」 のスタイル（仮） */
@@ -1391,101 +1460,6 @@ const handleEscClose = (e) => {
       font-weight: bold;
     }
   }
-
-  /* (★) 削除ボタン（仮） */
-  &__button--delete {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
-    background-color: #dc3545; // (仮の赤色)
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    &:hover {
-      background-color: #c82333;
-    }
-  }
-
-  /* (★) ジャンル一覧 の「削除ボタン」 用 */
-  &__list {
-    list-style: disc;
-    padding-left: 20px;
-
-    li {
-      margin-bottom: 5px;
-      button {
-        margin-left: 10px; /* 文字とボタンをちょっと離す */
-      }
-    }
-  }
-
-  &__button--edit {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
-    background-color: #ffc107; // (仮の黄色)
-    color: #212529;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    &:hover {
-      background-color: #e0a800;
-    }
-  }
-
-  /* (★) 編集モーダル の「フォーム」の中身 */
-  &__form-group {
-    margin-bottom: 1.5rem;
-    text-align: left;
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: bold;
-    }
-
-    input[type="text"],
-    select {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box; /* (★) これ、大事！ */
-    }
-  }
-
-  /* (★) 編集モーダル の「ボタン置き場」 */
-  &__modal-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-
-    button {
-      flex-grow: 1; /* (★) 2つのボタンが「同じ幅」になるように */
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 4px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-    }
-  }
-
-  /* (★) キャンセルボタン（確認モーダル と「おそろい」♡） */
-  &__button--cancel {
-    background-color: #eee;
-    color: #333;
-    &:hover {
-      background-color: #ddd;
-    }
-  }
-  /* (★) 更新 ボタン（「OK」ボタンと「おそろい」の色 にしとくね！） */
-  &__button--confirm {
-    background-color: #007bff; // (仮の青色)
-    color: white;
-    &:hover {
-      background-color: #0056b3;
-    }
-  }
 }
 
 .modal-fade-enter-from,
@@ -1497,13 +1471,12 @@ const handleEscClose = (e) => {
   }
 }
 
-/* (★) 「入ってる『間』」と「出ていってる『間』」の「アニメーション」の「設定」 */
 .modal-fade-enter-active,
 .modal-fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity $transition-base;
 
   .admin-view__modal-content {
-    transition: transform 0.2s ease;
+    transition: transform $transition-base;
   }
 }
 </style>
