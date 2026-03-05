@@ -109,6 +109,7 @@ const handleCancel = () => {
     justify-content: space-around;
     gap: 2.4rem;
   }
+
   &__button {
     flex-grow: 1;
     padding: 1em;
@@ -118,7 +119,7 @@ const handleCancel = () => {
     cursor: pointer;
 
     &--cancel {
-      @include button-style-fill($black);
+      @include button-style-border($black);
     }
 
     &--confirm {
@@ -127,30 +128,21 @@ const handleCancel = () => {
   }
 }
 
-/* (★) 「入ってくる『前』」と「出ていった『後』」の「状態」 */
 .modal-fade-enter-from,
 .modal-fade-leave-to {
-  opacity: 0; /* (★) 「背景（overlay）」は「透明」 */
+  opacity: 0;
 
   .confirm-modal {
-    /* (★) 「モーダル本体（box）」は「上」にいる */
     transform: translateY(-20px);
   }
 }
 
-/* (★) 「入ってる『間』」と「出ていってる『間』」の「アニメーション」の「設定」 */
 .modal-fade-enter-active,
 .modal-fade-leave-active {
-  /* (★) (★) (★)
-       ここが「v10.1」 の「修正」 ポイント！
-     (★) (★) (★) */
-
-  /* (★) 「背景（overlay）」は「0.2秒」かけて「透明度（opacity）」を「フワッ」 て変えてね！ */
-  transition: opacity 0.2s ease;
+  transition: opacity $transition-base;
 
   .confirm-modal {
-    /* (★) 「モーダル本体（box）」は「0.2秒」かけて「場所（transform）」を「フワッ」 て変えてね！ */
-    transition: transform 0.2s ease;
+    transition: transform $transition-base;
   }
 }
 </style>
