@@ -470,6 +470,7 @@ const handleStart = () => {
 
   &__selectbox {
     @include select-style;
+    border: 1px solid $black;
   }
 
   &__start-button {

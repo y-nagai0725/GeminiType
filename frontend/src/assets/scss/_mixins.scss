@@ -209,7 +209,6 @@
 @mixin select-style {
   width: 100%;
   padding: 1em 2em 1em 1em;
-  border: 1px solid $black;
   border-radius: $radius-md;
   background-color: $gray;
   cursor: pointer;
