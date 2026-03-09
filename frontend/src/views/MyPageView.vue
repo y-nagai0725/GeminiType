@@ -242,35 +242,40 @@
           <div class="mypage-view__pagination-container" v-if="totalPages > 1">
             <div class="mypage-view__pagination">
               <button
-                class="mypage-view__page-button prev-btn"
+                class="mypage-view__page-button mypage-view__page-button--prev"
                 :class="{ 'is-disabled': currentPage === 1 }"
                 @click="prevPage"
                 :disabled="currentPage === 1"
-              >
-                &lt;
-              </button>
+              ></button>
+
+              <template v-for="(item, index) in paginationItems">
+                <button
+                  v-if="item !== '...'"
+                  :key="`num-${index}`"
+                  class="mypage-view__page-button mypage-view__page-button--number"
+                  :class="{
+                    'is-active': item === currentPage,
+                  }"
+                  @click="handlePageChange(item)"
+                >
+                  {{ item }}
+                </button>
+
+                <span
+                  v-else
+                  :key="`dots-${index}`"
+                  class="mypage-view__page-dots"
+                >
+                  …
+                </span>
+              </template>
 
               <button
-                v-for="item in paginationItems"
-                :key="item"
-                class="mypage-view__page-button number-btn"
-                :class="{
-                  'is-active': item === currentPage,
-                  'is-clickable': item !== currentPage,
-                }"
-                @click="handlePageChange(item)"
-              >
-                {{ item }}
-              </button>
-
-              <button
-                class="mypage-view__page-button next-btn"
+                class="mypage-view__page-button mypage-view__page-button--next"
                 :class="{ 'is-disabled': currentPage === totalPages }"
                 @click="nextPage"
                 :disabled="currentPage === totalPages"
-              >
-                &gt;
-              </button>
+              ></button>
             </div>
           </div>
         </section>
@@ -355,22 +360,21 @@ const rank = computed(() => {
 });
 
 /**
- *
+ * ページネーションアイテム
  */
 const paginationItems = computed(() => {
   const current = currentPage.value;
   const total = totalPages.value;
 
-  // 1. 必ず表示したいページ番号をリストアップするよ
-  //    (1ページ目、最後のページ、現在のページ、現在の前後のページ)
+  // 必ず表示したいページ番号
+  // (1ページ目、最後のページ、現在のページ、現在の前後のページ)
   const pages = new Set([1, total, current, current - 1, current + 1]);
 
-  // 2. 範囲外のページ（0以下や最大ページ超え）を除外して、昇順に並べ替えるよ
+  // 範囲外のページ（0以下や最大ページ超え）を除外、昇順に並べ替える
   const sortedPages = Array.from(pages)
     .filter((page) => page > 0 && page <= total)
     .sort((a, b) => a - b);
 
-  // 3. ページ間の隙間をチェックして、必要なら「...」を挿入するよ
   const result = [];
 
   for (let i = 0; i < sortedPages.length; i++) {
@@ -378,12 +382,7 @@ const paginationItems = computed(() => {
 
     if (i > 0) {
       const prevPage = sortedPages[i - 1];
-
-      // 前のページとの差が2以上ある場合（例：1と4の間）
       if (page - prevPage > 1) {
-        // もし差が2ちょうどなら（例：1と3）、間の数字（2）を埋める方が親切かも？
-        // でも今回はお兄ちゃんの要望通り、隙間があれば「...」を入れるロジックにするね
-        // ※ここを調整すると「1 ... 4」じゃなくて「1 2 3 4」みたいに吸着させることもできるよ
         if (page - prevPage === 2) {
           result.push(prevPage + 1); // 間の数字が1個だけなら数字を表示
         } else {
@@ -954,56 +953,71 @@ const prevPage = () => {
   &__pagination {
     display: flex;
     align-items: center;
-    @include fluid-style(gap, 8, 16);
+    @include fluid-style(gap, 10, 16);
   }
 
-  /* ボタンの基本スタイル */
   &__page-button {
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-width: 40px;
-    height: 40px;
-    font-family: $roboto-mono;
-    @include fluid-text(12, 14);
+    position: relative;
+    @include fluid-style(width, 32, 40);
+    @include fluid-style(height, 32, 40);
     border: 1px solid $light-black;
     border-radius: $radius-sm;
-    transition: all 0.2s;
+    transition: background-color $transition-base, color $transition-base,
+      border-color $transition-base;
 
-    /* 活性状態（現在のページ） */
-    &.is-active {
-      background-color: $green;
-      color: $white;
-      border-color: $green;
-      cursor: default; /* クリックできない感じを出す */
-      pointer-events: none; /* 実際にクリック無効化 */
+    &--number {
+      font-family: $roboto-mono;
+      @include fluid-text(12, 14);
     }
 
-    /* 非活性状態（前へ・次へが押せない時） */
+    &--prev::before,
+    &--next::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20%;
+      height: 20%;
+      border-top: 2px solid currentColor;
+      border-right: 2px solid currentColor;
+    }
+
+    &--prev::before {
+      transform: translate(-30%, -50%) rotate(-135deg);
+    }
+
+    &--next::before {
+      transform: translate(-70%, -50%) rotate(45deg);
+    }
+
+    @include hover {
+      background-color: $light-green;
+    }
+
+    &.is-active {
+      color: $white;
+      background-color: $green;
+      border-color: $green;
+      cursor: default;
+      pointer-events: none;
+    }
+
     &.is-disabled {
-      background-color: $gray;
       color: $light-black;
+      background-color: $gray;
       border-color: $gray;
       cursor: not-allowed;
     }
-
-    /* クリック可能な数字のホバー時 */
-    &.is-clickable:hover {
-      border-color: $blue;
-    }
   }
 
-  &__back {
-    text-align: center;
-    margin-top: 3rem;
-    a {
-      color: #666;
-      text-decoration: none;
-      &:hover {
-        text-decoration: underline;
-      }
-    }
+  &__page-dots {
+    font-family: $roboto-mono;
+    @include fluid-text(12, 14);
+    color: $light-black;
   }
 }
 </style>
