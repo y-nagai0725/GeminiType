@@ -154,15 +154,17 @@
       </div>
     </section>
 
-    <div class="top-view__actions-wrapper">
-      <div v-if="authStore.isLoggedIn" class="top-view__actions">
+    <section class="top-view__gallery"></section>
+
+    <div class="top-view__actions">
+      <template v-if="authStore.isLoggedIn">
         <RouterLink to="/menu" class="top-view__button top-view__button--menu">
           メインメニューへ進む
           <ArrowIcon class="top-view__arrow-icon" />
         </RouterLink>
-      </div>
+      </template>
 
-      <div v-else class="top-view__actions">
+      <template v-else>
         <RouterLink to="/menu" class="top-view__button top-view__button--guest">
           ゲストで遊ぶ (登録なし)
           <ArrowIcon class="top-view__arrow-icon" />
@@ -180,7 +182,7 @@
             >ユーザー登録 <ArrowIcon class="top-view__arrow-icon"
           /></RouterLink>
         </div>
-      </div>
+      </template>
     </div>
   </div>
 </template>
@@ -190,6 +192,10 @@ import { ref, onMounted } from "vue";
 import { RouterLink } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
+import gsap from 'gsap';
+import ScrollTrigger from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 // TODO 特長の3つの画像は仮です
 
