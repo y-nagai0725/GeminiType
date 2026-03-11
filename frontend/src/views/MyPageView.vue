@@ -942,82 +942,9 @@ const prevPage = () => {
     @include button-arrow-icon-style;
   }
 
+  @include pagination-style;
   &__pagination-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
     margin-top: 2rem;
-  }
-
-  &__pagination {
-    display: flex;
-    align-items: center;
-    @include fluid-style(gap, 10, 16);
-  }
-
-  &__page-button {
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    @include fluid-style(width, 32, 40);
-    @include fluid-style(height, 32, 40);
-    border: 1px solid $light-black;
-    border-radius: $radius-sm;
-    transition: background-color $transition-base, color $transition-base,
-      border-color $transition-base;
-
-    &--number {
-      font-family: $roboto-mono;
-      @include fluid-text(12, 14);
-    }
-
-    &--prev::before,
-    &--next::before {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 20%;
-      height: 20%;
-      border-top: 2px solid currentColor;
-      border-right: 2px solid currentColor;
-    }
-
-    &--prev::before {
-      transform: translate(-30%, -50%) rotate(-135deg);
-    }
-
-    &--next::before {
-      transform: translate(-70%, -50%) rotate(45deg);
-    }
-
-    @include hover {
-      background-color: $light-green;
-    }
-
-    &.is-active {
-      color: $white;
-      background-color: $green;
-      border-color: $green;
-      cursor: default;
-      pointer-events: none;
-    }
-
-    &.is-disabled {
-      color: $light-black;
-      background-color: $gray;
-      border-color: $gray;
-      cursor: not-allowed;
-    }
-  }
-
-  &__page-dots {
-    font-family: $roboto-mono;
-    @include fluid-text(12, 14);
-    color: $light-black;
   }
 }
 </style>

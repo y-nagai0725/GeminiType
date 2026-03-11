@@ -205,18 +205,50 @@
             </button>
           </form>
 
-          <div class="admin-view__pagination">
-            <button
-              v-for="page in adminStore.totalPages"
-              :key="page"
-              :class="{
-                'admin-view__page-button--active':
-                  page === adminStore.currentPage,
-              }"
-              @click="handleSetPage(page)"
-            >
-              {{ page }}
-            </button>
+          <div
+            class="admin-view__pagination-container"
+            v-if="adminStore.totalPages > 1"
+          >
+            <div class="admin-view__pagination">
+              <button
+                class="admin-view__page-button admin-view__page-button--prev"
+                :class="{ 'is-disabled': adminStore.currentPage === 1 }"
+                @click="handleSetPage(adminStore.currentPage - 1)"
+                :disabled="adminStore.currentPage === 1"
+              ></button>
+
+              <template v-for="(item, index) in paginationItems">
+                <button
+                  v-if="item !== '...'"
+                  :key="`num-${index}`"
+                  class="admin-view__page-button admin-view__page-button--number"
+                  :class="{
+                    'is-active': item === adminStore.currentPage,
+                  }"
+                  @click="handleSetPage(item)"
+                >
+                  {{ item }}
+                </button>
+
+                <span
+                  v-else
+                  :key="`dots-${index}`"
+                  class="admin-view__page-dots"
+                >
+                  …
+                </span>
+              </template>
+
+              <button
+                class="admin-view__page-button admin-view__page-button--next"
+                :class="{
+                  'is-disabled':
+                    adminStore.currentPage === adminStore.totalPages,
+                }"
+                @click="handleSetPage(adminStore.currentPage + 1)"
+                :disabled="adminStore.currentPage === adminStore.totalPages"
+              ></button>
+            </div>
           </div>
 
           <div class="admin-view__table-wrapper">
@@ -301,18 +333,50 @@
             </table>
           </div>
 
-          <div class="admin-view__pagination">
-            <button
-              v-for="page in adminStore.totalPages"
-              :key="page"
-              :class="{
-                'admin-view__page-button--active':
-                  page === adminStore.currentPage,
-              }"
-              @click="handleSetPage(page)"
-            >
-              {{ page }}
-            </button>
+          <div
+            class="admin-view__pagination-container"
+            v-if="adminStore.totalPages > 1"
+          >
+            <div class="admin-view__pagination">
+              <button
+                class="admin-view__page-button admin-view__page-button--prev"
+                :class="{ 'is-disabled': adminStore.currentPage === 1 }"
+                @click="handleSetPage(adminStore.currentPage - 1)"
+                :disabled="adminStore.currentPage === 1"
+              ></button>
+
+              <template v-for="(item, index) in paginationItems">
+                <button
+                  v-if="item !== '...'"
+                  :key="`num-${index}`"
+                  class="admin-view__page-button admin-view__page-button--number"
+                  :class="{
+                    'is-active': item === adminStore.currentPage,
+                  }"
+                  @click="handleSetPage(item)"
+                >
+                  {{ item }}
+                </button>
+
+                <span
+                  v-else
+                  :key="`dots-${index}`"
+                  class="admin-view__page-dots"
+                >
+                  …
+                </span>
+              </template>
+
+              <button
+                class="admin-view__page-button admin-view__page-button--next"
+                :class="{
+                  'is-disabled':
+                    adminStore.currentPage === adminStore.totalPages,
+                }"
+                @click="handleSetPage(adminStore.currentPage + 1)"
+                :disabled="adminStore.currentPage === adminStore.totalPages"
+              ></button>
+            </div>
           </div>
         </section>
       </div>
@@ -453,7 +517,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from "vue";
+import { ref, onMounted, reactive, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import { useAdminStore } from "../stores/adminStore";
@@ -559,6 +623,11 @@ const isEditModalOpen = ref(false);
 const editType = ref("genre");
 
 /**
+ * タブ切り替え
+ */
+const currentTab = ref("genre");
+
+/**
  * 編集フォーム
  */
 const editForm = reactive({
@@ -570,9 +639,42 @@ const editForm = reactive({
 });
 
 /**
- * タブ切り替え
+ * ページネーションアイテム
  */
-const currentTab = ref("genre");
+const paginationItems = computed(() => {
+  const current = adminStore.currentPage;
+  const total = adminStore.totalPages;
+
+  // 必ず表示したいページ番号
+  // (1ページ目、最後のページ、現在のページ、現在の前後のページ)
+  const pages = new Set([1, total, current, current - 1, current + 1]);
+
+  // 範囲外のページ（0以下や最大ページ超え）を除外、昇順に並べ替える
+  const sortedPages = Array.from(pages)
+    .filter((page) => page > 0 && page <= total)
+    .sort((a, b) => a - b);
+
+  const result = [];
+
+  for (let i = 0; i < sortedPages.length; i++) {
+    const page = sortedPages[i];
+
+    if (i > 0) {
+      const prevPage = sortedPages[i - 1];
+      if (page - prevPage > 1) {
+        if (page - prevPage === 2) {
+          result.push(prevPage + 1); // 間の数字が1個だけなら数字を表示
+        } else {
+          result.push("..."); // 間の数字がいっぱいあるなら「...」を表示
+        }
+      }
+    }
+
+    result.push(page);
+  }
+
+  return result;
+});
 
 /**
  * マウント時処理
@@ -1325,6 +1427,8 @@ const handleEscClose = (e) => {
     }
   }
 
+  @include pagination-style;
+
   &__modal-overlay {
     display: flex;
     align-items: center;
@@ -1432,32 +1536,6 @@ const handleEscClose = (e) => {
 
     &--confirm {
       @include button-style-fill($green);
-    }
-  }
-
-  /* 「ページネーション」 のスタイル（仮） */
-  &__pagination {
-    margin: 1rem 0;
-    display: flex;
-    gap: 5px;
-
-    button {
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #ddd;
-      background-color: #fff;
-      cursor: pointer;
-
-      &:hover {
-        background-color: #f4f4f4;
-      }
-    }
-
-    /* (★) 「今いるページ」 のボタンは「色を変える」！ */
-    &--active {
-      background-color: #007bff;
-      color: white;
-      border-color: #007bff;
-      font-weight: bold;
     }
   }
 }
