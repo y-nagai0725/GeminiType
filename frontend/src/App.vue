@@ -39,6 +39,7 @@ import Submenu from "./components/Submenu.vue";
   flex: 1;
   width: 100%;
   padding-top: $header-height-sp;
+  overflow: hidden;
 
   @include tab {
     padding-top: $header-height-tab;

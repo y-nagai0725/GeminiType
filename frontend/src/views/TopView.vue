@@ -154,7 +154,16 @@
       </div>
     </section>
 
-    <section class="top-view__gallery"></section>
+    <section class="top-view__gallery">
+      <div class="top-view__horizontal-scroll-container" ref="container">
+        <div class="top-view__horizontal-scroll-wrapper" ref="wrapper">
+          <section class="top-view__slide bg-pink">Slide 1</section>
+          <section class="top-view__slide bg-blue">Slide 2</section>
+          <section class="top-view__slide bg-green">Slide 3</section>
+          <section class="top-view__slide bg-yellow">Slide 4</section>
+        </div>
+      </div>
+    </section>
 
     <div class="top-view__actions">
       <template v-if="authStore.isLoggedIn">
@@ -188,14 +197,45 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { RouterLink } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
-import gsap from 'gsap';
-import ScrollTrigger from 'gsap/ScrollTrigger';
+import gsap from "gsap";
+import ScrollTrigger from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
+
+const container = ref(null);
+const wrapper = ref(null);
+let ctx;
+
+onMounted(() => {
+  ctx = gsap.context(() => {
+    const slides = gsap.utils.toArray(".top-view__slide");
+
+    gsap.to(slides, {
+      // スライドの枚数-1 の分だけ横にスライドさせるよ
+      xPercent: -100 * (slides.length - 1),
+      ease: "none",
+      scrollTrigger: {
+        trigger: container.value,
+        pin: true, // スクロール中、コンテナを画面に固定するよ
+        scrub: 1, // スクロール量に合わせてアニメーションさせる（1秒の遅延で滑らかに）
+        // wrapperの幅を再計算させることで、画面幅が変わってもレスポンシブに動くよ！
+        end: () => "+=" + wrapper.value.offsetWidth,
+        invalidateOnRefresh: true,
+      },
+    });
+  }, container.value); // このコンテナ内の要素だけにスコープを絞るよ
+});
+
+onUnmounted(() => {
+  // コンポーネントが破棄される時にアニメーションもリセットするよ
+  if (ctx) {
+    ctx.revert();
+  }
+});
 
 // TODO 特長の3つの画像は仮です
 
@@ -441,6 +481,47 @@ const isStressFreeDetail = ref(false);
       &::after {
         transform: translate(-50%, -50%) rotate(135deg);
       }
+    }
+  }
+
+  &__gallery {
+  }
+
+  &__horizontal-scroll-container {
+    overflow: hidden; /* ← ブラウザの横揺れを防ぐために絶対必要！ */
+    width: 100vw; /* ← 画面いっぱいに広げる魔法！ */
+    margin-left: calc(50% - 50vw); /* ← これも！ */
+  }
+
+  /* スライドを横に並べるラッパー */
+  &__horizontal-scroll-wrapper {
+    display: flex;
+  }
+
+  /* 各スライドの共通スタイル */
+  &__slide {
+    flex-shrink: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    font-weight: bold;
+    color: white;
+
+    /* スライドごとの背景色だよ */
+    &.bg-pink {
+      background-color: #ff9a9e;
+    }
+    &.bg-blue {
+      background-color: #a1c4fd;
+    }
+    &.bg-green {
+      background-color: #84fab0;
+    }
+    &.bg-yellow {
+      background-color: #fccc39;
     }
   }
 }
