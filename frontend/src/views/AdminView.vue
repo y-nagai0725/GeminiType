@@ -517,7 +517,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, computed } from "vue";
+import { ref, onMounted, onUnmounted, reactive, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import { useAdminStore } from "../stores/adminStore";
@@ -715,6 +715,15 @@ onMounted(async () => {
       );
     }
   }
+});
+
+/**
+ * アンマウント時処理
+ */
+onUnmounted(() => {
+  // 検索条件を初期化しておく
+  adminStore.filterGenreId = "";
+  adminStore.filterSearchText = "";
 });
 
 /**
