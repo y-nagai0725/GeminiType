@@ -157,10 +157,63 @@
     <section class="top-view__gallery">
       <div class="top-view__horizontal-scroll-container" ref="container">
         <div class="top-view__horizontal-scroll-wrapper" ref="wrapper">
-          <section class="top-view__slide bg-pink">Slide 1</section>
-          <section class="top-view__slide bg-blue">Slide 2</section>
-          <section class="top-view__slide bg-green">Slide 3</section>
-          <section class="top-view__slide bg-yellow">Slide 4</section>
+          <section class="top-view__slide bg-pink">
+            <div class="top-view__slide-inner">
+              <img
+                src="https://picsum.photos/800/450"
+                alt="スライド画像1"
+                class="top-view__slide-image"
+              />
+              <p class="top-view__slide-desc">
+                Slide 1の説明文だよ！画像と縦並びで、コンテンツ幅に収まってるよ♡
+              </p>
+            </div>
+          </section>
+
+          <section class="top-view__slide bg-blue">
+            <div class="top-view__slide-inner">
+              <img
+                src="https://picsum.photos/800/450"
+                alt="スライド画像2"
+                class="top-view__slide-image"
+              />
+              <p class="top-view__slide-desc">
+                Slide 2の説明文！背景は全画面だけど、中身はズレないよ♡
+              </p>
+            </div>
+          </section>
+
+          <section class="top-view__slide bg-green">
+            <div class="top-view__slide-inner">
+              <img
+                src="https://picsum.photos/800/450"
+                alt="スライド画像3"
+                class="top-view__slide-image"
+              />
+              <p class="top-view__slide-desc">
+                Slide 3だよ！スマホの時は両端に20pxの余白ができるよ♡
+              </p>
+            </div>
+          </section>
+
+          <section class="top-view__slide bg-yellow">
+            <div class="top-view__slide-inner">
+              <img
+                src="https://picsum.photos/800/450"
+                alt="スライド画像4"
+                class="top-view__slide-image"
+              />
+              <p class="top-view__slide-desc">
+                Slide
+                4！お兄ちゃん、これでバッチリ思った通りの構造になったかな？♡♡♡
+              </p>
+            </div>
+          </section>
+        </div>
+        <div class="top-view__progress-bar-wrapper">
+          <div class="top-view__progress-segment" v-for="i in 4" :key="i">
+            <div class="top-view__progress-fill"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -213,21 +266,44 @@ let ctx;
 onMounted(() => {
   ctx = gsap.context(() => {
     const slides = gsap.utils.toArray(".top-view__slide");
+    const fills = gsap.utils.toArray(".top-view__progress-fill"); // バーの白い部分を取得！
 
-    gsap.to(slides, {
-      // スライドの枚数-1 の分だけ横にスライドさせるよ
-      xPercent: -100 * (slides.length - 1),
-      ease: "none",
+    // gsap.to ではなく、timelineを作成して複数のアニメーションをまとめるよ！
+    const tl = gsap.timeline({
       scrollTrigger: {
         trigger: container.value,
-        pin: true, // スクロール中、コンテナを画面に固定するよ
-        scrub: 1, // スクロール量に合わせてアニメーションさせる（1秒の遅延で滑らかに）
-        // wrapperの幅を再計算させることで、画面幅が変わってもレスポンシブに動くよ！
-        end: () => "+=" + wrapper.value.offsetWidth,
+        pin: true,
+        scrub: 1,
         invalidateOnRefresh: true,
+        end: () => "+=" + wrapper.value.offsetWidth,
       },
     });
-  }, container.value); // このコンテナ内の要素だけにスコープを絞るよ
+
+    // ① 横スクロールのアニメーション
+    tl.to(
+      slides,
+      {
+        xPercent: -100 * (slides.length - 1),
+        ease: "none",
+        duration: slides.length - 1, // アニメーションの長さを基準として設定！
+      },
+      0
+    ); // 「0」はタイムラインの最初（スクロール開始時）から動かす合図だよ♡
+
+    // ② プログレスバー（白く埋まる部分）のアニメーション
+    const fillDuration = (slides.length - 1) / fills.length; // 4つのバーが順番に埋まるように計算する魔法♡
+
+    tl.to(
+      fills,
+      {
+        scaleX: 1, // 幅を0から1（100%）に伸ばすよ
+        ease: "none",
+        duration: fillDuration,
+        stagger: fillDuration, // 1つ目が終わるタイミングで次が始まるようにズラす設定！
+      },
+      0
+    ); // これも「0」を指定して、横スクロールと同時にスタートさせるの！
+  }, container.value);
 });
 
 onUnmounted(() => {
@@ -490,7 +566,7 @@ const isStressFreeDetail = ref(false);
   &__horizontal-scroll-container {
     overflow: hidden; /* ← ブラウザの横揺れを防ぐために絶対必要！ */
     width: 100vw; /* ← 画面いっぱいに広げる魔法！ */
-    margin-left: calc(50% - 50vw); /* ← これも！ */
+    margin-inline: calc(50% - 50vw); /* ← これも！ */
   }
 
   /* スライドを横に並べるラッパー */
@@ -506,9 +582,6 @@ const isStressFreeDetail = ref(false);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 4rem;
-    font-weight: bold;
-    color: white;
 
     /* スライドごとの背景色だよ */
     &.bg-pink {
@@ -523,6 +596,66 @@ const isStressFreeDetail = ref(false);
     &.bg-yellow {
       background-color: #fccc39;
     }
+  }
+
+  &__slide-inner {
+    @include contents-width;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  /* 画像のスタイル */
+  &__slide-image {
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+    border-radius: $radius-lg;
+  }
+
+  /* 説明文のスタイル */
+  &__slide-desc {
+    font-weight: $bold;
+    @include fluid-text(14, 18);
+    text-align: center;
+  }
+
+  /* ===============================
+   プログレスバーのスタイル
+=============================== */
+  &__progress-bar-wrapper {
+    position: absolute; /* コンテナの底に固定するよ！ */
+    bottom: 40px; /* 下からの余白 */
+    left: 50%;
+    transform: translateX(-50%); /* 中央寄せの魔法 */
+
+    display: flex;
+    gap: 8px; /* セグメント（区切り）の間の隙間！画像みたいになるよ♡ */
+    width: 100%;
+    z-index: 10; /* スライドより上に表示させるよ */
+
+    /* .slide-inner と同じルールにして、左右の幅をバッチリ揃えるよ！ */
+    @include contents-width;
+  }
+
+  /* セグメントの背景（未完了の暗い部分） */
+  &__progress-segment {
+    flex: 1; /* 4つのバーを均等な幅にするよ */
+    height: 2px; /* 画像みたいに細くてスタイリッシュな線に！ */
+    background-color: rgba(255, 255, 255, 0.2); /* 半透明の白 */
+    border-radius: 2px;
+    overflow: hidden; /* はみ出した白い部分を隠すよ */
+  }
+
+  /* セグメントの白く埋まる部分 */
+  &__progress-fill {
+    width: 100%;
+    height: 100%;
+    background-color: #ffffff; /* 完了した真っ白な部分 */
+    transform-origin: left; /* 左から右へ伸びるようにする指定だよ！ */
+    transform: scaleX(0); /* 最初は幅0（見えない状態）にしておくの！ */
   }
 }
 
