@@ -155,9 +155,13 @@
     </section>
 
     <section class="top-view__gallery">
-      <div class="top-view__horizontal-scroll-container" ref="container">
-        <div class="top-view__horizontal-scroll-wrapper" ref="wrapper">
-          <section class="top-view__slide bg-pink">
+      <div
+        class="top-view__horizontal-scroll-wrapper"
+        ref="horizontalScrollWrapper"
+      >
+        <h2 class="top-view__gallery-title">様々な機能</h2>
+        <div class="top-view__slide-wrapper" ref="slideWrapper">
+          <div class="top-view__slide top-view__slide--green">
             <div class="top-view__slide-inner">
               <img
                 src="https://picsum.photos/800/450"
@@ -165,12 +169,13 @@
                 class="top-view__slide-image"
               />
               <p class="top-view__slide-desc">
-                Slide 1の説明文だよ！画像と縦並びで、コンテンツ幅に収まってるよ♡
+                Slide
+                1の説明文サンプルサンプルサンプルサンプルサンプルサンプルサンプルサンプル
               </p>
             </div>
-          </section>
+          </div>
 
-          <section class="top-view__slide bg-blue">
+          <div class="top-view__slide top-view__slide--orange">
             <div class="top-view__slide-inner">
               <img
                 src="https://picsum.photos/800/450"
@@ -178,12 +183,13 @@
                 class="top-view__slide-image"
               />
               <p class="top-view__slide-desc">
-                Slide 2の説明文！背景は全画面だけど、中身はズレないよ♡
+                Slide
+                2の説明文サンプルサンプルサンプルサンプルサンプルサンプルサンプルサンプル
               </p>
             </div>
-          </section>
+          </div>
 
-          <section class="top-view__slide bg-green">
+          <div class="top-view__slide top-view__slide--blue">
             <div class="top-view__slide-inner">
               <img
                 src="https://picsum.photos/800/450"
@@ -191,12 +197,13 @@
                 class="top-view__slide-image"
               />
               <p class="top-view__slide-desc">
-                Slide 3だよ！スマホの時は両端に20pxの余白ができるよ♡
+                Slide
+                3の説明文サンプルサンプルサンプルサンプルサンプルサンプルサンプルサンプル
               </p>
             </div>
-          </section>
+          </div>
 
-          <section class="top-view__slide bg-yellow">
+          <div class="top-view__slide top-view__slide--yellow">
             <div class="top-view__slide-inner">
               <img
                 src="https://picsum.photos/800/450"
@@ -205,10 +212,10 @@
               />
               <p class="top-view__slide-desc">
                 Slide
-                4！お兄ちゃん、これでバッチリ思った通りの構造になったかな？♡♡♡
+                4の説明文サンプルサンプルサンプルサンプルサンプルサンプルサンプルサンプル
               </p>
             </div>
-          </section>
+          </div>
         </div>
         <div class="top-view__progress-bar-wrapper">
           <div class="top-view__progress-segment" v-for="i in 4" :key="i">
@@ -259,60 +266,6 @@ import ScrollTrigger from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const container = ref(null);
-const wrapper = ref(null);
-let ctx;
-
-onMounted(() => {
-  ctx = gsap.context(() => {
-    const slides = gsap.utils.toArray(".top-view__slide");
-    const fills = gsap.utils.toArray(".top-view__progress-fill"); // バーの白い部分を取得！
-
-    // gsap.to ではなく、timelineを作成して複数のアニメーションをまとめるよ！
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: container.value,
-        pin: true,
-        scrub: 1,
-        invalidateOnRefresh: true,
-        end: () => "+=" + wrapper.value.offsetWidth,
-      },
-    });
-
-    // ① 横スクロールのアニメーション
-    tl.to(
-      slides,
-      {
-        xPercent: -100 * (slides.length - 1),
-        ease: "none",
-        duration: slides.length - 1, // アニメーションの長さを基準として設定！
-      },
-      0
-    ); // 「0」はタイムラインの最初（スクロール開始時）から動かす合図だよ♡
-
-    // ② プログレスバー（白く埋まる部分）のアニメーション
-    const fillDuration = (slides.length - 1) / fills.length; // 4つのバーが順番に埋まるように計算する魔法♡
-
-    tl.to(
-      fills,
-      {
-        scaleX: 1, // 幅を0から1（100%）に伸ばすよ
-        ease: "none",
-        duration: fillDuration,
-        stagger: fillDuration, // 1つ目が終わるタイミングで次が始まるようにズラす設定！
-      },
-      0
-    ); // これも「0」を指定して、横スクロールと同時にスタートさせるの！
-  }, container.value);
-});
-
-onUnmounted(() => {
-  // コンポーネントが破棄される時にアニメーションもリセットするよ
-  if (ctx) {
-    ctx.revert();
-  }
-});
-
 // TODO 特長の3つの画像は仮です
 
 /**
@@ -334,6 +287,86 @@ const isProgressDetail = ref(false);
  * 「ストレスフリーな入力判定」詳細表示・非表示
  */
 const isStressFreeDetail = ref(false);
+
+/**
+ * 横スクロール要素
+ */
+const horizontalScrollWrapper = ref(null);
+
+/**
+ * スライドラッパー
+ */
+const slideWrapper = ref(null);
+
+/**
+ *
+ */
+let ctx;
+
+/**
+ * gsap横スクロールアニメーション設定
+ */
+const setHorizontalScrollAnimation = () => {
+  ctx = gsap.context(() => {
+    // スライド
+    const slides = gsap.utils.toArray(".top-view__slide");
+
+    // プログレスバー
+    const fills = gsap.utils.toArray(".top-view__progress-fill");
+
+    // timelineを作成
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: horizontalScrollWrapper.value,
+        pin: true,
+        scrub: 1,
+        invalidateOnRefresh: true,
+        end: () => "+=" + slideWrapper.value.offsetWidth,
+      },
+    });
+
+    // 横スクロールのアニメーション
+    tl.to(
+      slides,
+      {
+        xPercent: -100 * (slides.length - 1),
+        ease: "none",
+        duration: slides.length - 1,
+      },
+      0
+    );
+
+    // プログレスバーのアニメーション
+    const fillDuration = (slides.length - 1) / fills.length;
+    tl.to(
+      fills,
+      {
+        scaleX: 1,
+        ease: "none",
+        duration: fillDuration,
+        stagger: fillDuration,
+      },
+      0
+    );
+  }, horizontalScrollWrapper.value);
+};
+
+/**
+ * マウント時処理
+ */
+onMounted(() => {
+  setHorizontalScrollAnimation();
+});
+
+/**
+ * アンマウント時処理
+ */
+onUnmounted(() => {
+  // コンポーネントが破棄される時にアニメーションをリセットする
+  if (ctx) {
+    ctx.revert();
+  }
+});
 </script>
 
 <style lang="scss" scoped>
@@ -560,21 +593,37 @@ const isStressFreeDetail = ref(false);
     }
   }
 
-  &__gallery {
-  }
-
-  &__horizontal-scroll-container {
-    overflow: hidden; /* ← ブラウザの横揺れを防ぐために絶対必要！ */
-    width: 100vw; /* ← 画面いっぱいに広げる魔法！ */
-    margin-inline: calc(50% - 50vw); /* ← これも！ */
-  }
-
-  /* スライドを横に並べるラッパー */
   &__horizontal-scroll-wrapper {
+    position: relative;
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+    overflow: hidden;
+  }
+
+  &__gallery-title {
+    position: absolute;
+    top: calc($header-height-sp + 2rem);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    @include fluid-text(24, 32);
+    font-weight: $bold;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+
+    @include tab {
+      top: calc($header-height-tab + 2rem);
+    }
+
+    @include pc {
+      top: calc($header-height-pc + 2rem);
+    }
+  }
+
+  &__slide-wrapper {
     display: flex;
   }
 
-  /* 各スライドの共通スタイル */
   &__slide {
     flex-shrink: 0;
     width: 100vw;
@@ -583,31 +632,31 @@ const isStressFreeDetail = ref(false);
     align-items: center;
     justify-content: center;
 
-    /* スライドごとの背景色だよ */
-    &.bg-pink {
-      background-color: #ff9a9e;
+    &--orange {
+      background-color: $light-orange;
     }
-    &.bg-blue {
-      background-color: #a1c4fd;
+
+    &--blue {
+      background-color: $light-blue;
     }
-    &.bg-green {
-      background-color: #84fab0;
+
+    &--green {
+      background-color: $light-green;
     }
-    &.bg-yellow {
-      background-color: #fccc39;
+
+    &--yellow {
+      background-color: $light-yellow;
     }
   }
 
   &__slide-inner {
-    @include contents-width;
-    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 24px;
+    @include fluid-style(gap,16,24);
+    @include contents-width;
   }
 
-  /* 画像のスタイル */
   &__slide-image {
     width: 100%;
     max-width: 800px;
@@ -615,47 +664,38 @@ const isStressFreeDetail = ref(false);
     border-radius: $radius-lg;
   }
 
-  /* 説明文のスタイル */
   &__slide-desc {
     font-weight: $bold;
     @include fluid-text(14, 18);
     text-align: center;
   }
 
-  /* ===============================
-   プログレスバーのスタイル
-=============================== */
   &__progress-bar-wrapper {
-    position: absolute; /* コンテナの底に固定するよ！ */
-    bottom: 40px; /* 下からの余白 */
-    left: 50%;
-    transform: translateX(-50%); /* 中央寄せの魔法 */
-
     display: flex;
-    gap: 8px; /* セグメント（区切り）の間の隙間！画像みたいになるよ♡ */
+    gap: 1rem;
+    position: absolute;
+    bottom: 6rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
     width: 100%;
-    z-index: 10; /* スライドより上に表示させるよ */
-
-    /* .slide-inner と同じルールにして、左右の幅をバッチリ揃えるよ！ */
     @include contents-width;
   }
 
-  /* セグメントの背景（未完了の暗い部分） */
   &__progress-segment {
-    flex: 1; /* 4つのバーを均等な幅にするよ */
-    height: 2px; /* 画像みたいに細くてスタイリッシュな線に！ */
-    background-color: rgba(255, 255, 255, 0.2); /* 半透明の白 */
-    border-radius: 2px;
-    overflow: hidden; /* はみ出した白い部分を隠すよ */
+    flex: 1;
+    height: 2px;
+    border-radius: $radius-sm;
+    background-color: $light-black;
+    overflow: hidden;
   }
 
-  /* セグメントの白く埋まる部分 */
   &__progress-fill {
     width: 100%;
     height: 100%;
-    background-color: #ffffff; /* 完了した真っ白な部分 */
-    transform-origin: left; /* 左から右へ伸びるようにする指定だよ！ */
-    transform: scaleX(0); /* 最初は幅0（見えない状態）にしておくの！ */
+    background-color: $white;
+    transform-origin: left;
+    transform: scaleX(0);
   }
 }
 
