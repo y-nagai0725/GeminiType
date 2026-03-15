@@ -376,14 +376,25 @@ onUnmounted(() => {
   flex-direction: column;
   @include fluid-style(gap, 40, 120);
   @include contents-width;
-  @include fluid-style(padding-top, 40, 80);
   @include fluid-style(padding-bottom, 64, 120);
 
   &__hero {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     @include fluid-style(gap, 32, 48);
+    @include full-width-style;
+    height: 100svh;
+    margin-top: -$header-height-sp;
+
+    @include tab {
+      margin-top: -$header-height-tab;
+    }
+
+    @include pc {
+      margin-top: -$header-height-pc;
+    }
   }
 
   &__title {
@@ -595,8 +606,7 @@ onUnmounted(() => {
 
   &__horizontal-scroll-wrapper {
     position: relative;
-    width: 100vw;
-    margin-inline: calc(50% - 50vw);
+    @include full-width-style;
     overflow: hidden;
   }
 
@@ -653,7 +663,7 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    @include fluid-style(gap,16,24);
+    @include fluid-style(gap, 16, 24);
     @include contents-width;
   }
 
