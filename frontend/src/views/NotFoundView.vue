@@ -6,21 +6,30 @@
     </h1>
     <div class="not-found-view__contents-wrapper">
       <p class="not-found-view__message">
-        お探しのページが見つかりません<br />
+        お探しのページが見つかりません。<br />
         URLが間違っているか、削除された可能性があります。
       </p>
 
       <div class="not-found-view__actions">
-        <RouterLink to="/menu" class="not-found-view__link-button not-found-view__link-button--menu"
-        >メインメニューに戻る<ArrowIcon class="not-found-view__arrow-icon"
-      /></RouterLink>
-        <RouterLink to="/" class="not-found-view__link">
-          トップページへ
+        <RouterLink
+          to="/menu"
+          class="not-found-view__link-button not-found-view__link-button--menu"
+          >メインメニューに戻る<ArrowIcon class="not-found-view__arrow-icon"
+        /></RouterLink>
+        <RouterLink
+          to="/"
+          class="not-found-view__link-button not-found-view__link-button--top"
+        >
+          トップページに戻る<ArrowIcon class="not-found-view__arrow-icon" />
         </RouterLink>
       </div>
     </div>
   </div>
 </template>
+
+<script setup>
+import ArrowIcon from "@/components/icons/ArrowIcon.vue";
+</script>
 
 <style lang="scss" scoped>
 .not-found-view {
@@ -62,35 +71,26 @@
   &__actions {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 1rem;
+    @include fluid-style(gap, 24, 32);
   }
 
-  &__button {
-    display: inline-block;
-    padding: 0.8rem 2rem;
-    background-color: #007bff;
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
-    border-radius: 50px;
-    transition: transform 0.2s;
+  &__link-button {
+    @include fluid-style(width, 240, 350);
+    @include fluid-style(padding-block, 17, 22);
+    margin-inline: auto;
+    @include fluid-text(14, 18);
 
-    &:hover {
-      transform: translateY(-2px);
-      background-color: #0056b3;
+    &--menu {
+      @include button-style-fill($green);
+    }
+
+    &--top {
+      @include button-style-fill($blue);
     }
   }
 
-  &__link {
-    color: #666;
-    text-decoration: none;
-    font-size: 0.9rem;
-
-    &:hover {
-      text-decoration: underline;
-      color: #007bff;
-    }
+  &__arrow-icon {
+    @include button-arrow-icon-style;
   }
 }
 </style>
