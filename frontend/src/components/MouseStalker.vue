@@ -9,14 +9,24 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 
-// マウス座標
+/**
+ * マウスX座標
+ */
 const mouseX = ref(0);
+
+/**
+ * マウスY座標
+ */
 const mouseY = ref(0);
 
-// ホバー状態かどうか
+/**
+ * ホバー状態かどうか
+ */
 const isHovering = ref(false);
 
-// ストーカーの位置スタイル
+/**
+ * ストーカーの位置スタイル
+ */
 const stalkerStyle = computed(() => {
   return {
     transform: `translate(${mouseX.value}px, ${mouseY.value}px)`,
@@ -30,7 +40,7 @@ const handleMouseMove = (e) => {
   mouseX.value = e.clientX;
   mouseY.value = e.clientY;
 
-  // ホバー判定 (aタグ または buttonタグの上にあるか？)
+  // ホバー判定 (aタグ または buttonタグ)
   const target = e.target;
   if (target.closest("a") || target.closest("button")) {
     isHovering.value = true;
@@ -50,39 +60,37 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .mouse-stalker {
-  /* 基本スタイル */
   position: fixed;
   top: 0;
   left: 0;
-  width: 20px;
-  height: 20px;
+  z-index: 9999;
+  width: 2rem;
+  height: 2rem;
   border-radius: 50%;
   background-color: $green;
   opacity: 0.6;
-  pointer-events: none; /* マウスイベントを邪魔しないように！これ大事！ */
-  z-index: 9999; /* 一番上に表示 */
+  pointer-events: none;
 
   /* 中心をマウス座標に合わせるための調整 */
-  margin-top: -10px;
-  margin-left: -10px;
+  margin-top: -1rem;
+  margin-left: -1rem;
 
-  /* ★ポイント: アニメーション設定 */
-  transition: transform 0.1s ease-out,
-    /* ちょっと遅れてついてくる演出 */ width 0.3s, height 0.3s,
-    opacity 0.3s, margin 0.3s; /* 大きさ変化用 */
+  /* アニメーション設定 */
+  transition: transform 0.1s ease-out, width $transition-base,
+    height $transition-base, opacity $transition-base, margin $transition-base;
 
   /* PC以外（タッチデバイス）では非表示にする */
   @media (hover: none) {
     display: none;
   }
-}
 
-/* ホバー時のスタイル拡大 */
-.mouse-stalker.is-hovering {
-  width: 50px;
-  height: 50px;
-  margin-top: -25px; /* 中心位置の補正 */
-  margin-left: -25px;
-  opacity: 0.25;
+  /* ホバー時のスタイル拡大 */
+  &.is-hovering {
+    width: 5rem;
+    height: 5rem;
+    margin-top: -2.5rem;
+    margin-left: -2.5rem;
+    opacity: 0.3;
+  }
 }
 </style>
