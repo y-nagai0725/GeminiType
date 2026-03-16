@@ -45,7 +45,7 @@
       </div>
     </div>
 
-    <transition name="fade">
+    <Transition name="fade">
       <nav v-show="isMenuOpen" class="header__fullscreen-menu">
         <span v-if="authStore.isLoggedIn" class="header__menu-user-name"
           ><UserIcon class="header__menu-user-icon" /> {{ authStore.user?.name
@@ -112,7 +112,7 @@
           </li>
         </ul>
       </nav>
-    </transition>
+    </Transition>
   </header>
 </template>
 
