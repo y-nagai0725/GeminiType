@@ -84,7 +84,7 @@
           </li>
         </ul>
         <span class="footer__copyright"
-          >&copy; 2025 GeminiType. All Rights Reserved.</span
+          >&copy; 2026 GeminiType. All Rights Reserved.</span
         >
       </div>
     </div>
