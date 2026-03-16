@@ -1,16 +1,19 @@
 <template>
   <div class="not-found-view">
-    <div class="not-found-view__content">
-      <h1 class="not-found-view__title">404 Not Found</h1>
+    <h1 class="not-found-view__title">
+      <span class="en">NOT FOUND</span>
+      <span class="ja">ページが見つかりません</span>
+    </h1>
+    <div class="not-found-view__contents-wrapper">
       <p class="not-found-view__message">
-        おっと！お探しのページが見つかりません…💦<br />
+        お探しのページが見つかりません<br />
         URLが間違っているか、削除された可能性があります。
       </p>
 
       <div class="not-found-view__actions">
-        <RouterLink to="/menu" class="not-found-view__button">
-          メインメニューに戻る
-        </RouterLink>
+        <RouterLink to="/menu" class="not-found-view__link-button not-found-view__link-button--menu"
+        >メインメニューに戻る<ArrowIcon class="not-found-view__arrow-icon"
+      /></RouterLink>
         <RouterLink to="/" class="not-found-view__link">
           トップページへ
         </RouterLink>
@@ -21,31 +24,39 @@
 
 <style lang="scss" scoped>
 .not-found-view {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 80vh; /* 画面の真ん中くらいに表示 */
-  text-align: center;
-  font-family: sans-serif;
-  color: #333;
+  @include contents-width;
 
-  &__content {
-    max-width: 500px;
-    padding: 2rem;
+  @include pc {
+    max-width: 1000px;
   }
 
   &__title {
-    font-size: 3rem;
-    font-weight: bold;
-    color: #dc3545; /* 警告っぽい赤色 */
-    margin-bottom: 1rem;
+    @include page-title;
+
+    .en {
+      color: $red;
+    }
+  }
+
+  &__contents-wrapper {
+    display: flex;
+    flex-direction: column;
+    @include fluid-style(gap, 24, 32);
+    @include contents-padding;
+    max-width: 600px;
+    margin-inline: auto;
+
+    @include pc {
+      max-width: none;
+      margin-inline: 0;
+    }
   }
 
   &__message {
-    font-size: 1.1rem;
-    line-height: 1.6;
-    color: #666;
-    margin-bottom: 2rem;
+    font-weight: $bold;
+    @include fluid-text(12, 16);
+    line-height: 2;
+    text-align: center;
   }
 
   &__actions {
