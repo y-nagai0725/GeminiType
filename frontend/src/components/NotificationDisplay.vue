@@ -6,13 +6,13 @@
       class="notification__item-wrapper"
     >
       <div
-        v-for="notification in store.notifications"
+        v-for="notification in notificationStore.notifications"
         :key="notification.id"
         :class="[
           'notification__item',
           `notification__item--${notification.type}`,
         ]"
-        @click="store.removeNotification(notification.id)"
+        @click="notificationStore.removeNotification(notification.id)"
       >
         {{ notification.message }}
       </div>
@@ -22,44 +22,55 @@
 
 <script setup>
 import { useNotificationStore } from "../stores/notificationStore";
-const store = useNotificationStore();
+
+/**
+ * お知らせstore
+ */
+const notificationStore = useNotificationStore();
 </script>
 
 <style lang="scss" scoped>
 .notification {
-  /* 画面の「右上」に固定するよ！ */
   position: fixed;
-  top: 20px;
-  right: 0px;
-  z-index: 9999; /* ぜったい一番「上」に来るように！ */
+  top: calc($header-height-sp + 3.2rem);
+  right: 2rem;
+  z-index: 9999;
+
+  @include tab {
+    top: calc($header-height-tab + 3.6rem);
+  }
+
+  @include pc {
+    top: calc($header-height-pc + 4rem);
+  }
 
   &__item-wrapper {
     display: flex;
     flex-direction: column;
-    gap: 10px; /* お知らせ同士の間隔 */
+    gap: 1.6rem;
   }
 
   &__item {
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
-    color: white;
-    font-weight: bold;
-    cursor: pointer; /* クリックで消せるように */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transition: all 0.3s ease;
+    padding: 1em;
+    font-weight: $bold;
+    @include fluid-text(12, 16);
+    color: $white;
+    border-radius: $radius-md;
+    cursor: pointer;
 
-    /* (BEM) モディファイア: --success (成功の緑色♡) */
+    // 成功時の通知
     &--success {
-      background-color: #4caf50;
+      background-color: $green;
     }
 
-    /* (BEM) モディファイア: --error (失敗の赤色♡) */
+    // エラー時の通知
     &--error {
-      background-color: #f44336;
+      background-color: $red;
     }
   }
 }
 
+// TODO 通知のアニメーション、最後の一つが消えるときへんなかんじになるのを解決したい
 /* --- フワッて動かす「アニメーション」 --- */
 .notification-fade-enter-active,
 .notification-fade-leave-active {
