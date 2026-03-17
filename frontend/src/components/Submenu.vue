@@ -108,6 +108,7 @@ const allowedRoutes = [
   "mypage",
   "session-detail",
   "admin",
+  "not-found",
 ];
 
 /**
