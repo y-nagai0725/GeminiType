@@ -173,7 +173,7 @@
 
         <section
           class="mypage-view__section mypage-view__section--chart"
-          v-if="sessions.length > 1"
+          v-if="sessions.length > 0"
         >
           <h2 class="mypage-view__subtitle">成長グラフ</h2>
           <div class="mypage-view__chart-wrapper">
