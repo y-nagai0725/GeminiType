@@ -3,9 +3,9 @@
     <div v-if="isLoading" class="typing-core__loading">準備中...</div>
 
     <div v-else-if="isCompleted" class="typing-core__completed">
-      <p>Finish!</p>
-      <p>お疲れ様でした！♡</p>
-      <p>集計中...</p>
+      <p class="typing-core__completed-title">Finish!</p>
+      <p class="typing-core__completed-message">お疲れ様でした！</p>
+      <p class="typing-core__completed-loding">集計中...</p>
     </div>
 
     <div v-else-if="!isStarted" class="typing-core__ready">
@@ -1271,12 +1271,17 @@ onUnmounted(() => {
     background-color: $gray;
   }
 
+  &__completed-loading {
+  }
+
+  &__completed-title,
   &__ready-title {
     font-family: $roboto-mono;
     font-size: 3.8rem;
     font-weight: $bold;
   }
 
+  &__completed-message,
   &__ready-text {
     font-size: 2.2rem;
     font-weight: $bold;
