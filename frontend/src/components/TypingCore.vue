@@ -132,16 +132,26 @@
         >
       </div>
 
-      <div class="typing-core__debug" v-if="props.showDebug && currentUnit">
-        <p>
-          ひらがなIndex: {{ unitIndex }} (「{{
-            currentUnit.hiragana
-          }}」を判定中)
+      <div class="typing-core__debug" v-if="showDebug && currentUnit">
+        <p class="typing-core__debug-text">
+          ひらがな分割【
+          <span
+            v-for="item in parsedProblem"
+            :key="item.index"
+            class="typing-core__debug-hiragana"
+            >{{ item.hiragana }}/</span
+          >
+          】
         </p>
-        <p>入力バッファ: [ {{ inputBuffer }} ]</p>
-        <p>
-          （「{{ currentUnit.hiragana }}」のパターン:
-          {{ currentUnit.patterns.join(", ") }}）
+        <p class="typing-core__debug-text">
+          index: {{ unitIndex }} 「{{ currentUnit.hiragana }}」を判定中
+        </p>
+        <p class="typing-core__debug-text">
+          入力バッファ: [ {{ inputBuffer }} ]
+        </p>
+        <p class="typing-core__debug-text">
+          「{{ currentUnit.hiragana }}」のパターン:
+          {{ currentUnit.patterns.join(", ") }}
         </p>
       </div>
     </div>
@@ -1323,6 +1333,7 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    gap: 1rem;
     padding: 1.6rem 3.2rem;
     border-radius: $radius-lg;
     background-color: $gray;
@@ -1337,13 +1348,6 @@ onUnmounted(() => {
     }
   }
 
-  &__main-text-wrapper {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 1.6rem;
-  }
-
   &__progress {
     text-align: center;
     font-family: $roboto-mono;
@@ -1351,103 +1355,6 @@ onUnmounted(() => {
     font-size: 1.6rem;
     line-height: 1;
     color: $light-black;
-  }
-
-  &__stats {
-    display: grid;
-    grid-template-columns: 1fr 1.2fr 1.2fr 1.2fr;
-    width: 37rem;
-    padding: 1.4rem 2rem;
-    margin-inline: auto;
-    font-family: $roboto-mono;
-    font-size: 1.4rem;
-    font-weight: $bold;
-    background-color: $white;
-    border-radius: 100vmax;
-  }
-
-  &__stat-label {
-    position: relative;
-    display: inline-block;
-
-    &:first-of-type::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      right: 14px;
-      width: 1px;
-      height: 20px;
-      background-color: $light-black;
-      transform: translateY(-50%);
-    }
-  }
-
-  &__stat-value {
-    display: inline-block;
-
-    &--kpm {
-      color: $blue;
-    }
-
-    &--acc {
-      color: $green;
-    }
-
-    &--miss {
-      color: $red;
-    }
-  }
-
-  &__problem {
-    font-weight: $bold;
-    font-size: 3rem;
-    line-height: 1;
-  }
-
-  &__hiragana {
-    font-weight: $bold;
-    font-size: 2rem;
-    color: $light-black;
-    line-height: 1;
-
-    .hiragana-char {
-      display: inline-block;
-    }
-
-    .hiragana-typed {
-      color: $orange;
-    }
-  }
-
-  &__romaji {
-    min-height: 3rem;
-    font-family: $roboto-mono;
-    font-weight: $bold;
-    font-size: 2.6rem;
-    letter-spacing: 0.05em;
-    line-height: 1;
-    opacity: 1;
-    visibility: visible;
-
-    &.romaji-hidden {
-      opacity: 0;
-      visibility: hidden;
-    }
-
-    &--typed {
-      color: $orange;
-    }
-
-    &--remaining {
-      color: $light-black;
-    }
-  }
-  &__debug {
-    margin-top: 1rem;
-    font-size: 0.9rem;
-    color: #999;
-    background-color: #f0f0f0;
-    padding: 0.5rem;
   }
 
   &__hud {
@@ -1534,6 +1441,121 @@ onUnmounted(() => {
 
     &.fill {
       fill: $red;
+    }
+  }
+
+  &__main-text-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1.6rem;
+  }
+
+  &__problem {
+    font-weight: $bold;
+    font-size: 3rem;
+    line-height: 1;
+  }
+
+  &__hiragana {
+    font-weight: $bold;
+    font-size: 2rem;
+    color: $light-black;
+    line-height: 1;
+
+    .hiragana-char {
+      display: inline-block;
+    }
+
+    .hiragana-typed {
+      color: $orange;
+    }
+  }
+
+  &__romaji {
+    min-height: 3rem;
+    font-family: $roboto-mono;
+    font-weight: $bold;
+    font-size: 2.6rem;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    opacity: 1;
+    visibility: visible;
+
+    &.romaji-hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    &--typed {
+      color: $orange;
+    }
+
+    &--remaining {
+      color: $light-black;
+    }
+  }
+
+  &__stats {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1.2fr 1.2fr;
+    width: 37rem;
+    padding: 1.4rem 2rem;
+    margin-inline: auto;
+    font-family: $roboto-mono;
+    font-size: 1.4rem;
+    font-weight: $bold;
+    background-color: $white;
+    border-radius: 100vmax;
+  }
+
+  &__stat-label {
+    position: relative;
+    display: inline-block;
+
+    &:first-of-type::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: 14px;
+      width: 1px;
+      height: 20px;
+      background-color: $light-black;
+      transform: translateY(-50%);
+    }
+  }
+
+  &__stat-value {
+    display: inline-block;
+
+    &--kpm {
+      color: $blue;
+    }
+
+    &--acc {
+      color: $green;
+    }
+
+    &--miss {
+      color: $red;
+    }
+  }
+
+  &__debug {
+    display: flex;
+    flex-direction: column;
+    padding: 1.2rem;
+    border-radius: $radius-md;
+    background-color: $white;
+  }
+
+  &__debug-text {
+    font-size: 1.2rem;
+  }
+
+  &__debug-hiragana {
+    &.current-index {
+      color: $orange;
     }
   }
 
