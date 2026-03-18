@@ -134,14 +134,16 @@
 
       <div class="typing-core__debug" v-if="showDebug && currentUnit">
         <p class="typing-core__debug-text">
-          ひらがな分割【
+          ひらがな分割：
           <span
-            v-for="item in parsedProblem"
-            :key="item.index"
-            class="typing-core__debug-hiragana"
-            >{{ item.hiragana }}/</span
+            v-for="(item, index) in parsedProblem"
+            :key="`hiragana-${index}`"
           >
-          】
+            <span :class="{ 'is-active': index === unitIndex }">{{
+              item.hiragana
+            }}</span>
+            <span>/</span>
+          </span>
         </p>
         <p class="typing-core__debug-text">
           index: {{ unitIndex }} 「{{ currentUnit.hiragana }}」を判定中
@@ -718,8 +720,8 @@ const nextExpectedKey = computed(() => {
 });
 
 // --- watch ---
-
 watch(nextExpectedKey, (newKey, oldKey) => {
+  //TODO 後で消す
   console.log("new: " + newKey);
   console.log("old: " + oldKey);
 });
@@ -1333,7 +1335,7 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 1.6rem;
     padding: 1.6rem 3.2rem;
     border-radius: $radius-lg;
     background-color: $gray;
@@ -1551,11 +1553,9 @@ onUnmounted(() => {
 
   &__debug-text {
     font-size: 1.2rem;
-  }
 
-  &__debug-hiragana {
-    &.current-index {
-      color: $orange;
+    .is-active {
+      color: $blue;
     }
   }
 
