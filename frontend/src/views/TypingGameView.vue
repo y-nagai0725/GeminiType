@@ -1,18 +1,28 @@
 <template>
   <div class="game-view">
     <div v-if="isLoading" class="game-view__loading">
-      <p>問題を準備しています...</p>
-      <p v-if="loadingMessage" class="game-view__sub-message">
+      <p class="game-view__message game-view__message--loading">
+        問題を準備しています
+      </p>
+      <p
+        v-if="loadingMessage"
+        class="game-view__sub-message game-view__sub-message--loading"
+      >
         {{ loadingMessage }}
       </p>
+      <Loading />
     </div>
 
     <div v-else-if="errorMessage" class="game-view__error">
-      <p>エラーが発生しました</p>
-      <p>{{ errorMessage }}</p>
-      <RouterLink to="/menu" class="game-view__button"
-        >メニューに戻る</RouterLink
-      >
+      <p class="game-view__message game-view__message--error">
+        エラーが発生しました
+      </p>
+      <p class="game-view__sub-message game-view__sub-message--error">
+        {{ errorMessage }}
+      </p>
+      <RouterLink to="/menu" class="game-view__link-button"
+        >メインメニューに戻る<ArrowIcon class="game-view__arrow-icon"
+      /></RouterLink>
     </div>
 
     <div v-else class="game-view__core">
@@ -36,6 +46,8 @@ import { useSettingsStore } from "../stores/settingsStore";
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import TypingCore from "../components/TypingCore.vue";
+import ArrowIcon from "@/components/icons/ArrowIcon.vue";
+import Loading from "@/components/Loading.vue";
 
 /**
  * route
@@ -164,7 +176,7 @@ const loadProblems = async () => {
     }
     // Geminiモードの場合
     else if (mode.value === "gemini") {
-      loadingMessage.value = "AIが問題を生成中... (少々お待ちください。)";
+      loadingMessage.value = "AIが問題を生成中です、少々お待ちください...";
 
       const params = new URLSearchParams();
       params.append("count", settingsStore.problemCount);
@@ -279,7 +291,7 @@ const handleComplete = async (data) => {
       // (401の時は、インターセプター が「セッション切れ」通知をしてくれる為)
       if (!error.response || error.response.status !== 401) {
         notificationStore.addNotification(
-          "結果の保存に失敗しました（プレイデータは残ります）",
+          "結果の保存に失敗しました",
           "error"
         );
       }
@@ -330,41 +342,45 @@ const handleComplete = async (data) => {
 
 <style lang="scss" scoped>
 .game-view {
+  /* PC画面想定なのでレスポンシブ対応はしない */
   display: flex;
-  align-items: center;
   justify-content: center;
-  max-width: 900px;
+  align-items: center;
+  max-width: 90rem;
   min-height: 50vh;
   margin: 4.8rem auto 16rem;
 
   &__loading,
   &__error {
-    text-align: center;
-    font-size: 1.2rem;
-    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.4rem;
+  }
+
+  &__message {
+    font-weight: $bold;
+    font-size: 1.6rem;
+
+    &--error {
+      color: $red;
+    }
   }
 
   &__sub-message {
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
-    color: #888;
+    font-size: 1.4rem;
   }
 
-  &__error {
-    color: #dc3545;
+  &__link-button {
+    @include button-style-fill($green);
+    @include fluid-style(width, 240, 350);
+    @include fluid-style(padding-block, 17, 22);
+    margin-inline: auto;
+    @include fluid-text(14, 18);
   }
 
-  &__button {
-    display: inline-block;
-    margin-top: 1rem;
-    padding: 0.5rem 1rem;
-    background-color: #6c757d;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    &:hover {
-      background-color: #5a6268;
-    }
+  &__arrow-icon {
+    @include button-arrow-icon-style;
   }
 
   &__core {
