@@ -737,6 +737,7 @@ const playSound = (type) => {
 
   //TODO 'type'音声ファイルの用意（'miss'音声ファイルはとりあえず準備済み）
   const audio = new Audio(`/sounds/${type}.mp3`);
+  //TODO 音量どうしよう…設定できるようにすべきか？
   audio.volume = 0.5;
   audio.currentTime = 0;
   audio.play().catch(() => {
