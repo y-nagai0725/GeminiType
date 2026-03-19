@@ -1,11 +1,18 @@
 <template>
   <div class="typing-core">
-    <div v-if="isLoading" class="typing-core__loading">準備中...</div>
+    <div v-if="isLoading" class="typing-core__loading">
+      <Loading :text="'問題準備中…'" :bgColor="'white'" :lineColor="'blue'" />
+    </div>
 
     <div v-else-if="isCompleted" class="typing-core__completed">
       <p class="typing-core__completed-title">Finish!</p>
       <p class="typing-core__completed-message">お疲れ様でした！</p>
-      <p class="typing-core__completed-loding">集計中...</p>
+      <Loading
+        v-if="!showDebug"
+        :text="'結果集計中…'"
+        :bgColor="'white'"
+        :lineColor="'blue'"
+      />
     </div>
 
     <div v-else-if="!isStarted" class="typing-core__ready">
@@ -28,7 +35,7 @@
           <span class="typing-core__mode-sudden-death"
             >許容ミス数:
             <span class="typing-core__mode-count">{{
-              missLimit === 0 ? "即死！" : missLimit + "回"
+              missLimit === 0 ? "ミスったら即終了!" : missLimit + "回"
             }}</span></span
           >
         </template>
@@ -41,7 +48,7 @@
     </div>
 
     <div v-else class="typing-core__playing" :class="gameMode">
-      <div class="typing-core__progress">
+      <div class="typing-core__progress" v-if="!showDebug">
         {{ currentProblemIndex + 1 }} / {{ problems.length }}
       </div>
 
@@ -144,9 +151,7 @@
             }}</span>
             <span>/</span>
           </span>
-        </p>
-        <p class="typing-core__debug-text">
-          index: {{ unitIndex }} 「{{ currentUnit.hiragana }}」を判定中
+          「{{ currentUnit.hiragana }}」を判定中
         </p>
         <p class="typing-core__debug-text">
           入力バッファ: [ {{ inputBuffer }} ]
@@ -234,6 +239,7 @@ import { useSettingsStore } from "../stores/settingsStore";
 import TimerIcon from "@/components/icons/TimerIcon.vue";
 import SuddenDeathIcon from "@/components/icons/SuddenDeathIcon.vue";
 import HeartIcon from "@/components/icons/HeartIcon.vue";
+import Loading from "@/components/Loading.vue";
 
 /**
  * キーボードレイアウト配列
@@ -719,13 +725,6 @@ const nextExpectedKey = computed(() => {
   return null;
 });
 
-// --- watch ---
-watch(nextExpectedKey, (newKey, oldKey) => {
-  //TODO 後で消す
-  console.log("new: " + newKey);
-  console.log("old: " + oldKey);
-});
-
 // --- Methods ---
 
 /**
@@ -736,6 +735,7 @@ const playSound = (type) => {
   if (type === "type" && !settingsStore.soundEnabled) return;
   if (type === "miss" && !settingsStore.missSoundEnabled) return;
 
+  //TODO 'type'音声ファイルの用意（'miss'音声ファイルはとりあえず準備済み）
   const audio = new Audio(`/sounds/${type}.mp3`);
   audio.volume = 0.5;
   audio.currentTime = 0;
@@ -1083,7 +1083,7 @@ const setupCurrentProblem = () => {
 };
 
 /**
- *
+ * タイピング対象キーであるか
  */
 const isKeyActive = (keyObj) => {
   const target = nextExpectedKey.value; // 次に打つべき文字
@@ -1158,7 +1158,7 @@ const isKeyActive = (keyObj) => {
 };
 
 /**
- *
+ * タイピング対象キーの対応している指であるか
  */
 const isFingerActive = (fingerId) => {
   // 設定で非表示なら光らせない
@@ -1169,22 +1169,22 @@ const isFingerActive = (fingerId) => {
   const target = nextExpectedKey.value;
   if (!target) return false;
 
-  // 2. ターゲット文字の「元のキー」を特定
+  // ターゲット文字の「元のキー」を特定
   // (例: '!' -> '1', 'A' -> 'A')
   let targetBaseKey = target;
   if (symbolToKeyMap[target]) {
     targetBaseKey = symbolToKeyMap[target];
   }
 
-  // 3. 文字を打つ指 (charFingerId) を取得
+  // 文字を打つ指 (charFingerId) を取得
   const charFingerId = keyToFingerMap[targetBaseKey.toUpperCase()];
 
-  // ★判定A：この指は「文字を打つ指」か？
+  // --- 判定A：この指は「文字を打つ指」か？ ---
   if (charFingerId === fingerId) {
     return true; // 文字担当の指なら光る！
   }
 
-  // --- ★判定B：この指は「Shiftを押す指」か？ (ここを追加！) ---
+  // --- 判定B：この指は「Shiftを押す指」か？ ---
 
   // Shiftが必要かチェック
   const isUpperCase = target >= "A" && target <= "Z";
@@ -1193,7 +1193,6 @@ const isFingerActive = (fingerId) => {
   // Shiftが必要な場合のみ、小指の判定を行う
   if (isUpperCase || isShiftSymbol) {
     // 文字を打つ指が、左右どっちの手か取得 ('left' or 'right')
-    // ※万が一 charFingerId が取れない場合はガードする
     if (!charFingerId) return false;
     const charHand = charFingerId.split("-")[0];
 
@@ -1258,7 +1257,7 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeydown);
 
-  // タイマーのお片付け
+  // タイマーの削除
   if (timerInterval) clearInterval(timerInterval);
 });
 </script>
@@ -1281,9 +1280,6 @@ onUnmounted(() => {
     min-height: 25rem;
     border-radius: $radius-lg;
     background-color: $gray;
-  }
-
-  &__completed-loading {
   }
 
   &__completed-title,
@@ -1321,10 +1317,6 @@ onUnmounted(() => {
     height: 1em;
     margin-right: 0.5em;
     fill: currentColor;
-  }
-
-  &__mode-time-limit,
-  &__mode-sudden-death {
   }
 
   &__mode-count {
@@ -1456,14 +1448,14 @@ onUnmounted(() => {
   &__problem {
     font-weight: $bold;
     font-size: 3rem;
-    line-height: 1;
+    line-height: 1.4;
   }
 
   &__hiragana {
     font-weight: $bold;
     font-size: 2rem;
     color: $light-black;
-    line-height: 1;
+    line-height: 1.4;
 
     .hiragana-char {
       display: inline-block;
@@ -1480,7 +1472,7 @@ onUnmounted(() => {
     font-weight: $bold;
     font-size: 2.6rem;
     letter-spacing: 0.05em;
-    line-height: 1;
+    line-height: 1.4;
     opacity: 1;
     visibility: visible;
 
@@ -1626,9 +1618,10 @@ onUnmounted(() => {
       visibility: hidden;
     }
 
+    //TODO タイピング対象のキーのbox-shadowの色どうしよう？
     &.active {
       background-color: $orange;
-      color: white;
+      color: $white;
       box-shadow: 0 4px 0 rgba($orange, 0.5);
       transform: translateY(2px);
     }
