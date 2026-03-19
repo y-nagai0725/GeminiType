@@ -85,7 +85,9 @@
           />
         </div>
 
-        <button type="submit" class="register-view__button">登録<ArrowIcon class="register-view__arrow-icon" /></button>
+        <button type="submit" class="register-view__button">
+          登録<ArrowIcon class="register-view__arrow-icon" />
+        </button>
       </form>
     </div>
   </div>
@@ -138,33 +140,9 @@ const passwordConfirm = ref("");
  * ユーザー登録処理
  */
 const handleRegister = async () => {
-  // パスワード確認チェック
-  if (password.value !== passwordConfirm.value) {
-    notificationStore.addNotification(
-      "パスワードと、確認用パスワードが一致しません。",
-      "error"
-    );
-    return;
-  }
-
   // ユーザー名の空白チェック
   if (name.value === "") {
     notificationStore.addNotification("ユーザー名を入力して下さい。", "error");
-    return;
-  }
-
-  // メールアドレスの空白チェック
-  if (email.value === "") {
-    notificationStore.addNotification(
-      "メールアドレスを入力して下さい。",
-      "error"
-    );
-    return;
-  }
-
-  // パスワードの空白チェック
-  if (!password.value) {
-    notificationStore.addNotification("パスワードを入力して下さい。", "error");
     return;
   }
 
@@ -172,6 +150,15 @@ const handleRegister = async () => {
   if (name.value.length > 10) {
     notificationStore.addNotification(
       "ユーザー名は10文字以内にして下さい。",
+      "error"
+    );
+    return;
+  }
+
+  // メールアドレスの空白チェック
+  if (email.value === "") {
+    notificationStore.addNotification(
+      "メールアドレスを入力して下さい。",
       "error"
     );
     return;
@@ -187,10 +174,25 @@ const handleRegister = async () => {
     return;
   }
 
+  // パスワードの空白チェック
+  if (!password.value) {
+    notificationStore.addNotification("パスワードを入力して下さい。", "error");
+    return;
+  }
+
   // パスワードチェック (4文字以上)
   if (password.value.length < 4) {
     notificationStore.addNotification(
       "パスワードは4文字以上にして下さい。",
+      "error"
+    );
+    return;
+  }
+
+  // パスワード確認チェック
+  if (password.value !== passwordConfirm.value) {
+    notificationStore.addNotification(
+      "パスワードと、確認用パスワードが一致しません。",
       "error"
     );
     return;
