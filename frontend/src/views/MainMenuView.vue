@@ -41,27 +41,23 @@
         </p>
         <div class="main-menu__list-outer-wrapper">
           <Simplebar class="main-menu__genre-list-wrapper" :auto-hide="false">
-            <div v-if="isLoading" class="main-menu__loader"></div>
-            <p
-              v-if="!isLoading && genres.length === 0"
-              class="main-menu__no-data"
-            >
-              {{ NO_GENRES_MESSAGE }}
-            </p>
-            <div
-              v-if="!isLoading && genres.length > 0"
-              class="main-menu__genre-list"
-            >
-              <button
-                v-for="genre in genres"
-                :key="genre.id"
-                class="main-menu__genre-button"
-                @click="handleStartDbMode(genre.id, genre.name)"
-              >
-                {{ genre.name }}
-                <ArrowIcon class="main-menu__arrow-icon" />
-              </button>
-            </div>
+            <Loading v-if="isLoading" class="main-menu__loading" />
+            <template v-else>
+              <p v-if="genres.length <= 0" class="main-menu__no-data">
+                {{ NO_GENRES_MESSAGE }}
+              </p>
+              <div v-else class="main-menu__genre-list">
+                <button
+                  v-for="genre in genres"
+                  :key="genre.id"
+                  class="main-menu__genre-button"
+                  @click="handleStartDbMode(genre.id, genre.name)"
+                >
+                  {{ genre.name }}
+                  <ArrowIcon class="main-menu__arrow-icon" />
+                </button>
+              </div>
+            </template>
           </Simplebar>
         </div>
       </section>
@@ -76,6 +72,7 @@ import api from "../services/api";
 import { useNotificationStore } from "../stores/notificationStore";
 import Simplebar from "simplebar-vue";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
+import Loading from "@/components/Loading.vue";
 
 /**
  * ジャンル名が無い場合のメッセージ
@@ -318,27 +315,11 @@ const handleStartDbMode = (genreId, genreName) => {
     }
   }
 
-  &__loader {
+  &__loading {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 40px;
-    height: 40px;
-    border: 4px solid $white;
-    border-top-color: $green;
-    border-radius: 100vmax;
-    animation: spin 1s linear infinite;
-    z-index: 10;
-  }
-
-  @keyframes spin {
-    0% {
-      transform: translate(-50%, -50%) rotate(0deg);
-    }
-    100% {
-      transform: translate(-50%, -50%) rotate(360deg);
-    }
   }
 
   &__no-data {
