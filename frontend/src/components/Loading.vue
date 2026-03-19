@@ -8,11 +8,11 @@
  * Props定義
  */
 const props = defineProps({
-  // 表示テキスト
-  text: { type: String, required: true },
-  // 背景色
+  // 表示テキスト（デフォルトは空文字）
+  text: { type: String, default: "" },
+  // 背景色（デフォルトは灰色）
   bgColor: { type: String, default: "gray" },
-  // 線の色
+  // 線の色（デフォルトは緑）
   lineColor: { type: String, default: "green" },
 });
 </script>
