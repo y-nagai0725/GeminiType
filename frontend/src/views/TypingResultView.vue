@@ -111,11 +111,12 @@
             <AiIcon class="result-view__ai-icon" />
           </div>
           <div class="result-view__ai-comment-wrapper">
-            <p
-              v-if="isCommentLoading"
-              class="result-view__ai-comment result-view__ai-comment--loading"
-            >
-              AIがコメントを考えています...
+            <p v-if="isCommentLoading" class="result-view__ai-comment">
+              <Loading
+                class="result-view__loading"
+                :text="'AIがコメントを考えています…'"
+                :bgColor="'white'"
+              />
             </p>
             <p v-else class="result-view__ai-comment">
               {{ aiComment }}
@@ -198,6 +199,7 @@ import TotalMissCountIcon from "@/components/icons/TotalMissCountIcon.vue";
 import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 import ScoreIcon from "@/components/icons/ScoreIcon.vue";
 import AiIcon from "@/components/icons/AiIcon.vue";
+import Loading from "@/components/Loading.vue";
 
 const router = useRouter();
 const resultData = ref(null);
