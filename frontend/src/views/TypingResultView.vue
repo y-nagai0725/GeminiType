@@ -87,7 +87,6 @@
                     'rank-c': rank === 'C',
                   }"
                   :stroke-dasharray="circumference"
-                  :style="{ strokeDashoffset: currentOffset }"
                 />
               </svg>
             </div>
@@ -188,7 +187,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import api from "../services/api";
 import { formatMissedKeys } from "../utils/formatters";
@@ -200,6 +199,7 @@ import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 import ScoreIcon from "@/components/icons/ScoreIcon.vue";
 import AiIcon from "@/components/icons/AiIcon.vue";
 import Loading from "@/components/Loading.vue";
+import gsap from "gsap";
 
 const router = useRouter();
 const resultData = ref(null);
@@ -254,9 +254,21 @@ onMounted(async () => {
   const savedResult = localStorage.getItem("last_session_result");
   if (savedResult) {
     resultData.value = JSON.parse(savedResult);
+    await nextTick();
+    setResultCardAnimation();
     await fetchAiComment();
   } else {
     router.push("/");
+  }
+});
+
+/**
+ * アンマウント時処理
+ */
+onUnmounted(() => {
+  // コンポーネントが破棄される時にアニメーションをリセットする
+  if (ctx) {
+    ctx.revert();
   }
 });
 
@@ -272,6 +284,9 @@ const fetchAiComment = async () => {
         totalMissedKeys[key] = (totalMissedKeys[key] || 0) + count;
       }
     });
+
+    // TODO コメント生成処理とめるテスト用
+    throw new Error("test");
 
     const response = await api.post("/api/typing/ai-comment", {
       kpm: Math.round(resultData.value.stats.kpm),
@@ -306,6 +321,112 @@ const handleRetry = () => {
   } else {
     router.push("/");
   }
+};
+
+/**
+ *
+ */
+let ctx;
+
+const setResultCardAnimation = () => {
+  // アニメーションの共通設定
+  const animeCommonSettings = {
+    opacity: 1,
+    y: 0,
+    duration: 0.8, // 0.8秒かけて表示
+    ease: "power2.out",
+  };
+
+  // アニメーション設定の「ずらす間隔」
+  const staggerTime = 0.2;
+
+  ctx = gsap.context(() => {
+    //
+    const resultCards = gsap.utils.toArray(".result-view__result-card");
+
+    const scoreCard = ".result-view__score-card";
+    const circleLine = ".result-view__progress-ring-circle";
+    const aiArea = ".result-view__ai-area";
+    const actions = ".result-view__actions";
+    const details = ".result-view__details";
+
+    // timelineを作成
+    const tl = gsap.timeline();
+
+    // TODO 仮アニメーション
+    tl.fromTo(
+      resultCards,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        ...animeCommonSettings,
+        stagger: staggerTime,
+      }
+    );
+
+    tl.fromTo(
+      scoreCard,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        ...animeCommonSettings,
+      },
+      "-=0.6"
+    );
+
+    tl.fromTo(
+      circleLine,
+      {
+        strokeDashoffset: circumference,
+      },
+      {
+        strokeDashoffset: currentOffset.value,
+        duration: 0.8,
+        ease: "power2.out",
+      },
+      "-=0.6"
+    );
+
+    tl.fromTo(
+      aiArea,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        ...animeCommonSettings,
+      },
+      "-=0.6"
+    );
+
+    tl.fromTo(
+      actions,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        ...animeCommonSettings,
+      },
+      "-=0.6"
+    );
+
+    tl.fromTo(
+      details,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        ...animeCommonSettings,
+      },
+      "-=0.6"
+    );
+  });
 };
 </script>
 
@@ -367,6 +488,7 @@ const handleRetry = () => {
     padding: 1.6rem 0;
     border-radius: $radius-lg;
     background-color: $gray;
+    opacity: 0;
 
     @include pc {
       justify-self: auto;
@@ -446,6 +568,7 @@ const handleRetry = () => {
     padding: 1.6rem 0;
     border-radius: $radius-lg;
     background-color: $gray;
+    opacity: 0;
   }
 
   &__score-item {
@@ -546,6 +669,7 @@ const handleRetry = () => {
     flex-direction: column;
     align-items: center;
     gap: 3.2rem;
+    opacity: 0;
 
     @include pc {
       flex-direction: row;
@@ -607,6 +731,7 @@ const handleRetry = () => {
     display: flex;
     flex-direction: column;
     gap: 2.4rem;
+    opacity: 0;
 
     @include pc {
       justify-content: space-around;
