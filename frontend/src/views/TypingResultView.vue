@@ -80,27 +80,16 @@
                   r="45"
                   cx="50"
                   cy="50"
-                  :class="{
-                    'rank-s': rank === 'S',
-                    'rank-a': rank === 'A',
-                    'rank-b': rank === 'B',
-                    'rank-c': rank === 'C',
-                  }"
+                  :class="scoreRankClass"
                   :stroke-dasharray="circumference"
+                  :stroke-dashoffset="circleOffset"
                 />
               </svg>
             </div>
             <div class="result-view__rank-wrapper">
-              <span
-                class="result-view__rank-text"
-                :class="{
-                  'rank-s': rank === 'S',
-                  'rank-a': rank === 'A',
-                  'rank-b': rank === 'B',
-                  'rank-c': rank === 'C',
-                }"
-                >{{ rank }}</span
-              >
+              <span class="result-view__rank-text" :class="scoreRankClass">{{
+                rank
+              }}</span>
               <span class="result-view__rank-title">Rank</span>
             </div>
           </div>
@@ -187,7 +176,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import api from "../services/api";
 import { formatMissedKeys } from "../utils/formatters";
@@ -201,10 +190,26 @@ import AiIcon from "@/components/icons/AiIcon.vue";
 import Loading from "@/components/Loading.vue";
 import gsap from "gsap";
 
+/**
+ * router
+ */
 const router = useRouter();
+
+/**
+ * タイピング結果データ
+ */
 const resultData = ref(null);
+
+/**
+ * 結果に対してのAIのコメント
+ */
 const aiComment = ref("");
+
+/**
+ * AIコメント生成時のローディング
+ */
 const isCommentLoading = ref(false);
+
 /**
  * 円の半径
  */
@@ -215,8 +220,14 @@ const radius = 45;
  */
 const circumference = 2 * Math.PI * radius;
 
+/**
+ * スコアの最大値
+ */
 const maxScore = 350;
 
+/**
+ *
+ */
 const currentOffset = computed(() => {
   const validPercent = Math.min(100, Math.max(0, percent.value));
 
@@ -224,6 +235,9 @@ const currentOffset = computed(() => {
   return circumference - (validPercent / 100) * circumference;
 });
 
+/**
+ * スコア値
+ */
 const score = computed(() => {
   if (!resultData.value) return "-";
   const kpm = resultData.value.stats.kpm;
@@ -231,6 +245,9 @@ const score = computed(() => {
   return Math.round(kpm * (acc / 100));
 });
 
+/**
+ * スコアの割合
+ */
 const percent = computed(() => {
   if (!score.value || score.value === "-") {
     return "-";
@@ -239,17 +256,14 @@ const percent = computed(() => {
   return Math.round((score.value / maxScore) * 100);
 });
 
-// --- ランク判定 ---
-const rank = computed(() => {
-  if (!percent.value) return "-";
+/**
+ * ランクテキスト
+ */
+const rank = ref("C");
 
-  if (percent.value >= 95) return "S";
-  if (percent.value >= 75) return "A";
-  if (percent.value >= 60) return "B";
-  return "C";
-});
-
-// --- マウント時処理 ---
+/**
+ * マウント時処理
+ */
 onMounted(async () => {
   const savedResult = localStorage.getItem("last_session_result");
   if (savedResult) {
@@ -272,7 +286,9 @@ onUnmounted(() => {
   }
 });
 
-// --- AIコメント取得 ---
+/**
+ * AIコメント取得
+ */
 const fetchAiComment = async () => {
   if (!resultData.value) return;
   isCommentLoading.value = true;
@@ -285,7 +301,7 @@ const fetchAiComment = async () => {
       }
     });
 
-    // TODO コメント生成処理とめるテスト用
+    // TODO コメント生成処理とめるテスト用なので、デザイン等が完了次第消す
     throw new Error("test");
 
     const response = await api.post("/api/typing/ai-comment", {
@@ -305,7 +321,9 @@ const fetchAiComment = async () => {
   }
 };
 
-// --- リトライ処理 ---
+/**
+ * リトライ処理
+ */
 const handleRetry = () => {
   const savedConfig = localStorage.getItem("last_session_config");
   if (savedConfig) {
@@ -328,6 +346,14 @@ const handleRetry = () => {
  */
 let ctx;
 
+/**
+ *
+ */
+const circleOffset = ref(circumference);
+
+/**
+ * 結果表示アニメーション設定
+ */
 const setResultCardAnimation = () => {
   // アニメーションの共通設定
   const animeCommonSettings = {
@@ -379,14 +405,14 @@ const setResultCardAnimation = () => {
     );
 
     tl.fromTo(
-      circleLine,
+      circleOffset,
       {
-        strokeDashoffset: circumference,
+        value: circumference,
       },
       {
-        strokeDashoffset: currentOffset.value,
+        value: currentOffset.value,
         duration: 0.8,
-        ease: "power2.out",
+        ease: "none",
       },
       "-=0.6"
     );
@@ -428,6 +454,31 @@ const setResultCardAnimation = () => {
     );
   });
 };
+
+/**
+ * スコアランククラス名
+ */
+const scoreRankClass = ref("rank-c");
+
+/**
+ *
+ */
+watch(circleOffset, (newValue) => {
+  const percent = (1 - circleOffset.value / circumference) * 100;
+  if (percent >= 95) {
+    scoreRankClass.value = "rank-s";
+    rank.value = "S";
+  } else if (percent >= 75) {
+    scoreRankClass.value = "rank-a";
+    rank.value = "A";
+  } else if (percent >= 60) {
+    scoreRankClass.value = "rank-b";
+    rank.value = "B";
+  } else {
+    scoreRankClass.value = "rank-c";
+    rank.value = "C";
+  }
+});
 </script>
 
 <style lang="scss" scoped>
@@ -452,6 +503,7 @@ const setResultCardAnimation = () => {
   &__top-wrapper {
     display: grid;
     gap: 3.2rem;
+    width: 100%;
     max-width: 400px;
     margin-inline: auto;
 
@@ -606,9 +658,7 @@ const setResultCardAnimation = () => {
   }
 
   &__progress-ring-circle {
-    stroke-dasharray: 283;
-    stroke-dashoffset: 283;
-    transition: stroke-dashoffset 0.4s linear, stroke $transition-base;
+    transition: stroke $transition-base;
 
     &.rank-c {
       stroke: $blue;
@@ -638,6 +688,7 @@ const setResultCardAnimation = () => {
     font-size: 5rem;
     font-weight: $bold;
     line-height: 1;
+    transition: color $transition-base;
 
     &.rank-s {
       color: $yellow;
