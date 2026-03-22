@@ -211,6 +211,16 @@ const aiComment = ref("");
 const isCommentLoading = ref(false);
 
 /**
+ * スコアランククラス名
+ */
+const scoreRankClass = ref("rank-c");
+
+/**
+ * ランクテキスト
+ */
+const rank = ref("C");
+
+/**
  * 円の半径
  */
 const radius = 45;
@@ -224,6 +234,11 @@ const circumference = 2 * Math.PI * radius;
  * スコアの最大値
  */
 const maxScore = 350;
+
+/**
+ *
+ */
+const circleOffset = ref(circumference);
 
 /**
  *
@@ -257,9 +272,9 @@ const percent = computed(() => {
 });
 
 /**
- * ランクテキスト
+ *
  */
-const rank = ref("C");
+let ctx;
 
 /**
  * マウント時処理
@@ -340,16 +355,6 @@ const handleRetry = () => {
     router.push("/");
   }
 };
-
-/**
- *
- */
-let ctx;
-
-/**
- *
- */
-const circleOffset = ref(circumference);
 
 /**
  * 結果表示アニメーション設定
@@ -456,25 +461,27 @@ const setResultCardAnimation = () => {
 };
 
 /**
- * スコアランククラス名
- */
-const scoreRankClass = ref("rank-c");
-
-/**
- *
+ * スコアランクプログレスバー値を監視
  */
 watch(circleOffset, (newValue) => {
-  const percent = (1 - circleOffset.value / circumference) * 100;
+  // プログレスバー割合
+  const percent = (1 - newValue / circumference) * 100;
+
+  // 割合でランク付け
   if (percent >= 95) {
+    // 95%以上でSランク
     scoreRankClass.value = "rank-s";
     rank.value = "S";
   } else if (percent >= 75) {
+    // 75%以上でAランク
     scoreRankClass.value = "rank-a";
     rank.value = "A";
   } else if (percent >= 60) {
+    // 60%以上でBランク
     scoreRankClass.value = "rank-b";
     rank.value = "B";
   } else {
+    // 60%未満でCランク
     scoreRankClass.value = "rank-c";
     rank.value = "C";
   }
