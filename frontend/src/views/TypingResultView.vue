@@ -82,7 +82,7 @@
                   cy="50"
                   :class="scoreRankClass"
                   :stroke-dasharray="circumference"
-                  :stroke-dashoffset="circleOffset"
+                  :stroke-dashoffset="progressCircleDashoffset"
                 />
               </svg>
             </div>
@@ -236,15 +236,15 @@ const circumference = 2 * Math.PI * radius;
 const maxScore = 350;
 
 /**
- *
+ * スコアランクプログレスバー（円）のstroke-dashoffset
  */
-const circleOffset = ref(circumference);
+const progressCircleDashoffset = ref(circumference);
 
 /**
- *
+ * 結果ランクのstroke-dashoffset
  */
-const currentOffset = computed(() => {
-  const validPercent = Math.min(100, Math.max(0, percent.value));
+const resultDashoffset = computed(() => {
+  const validPercent = Math.min(100, Math.max(0, scorePercent.value));
 
   // 計算式：円周 - (進捗割合 * 円周)
   return circumference - (validPercent / 100) * circumference;
@@ -263,7 +263,7 @@ const score = computed(() => {
 /**
  * スコアの割合
  */
-const percent = computed(() => {
+const scorePercent = computed(() => {
   if (!score.value || score.value === "-") {
     return "-";
   }
@@ -376,7 +376,6 @@ const setResultCardAnimation = () => {
     const resultCards = gsap.utils.toArray(".result-view__result-card");
 
     const scoreCard = ".result-view__score-card";
-    const circleLine = ".result-view__progress-ring-circle";
     const aiArea = ".result-view__ai-area";
     const actions = ".result-view__actions";
     const details = ".result-view__details";
@@ -410,12 +409,12 @@ const setResultCardAnimation = () => {
     );
 
     tl.fromTo(
-      circleOffset,
+      progressCircleDashoffset,
       {
         value: circumference,
       },
       {
-        value: currentOffset.value,
+        value: resultDashoffset.value,
         duration: 0.8,
         ease: "none",
       },
@@ -463,20 +462,20 @@ const setResultCardAnimation = () => {
 /**
  * スコアランクプログレスバー値を監視
  */
-watch(circleOffset, (newValue) => {
+watch(progressCircleDashoffset, (newValue) => {
   // プログレスバー割合
-  const percent = (1 - newValue / circumference) * 100;
+  const scorePercent = (1 - newValue / circumference) * 100;
 
   // 割合でランク付け
-  if (percent >= 95) {
+  if (scorePercent >= 95) {
     // 95%以上でSランク
     scoreRankClass.value = "rank-s";
     rank.value = "S";
-  } else if (percent >= 75) {
+  } else if (scorePercent >= 75) {
     // 75%以上でAランク
     scoreRankClass.value = "rank-a";
     rank.value = "A";
-  } else if (percent >= 60) {
+  } else if (scorePercent >= 60) {
     // 60%以上でBランク
     scoreRankClass.value = "rank-b";
     rank.value = "B";
