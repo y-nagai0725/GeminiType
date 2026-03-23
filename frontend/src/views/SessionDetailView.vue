@@ -5,13 +5,17 @@
       <span class="ja">セッション詳細</span>
     </h1>
     <div class="session-detail__contents-wrapper">
-      <div v-if="isLoading" class="session-detail__loading">読み込み中...</div>
+      <Loading
+        v-if="isLoading"
+        class="session-detail__loading"
+        :text="'データ読み込み中です…'"
+      />
 
       <div v-else-if="errorMessage" class="session-detail__error">
-        <p>{{ errorMessage }}</p>
-        <RouterLink to="/mypage" class="session-detail__link"
-          >マイページに戻る</RouterLink
-        >
+        <p class="session-detail__error-message">{{ errorMessage }}</p>
+        <RouterLink to="/mypage" class="session-detail__back-button"
+          >マイページに戻る<ArrowIcon class="session-detail__arrow-icon"
+        /></RouterLink>
       </div>
 
       <div v-else class="session-detail__content">
@@ -21,10 +25,10 @@
             class="session-detail__information-value session-detail__information-value--number"
             >{{ formatDate(session.created_at) }}</span
           >
-          <span class="session-detail__information-label">モード: お題</span>
+          <span class="session-detail__information-label">モード</span>
           <span class="session-detail__information-value">
             <span v-if="session.session_type === 'db'">
-              {{ session.genre ? session.genre.name : "削除済" }}
+              DB: {{ session.genre ? session.genre.name : "削除済" }}
             </span>
             <span v-else>
               AI: {{ truncateText(session.gemini_prompt, 20) }}
@@ -153,9 +157,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted, nextTick } from "vue";
 import { useRoute, useRouter, RouterLink } from "vue-router";
 import api from "../services/api";
+import { useNotificationStore } from "../stores/notificationStore";
 import {
   formatDate,
   truncateText,
@@ -167,6 +172,8 @@ import AccuracyIcon from "@/components/icons/AccuracyIcon.vue";
 import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 import TotalMissCountIcon from "@/components/icons/TotalMissCountIcon.vue";
 import WorstKeyIcon from "@/components/icons/WorstKeyIcon.vue";
+import Loading from "@/components/Loading.vue";
+import gsap from "gsap";
 
 /**
  * route
@@ -177,6 +184,11 @@ const route = useRoute();
  * router
  */
 const router = useRouter();
+
+/**
+ * お知らせstore
+ */
+const notificationStore = useNotificationStore();
 
 /**
  * ローディング状態
@@ -192,6 +204,94 @@ const errorMessage = ref("");
  * セッション詳細データ
  */
 const session = ref(null);
+
+/**
+ * GSAPコンテキスト
+ */
+let gsapContext;
+
+/**
+ * アニメーション設定
+ * TODO 仮アニメーションです
+ */
+const setAnimation = () => {
+  // アニメーションの共通設定
+  const animeCommonSettings = {
+    opacity: 1,
+    y: 0,
+    duration: 0.8, // 0.8秒かけて表示
+    ease: "power2.out",
+  };
+
+  // アニメーション設定の「ずらす間隔」
+  const staggerTime = 0.2;
+
+  gsapContext = gsap.context(() => {
+    //
+    const scoreItems = gsap.utils.toArray(".session-detail__score-item");
+
+    //
+    const information = ".session-detail__information";
+
+    //
+    const history = ".session-detail__history";
+
+    //
+    const back = ".session-detail__back";
+
+    // timelineを作成
+    const tl = gsap.timeline();
+
+    // TODO 仮アニメーション
+    tl.fromTo(
+      information,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        ...animeCommonSettings,
+      }
+    );
+
+    tl.fromTo(
+      scoreItems,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        ...animeCommonSettings,
+        stagger: staggerTime,
+      },
+      "-=0.6"
+    );
+
+    tl.fromTo(
+      history,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        ...animeCommonSettings,
+      },
+      "-=0.6"
+    );
+
+    tl.fromTo(
+      back,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        ...animeCommonSettings,
+      },
+      "-=0.6"
+    );
+  });
+};
 
 /**
  * 初期データ読み込み
@@ -211,10 +311,29 @@ onMounted(async () => {
     session.value = response.data;
   } catch (error) {
     console.error("詳細取得エラー:", error);
+
+    // エラーテキスト表示
     errorMessage.value =
       error.response?.data?.message || "データの取得に失敗しました";
+
+    // エラー通知表示
+    notificationStore.addNotification("データの取得に失敗しました", "error");
   } finally {
     isLoading.value = false;
+    if (session.value) {
+      await nextTick();
+      setAnimation();
+    }
+  }
+});
+
+/**
+ * アンマウント時処理
+ */
+onUnmounted(() => {
+  // コンポーネントが破棄される時にアニメーションをリセットする
+  if (gsapContext) {
+    gsapContext.revert();
   }
 });
 </script>
@@ -245,27 +364,16 @@ onMounted(async () => {
     }
   }
 
-  //TODO
-  &__loading {
-    font-size: 1.2rem;
-    color: #666;
-    margin-top: 4rem;
-  }
-
-  //TODO
   &__error {
-    color: #dc3545;
-    margin-top: 2rem;
-    font-size: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    @include fluid-style(gap, 16, 24);
+    text-align: center;
   }
 
-  //TODO
-  &__link {
-    color: #007bff;
-    text-decoration: none;
-    &:hover {
-      text-decoration: underline;
-    }
+  &__error-message {
+    @include fluid-text(12, 16);
+    color: $red;
   }
 
   &__content {
