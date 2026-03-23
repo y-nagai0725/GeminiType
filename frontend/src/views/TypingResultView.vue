@@ -464,18 +464,18 @@ const setResultCardAnimation = () => {
  */
 watch(progressCircleDashoffset, (newValue) => {
   // プログレスバー割合
-  const scorePercent = (1 - newValue / circumference) * 100;
+  const percent = (1 - newValue / circumference) * 100;
 
   // 割合でランク付け
-  if (scorePercent >= 95) {
+  if (percent >= 95) {
     // 95%以上でSランク
     scoreRankClass.value = "rank-s";
     rank.value = "S";
-  } else if (scorePercent >= 75) {
+  } else if (percent >= 75) {
     // 75%以上でAランク
     scoreRankClass.value = "rank-a";
     rank.value = "A";
-  } else if (scorePercent >= 60) {
+  } else if (percent >= 60) {
     // 60%以上でBランク
     scoreRankClass.value = "rank-b";
     rank.value = "B";
