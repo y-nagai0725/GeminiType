@@ -500,7 +500,6 @@ const prevPage = () => {
     @include fluid-style(gap, 24, 32);
     @include contents-padding;
     max-width: 600px;
-    min-height: 75vh;
     margin-inline: auto;
 
     @include pc {
