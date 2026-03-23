@@ -7,7 +7,10 @@
 
     <div class="mypage-view__contents-wrapper">
       <template v-if="isLoading">
-        <div class="mypage-view__loading">読み込み中…</div>
+        <Loading
+          class="mypage-view__loading"
+          :text="'統計データ読み込み中です…'"
+        />
       </template>
       <template v-else>
         <div class="mypage-view__top-grid-wrapper">
@@ -298,6 +301,8 @@ import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 import ScoreIcon from "@/components/icons/ScoreIcon.vue";
 import UserIcon from "@/components/icons/UserIcon.vue";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
+import Loading from "@/components/Loading.vue";
+import gsap from "gsap";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -495,15 +500,13 @@ const prevPage = () => {
     @include fluid-style(gap, 24, 32);
     @include contents-padding;
     max-width: 600px;
+    min-height: 75vh;
     margin-inline: auto;
 
     @include pc {
       max-width: none;
       margin-inline: 0;
     }
-  }
-
-  &__loading {
   }
 
   &__top-grid-wrapper {
