@@ -14,9 +14,7 @@
       </template>
       <template v-else>
         <div class="mypage-view__top-grid-wrapper">
-          <section
-            class="mypage-view__section mypage-view__section--total-rank"
-          >
+          <section class="mypage-view__section mypage-view__section--profile">
             <h2 class="mypage-view__subtitle">プロフィール</h2>
             <div class="mypage-view__profile-wrapper">
               <div class="mypage-view__profile">
@@ -86,26 +84,16 @@
                         r="45"
                         cx="50"
                         cy="50"
-                        :class="{
-                          'rank-s': rank === 'S',
-                          'rank-a': rank === 'A',
-                          'rank-b': rank === 'B',
-                          'rank-c': rank === 'C',
-                        }"
+                        :class="scoreRankClass"
                         :stroke-dasharray="circumference"
-                        :style="{ strokeDashoffset: currentOffset }"
+                        :stroke-dashoffset="progressCircleDashoffset"
                       />
                     </svg>
                   </div>
                   <div class="mypage-view__rank-wrapper">
                     <span
                       class="mypage-view__rank-text"
-                      :class="{
-                        'rank-s': rank === 'S',
-                        'rank-a': rank === 'A',
-                        'rank-b': rank === 'B',
-                        'rank-c': rank === 'C',
-                      }"
+                      :class="scoreRankClass"
                       >{{ rank }}</span
                     >
                     <span class="mypage-view__rank-title">Rank</span>
@@ -288,7 +276,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import api from "../services/api";
 import { useAuthStore } from "../stores/authStore";
@@ -304,21 +292,69 @@ import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import Loading from "@/components/Loading.vue";
 import gsap from "gsap";
 
+/**
+ * router
+ */
 const router = useRouter();
+
+/**
+ * 認証store
+ */
 const authStore = useAuthStore();
+
+/**
+ * お知らせstore
+ */
 const notificationStore = useNotificationStore();
 
+/**
+ * ローディング状態
+ */
 const isLoading = ref(true);
+
+/**
+ * 統計データ
+ */
 const stats = ref({
+  // 総タイプ数
   total_types: 0,
+  // 平均KPM
   average_kpm: 0,
+  // 平均正確率
   average_accuracy: 0,
+  // 苦手キー配列
   missed_keys_ranking: [],
 });
+
+/**
+ * 履歴データ配列
+ */
 const sessions = ref([]);
+
+/**
+ * 履歴データページネーションの現在のページ数
+ */
 const currentPage = ref(1);
+
+/**
+ * 履歴データ総件数
+ */
 const totalCount = ref(0);
+
+/**
+ * 履歴データページネーションの総ページ数
+ */
 const totalPages = ref(1);
+
+/**
+ * スコアランククラス名
+ */
+const scoreRankClass = ref("rank-c");
+
+/**
+ * ランクテキスト
+ */
+const rank = ref("C");
 
 /**
  * 円の半径
@@ -330,15 +366,29 @@ const radius = 45;
  */
 const circumference = 2 * Math.PI * radius;
 
+/**
+ * スコアの最大値
+ */
 const maxScore = 350;
 
-const currentOffset = computed(() => {
-  const validPercent = Math.min(100, Math.max(0, percent.value));
+/**
+ * スコアランクプログレスバー（円）のstroke-dashoffset
+ */
+const progressCircleDashoffset = ref(circumference);
+
+/**
+ * 結果ランクのstroke-dashoffset
+ */
+const resultDashoffset = computed(() => {
+  const validPercent = Math.min(100, Math.max(0, scorePercent.value));
 
   // 計算式：円周 - (進捗割合 * 円周)
   return circumference - (validPercent / 100) * circumference;
 });
 
+/**
+ * スコア値
+ */
 const score = computed(() => {
   if (stats.value.average_kpm === 0 && stats.value.average_accuracy === 0)
     return "-";
@@ -347,21 +397,15 @@ const score = computed(() => {
   return Math.round(kpm * (acc / 100));
 });
 
-const percent = computed(() => {
+/**
+ * スコアの割合
+ */
+const scorePercent = computed(() => {
   if (!score.value || score.value === "-") {
     return "-";
   }
 
   return Math.round((score.value / maxScore) * 100);
-});
-
-const rank = computed(() => {
-  if (!percent.value) return "-";
-
-  if (percent.value >= 95) return "S";
-  if (percent.value >= 75) return "A";
-  if (percent.value >= 60) return "B";
-  return "C";
 });
 
 /**
@@ -403,6 +447,11 @@ const paginationItems = computed(() => {
 });
 
 /**
+ * GSAPコンテキスト
+ */
+let gsapContext;
+
+/**
  * 初期データ読み込み
  */
 onMounted(async () => {
@@ -417,6 +466,20 @@ onMounted(async () => {
     // 個別の関数内でエラー処理してるのでここはスルーでもOK
   } finally {
     isLoading.value = false;
+    if (stats.value && sessions.value) {
+      await nextTick;
+      setAnimation();
+    }
+  }
+});
+
+/**
+ * アンマウント時処理
+ */
+onUnmounted(() => {
+  // コンポーネントが破棄される時にアニメーションをリセットする
+  if (gsapContext) {
+    gsapContext.revert();
   }
 });
 
@@ -480,6 +543,159 @@ const prevPage = () => {
     handlePageChange(currentPage.value);
   }
 };
+
+/**
+ * 結果表示アニメーション設定
+ * TODO 仮アニメーションです
+ */
+const setAnimation = () => {
+  // アニメーションの共通設定
+  const animeCommonSettings = {
+    opacity: 1,
+    y: 0,
+    duration: 0.8, // 0.8秒かけて表示
+    ease: "power2.out",
+  };
+
+  // アニメーション設定の「ずらす間隔」
+  const staggerTime = 0.2;
+
+  gsapContext = gsap.context(() => {
+    // プロフィールセクション
+    const profileSection = ".mypage-view__section--profile";
+
+    // プレイデータセクション
+    const playDataSection = ".mypage-view__section--play-data";
+
+    // 各プレイデータ
+    const statCards = gsap.utils.toArray(".mypage-view__stat-card");
+
+    // 苦手キーセクション
+    const weakKeysSection = ".mypage-view__section--weak-keys";
+
+    // 成長グラフセクション
+    const chartSection = ".mypage-view__section--chart";
+
+    // 履歴セクション
+    const historySection = ".mypage-view__section--history";
+
+    // timelineを作成
+    const tl = gsap.timeline();
+
+    // TODO 仮アニメーション
+    tl.fromTo(
+      profileSection,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        ...animeCommonSettings,
+      }
+    );
+
+    tl.fromTo(
+      progressCircleDashoffset,
+      {
+        value: circumference,
+      },
+      {
+        value: resultDashoffset.value,
+        duration: 0.8,
+        ease: "none",
+      },
+      "-=0.6"
+    );
+
+    tl.fromTo(
+      playDataSection,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        ...animeCommonSettings,
+      },
+      "-=0.6"
+    );
+
+    tl.fromTo(
+      statCards,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        ...animeCommonSettings,
+        stagger: staggerTime,
+      },
+      "-=0.6"
+    );
+
+    tl.fromTo(
+      weakKeysSection,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        ...animeCommonSettings,
+      },
+      "-=0.6"
+    );
+
+    tl.fromTo(
+      chartSection,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        ...animeCommonSettings,
+      },
+      "-=0.6"
+    );
+
+    tl.fromTo(
+      historySection,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        ...animeCommonSettings,
+      },
+      "-=0.6"
+    );
+  });
+};
+
+/**
+ * スコアランクプログレスバー値を監視
+ */
+watch(progressCircleDashoffset, (newValue) => {
+  // プログレスバー割合
+  const percent = (1 - newValue / circumference) * 100;
+
+  // 割合でランク付け
+  if (percent >= 95) {
+    // 95%以上でSランク
+    scoreRankClass.value = "rank-s";
+    rank.value = "S";
+  } else if (percent >= 75) {
+    // 75%以上でAランク
+    scoreRankClass.value = "rank-a";
+    rank.value = "A";
+  } else if (percent >= 60) {
+    // 60%以上でBランク
+    scoreRankClass.value = "rank-b";
+    rank.value = "B";
+  } else {
+    // 60%未満でCランク
+    scoreRankClass.value = "rank-c";
+    rank.value = "C";
+  }
+});
 </script>
 
 <style lang="scss" scoped>
@@ -527,7 +743,7 @@ const prevPage = () => {
     flex-direction: column;
     @include fluid-style(gap, 10, 16);
 
-    &--total-rank {
+    &--profile {
       grid-row: auto;
 
       @include pc {
@@ -648,9 +864,7 @@ const prevPage = () => {
   }
 
   &__progress-ring-circle {
-    stroke-dasharray: 283;
-    stroke-dashoffset: 283;
-    transition: stroke-dashoffset 0.4s linear, stroke $transition-base;
+    transition: stroke $transition-base;
 
     &.rank-c {
       stroke: $blue;
@@ -680,6 +894,7 @@ const prevPage = () => {
     @include fluid-text(40, 50);
     font-weight: $bold;
     line-height: 1;
+    transition: color $transition-base;
 
     &.rank-s {
       color: $yellow;
