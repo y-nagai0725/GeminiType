@@ -272,9 +272,9 @@ const scorePercent = computed(() => {
 });
 
 /**
- *
+ * GSAPコンテキスト
  */
-let ctx;
+let gsapContext;
 
 /**
  * マウント時処理
@@ -296,8 +296,8 @@ onMounted(async () => {
  */
 onUnmounted(() => {
   // コンポーネントが破棄される時にアニメーションをリセットする
-  if (ctx) {
-    ctx.revert();
+  if (gsapContext) {
+    gsapContext.revert();
   }
 });
 
@@ -358,6 +358,7 @@ const handleRetry = () => {
 
 /**
  * 結果表示アニメーション設定
+ * // TODO 仮アニメーション
  */
 const setResultCardAnimation = () => {
   // アニメーションの共通設定
@@ -371,7 +372,7 @@ const setResultCardAnimation = () => {
   // アニメーション設定の「ずらす間隔」
   const staggerTime = 0.2;
 
-  ctx = gsap.context(() => {
+  gsapContext = gsap.context(() => {
     //
     const resultCards = gsap.utils.toArray(".result-view__result-card");
 
