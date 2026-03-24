@@ -291,6 +291,10 @@ import UserIcon from "@/components/icons/UserIcon.vue";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import Loading from "@/components/Loading.vue";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+// ScrollTriggerを登録する
+gsap.registerPlugin(ScrollTrigger);
 
 /**
  * router
@@ -549,16 +553,19 @@ const prevPage = () => {
  * TODO 仮アニメーションです
  */
 const setAnimation = () => {
-  // アニメーションの共通設定
-  const animeCommonSettings = {
-    opacity: 1,
+  // アニメーション共通設定：開始状態
+  const fromAnimationSettings = {
+    autoAlpha: 0,
+    y: 20,
+  };
+
+  // アニメーション共通設定：終了状態
+  const toAnimationSettings = {
+    autoAlpha: 1,
     y: 0,
     duration: 0.8, // 0.8秒かけて表示
     ease: "power2.out",
   };
-
-  // アニメーション設定の「ずらす間隔」
-  const staggerTime = 0.2;
 
   gsapContext = gsap.context(() => {
     // プロフィールセクション
@@ -566,9 +573,6 @@ const setAnimation = () => {
 
     // プレイデータセクション
     const playDataSection = ".mypage-view__section--play-data";
-
-    // 各プレイデータ
-    const statCards = gsap.utils.toArray(".mypage-view__stat-card");
 
     // 苦手キーセクション
     const weakKeysSection = ".mypage-view__section--weak-keys";
@@ -579,22 +583,44 @@ const setAnimation = () => {
     // 履歴セクション
     const historySection = ".mypage-view__section--history";
 
-    // timelineを作成
-    const tl = gsap.timeline();
-
-    // TODO 仮アニメーション
-    tl.fromTo(
-      profileSection,
-      {
-        opacity: 0,
-        y: 20,
-      },
-      {
-        ...animeCommonSettings,
+    // --- [プレイデータ,苦手キー,成長グラフ,履歴]セクションの表示アニメーション ---
+    [playDataSection, weakKeysSection, chartSection, historySection].forEach(
+      (section) => {
+        gsap.fromTo(
+          section,
+          {
+            ...fromAnimationSettings,
+          },
+          {
+            ...toAnimationSettings,
+            scrollTrigger: {
+              trigger: section,
+              start: "top center+=20%",
+            },
+          }
+        );
       }
     );
 
-    tl.fromTo(
+    // --- プロフィールセクションのアニメーション設定 ---
+    const timelineProfileSection = gsap.timeline({
+      scrollTrigger: {
+        trigger: profileSection,
+        start: "top center+=20%",
+      },
+    });
+
+    timelineProfileSection.fromTo(
+      profileSection,
+      {
+        ...fromAnimationSettings,
+      },
+      {
+        ...toAnimationSettings,
+      }
+    );
+
+    timelineProfileSection.fromTo(
       progressCircleDashoffset,
       {
         value: circumference,
@@ -603,67 +629,6 @@ const setAnimation = () => {
         value: resultDashoffset.value,
         duration: 0.8,
         ease: "none",
-      },
-      "-=0.6"
-    );
-
-    tl.fromTo(
-      playDataSection,
-      {
-        opacity: 0,
-        y: 20,
-      },
-      {
-        ...animeCommonSettings,
-      },
-      "-=0.6"
-    );
-
-    tl.fromTo(
-      statCards,
-      {
-        opacity: 0,
-        y: 20,
-      },
-      {
-        ...animeCommonSettings,
-        stagger: staggerTime,
-      },
-      "-=0.6"
-    );
-
-    tl.fromTo(
-      weakKeysSection,
-      {
-        opacity: 0,
-        y: 20,
-      },
-      {
-        ...animeCommonSettings,
-      },
-      "-=0.6"
-    );
-
-    tl.fromTo(
-      chartSection,
-      {
-        opacity: 0,
-        y: 20,
-      },
-      {
-        ...animeCommonSettings,
-      },
-      "-=0.6"
-    );
-
-    tl.fromTo(
-      historySection,
-      {
-        opacity: 0,
-        y: 20,
-      },
-      {
-        ...animeCommonSettings,
       },
       "-=0.6"
     );
@@ -742,6 +707,7 @@ watch(progressCircleDashoffset, (newValue) => {
     display: flex;
     flex-direction: column;
     @include fluid-style(gap, 10, 16);
+    visibility: hidden; // GSAPアニメーション用
 
     &--profile {
       grid-row: auto;
