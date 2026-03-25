@@ -1410,6 +1410,7 @@ const handleEscClose = (e) => {
 
     &--hiragana {
       text-align: left;
+      line-height: 1.5;
     }
 
     &--action {
