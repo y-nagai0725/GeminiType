@@ -602,7 +602,7 @@ onUnmounted(() => {
   }
 
   &__back-button {
-    @include button-style-border($green);
+    @include button-style-fill($green);
     @include fluid-style(width, 240, 350);
     @include fluid-style(padding-block, 17, 22);
     margin-inline: auto;
