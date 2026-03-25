@@ -215,9 +215,15 @@ let gsapContext;
  * TODO 仮アニメーションです
  */
 const setAnimation = () => {
-  // アニメーションの共通設定
-  const animeCommonSettings = {
-    opacity: 1,
+  // アニメーション共通設定：開始状態
+  const fromAnimationSettings = {
+    autoAlpha: 0,
+    y: 20,
+  };
+
+  // アニメーション共通設定：終了状態
+  const toAnimationSettings = {
+    autoAlpha: 1,
     y: 0,
     duration: 0.8, // 0.8秒かけて表示
     ease: "power2.out",
@@ -227,16 +233,16 @@ const setAnimation = () => {
   const staggerTime = 0.2;
 
   gsapContext = gsap.context(() => {
-    //
-    const scoreItems = gsap.utils.toArray(".session-detail__score-item");
-
-    //
+    // informationセクション
     const information = ".session-detail__information";
 
-    //
+    // 各score要素
+    const scoreItems = gsap.utils.toArray(".session-detail__score-item");
+
+    // 問題別スコアセクション
     const history = ".session-detail__history";
 
-    //
+    // backボタンラッパー要素
     const back = ".session-detail__back";
 
     // timelineを作成
@@ -246,22 +252,20 @@ const setAnimation = () => {
     tl.fromTo(
       information,
       {
-        opacity: 0,
-        y: 20,
+        ...fromAnimationSettings,
       },
       {
-        ...animeCommonSettings,
+        ...toAnimationSettings,
       }
     );
 
     tl.fromTo(
       scoreItems,
       {
-        opacity: 0,
-        y: 20,
+        ...fromAnimationSettings,
       },
       {
-        ...animeCommonSettings,
+        ...toAnimationSettings,
         stagger: staggerTime,
       },
       "-=0.6"
@@ -270,11 +274,10 @@ const setAnimation = () => {
     tl.fromTo(
       history,
       {
-        opacity: 0,
-        y: 20,
+        ...fromAnimationSettings,
       },
       {
-        ...animeCommonSettings,
+        ...toAnimationSettings,
       },
       "-=0.6"
     );
@@ -282,11 +285,10 @@ const setAnimation = () => {
     tl.fromTo(
       back,
       {
-        opacity: 0,
-        y: 20,
+        ...fromAnimationSettings,
       },
       {
-        ...animeCommonSettings,
+        ...toAnimationSettings,
       },
       "-=0.6"
     );
@@ -389,6 +391,7 @@ onUnmounted(() => {
     width: 100%;
     max-width: 500px;
     @include fluid-text(14, 18);
+    visibility: hidden; // GSAPアニメーション用
 
     @include pc {
       margin-inline: auto;
@@ -428,6 +431,7 @@ onUnmounted(() => {
     aspect-ratio: 1;
     background-color: $gray;
     border-radius: $radius-lg;
+    visibility: hidden; // GSAPアニメーション用
   }
 
   &__score-label {
@@ -489,6 +493,7 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     @include fluid-style(gap, 8, 16);
+    visibility: hidden; // GSAPアニメーション用
   }
 
   &__subtitle {
@@ -593,6 +598,7 @@ onUnmounted(() => {
   }
 
   &__back {
+    visibility: hidden; // GSAPアニメーション用
   }
 
   &__back-button {
