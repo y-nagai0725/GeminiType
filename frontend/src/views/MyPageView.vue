@@ -459,11 +459,6 @@ let gsapContext;
  * 初期データ読み込み
  */
 onMounted(async () => {
-  if (!authStore.isLoggedIn) {
-    router.push("/login");
-    return;
-  }
-
   try {
     await Promise.all([fetchStats(), fetchSessions(1)]);
   } catch (error) {

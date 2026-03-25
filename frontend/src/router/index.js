@@ -38,7 +38,8 @@ const router = createRouter({
     {
       path: '/admin',
       name: 'admin',
-      component: AdminView
+      component: AdminView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/typing/setup',
@@ -58,12 +59,14 @@ const router = createRouter({
     {
       path: '/mypage',
       name: 'mypage',
-      component: MyPageView
+      component: MyPageView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/mypage/session/:id',
       name: 'session-detail',
-      component: SessionDetailView
+      component: SessionDetailView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/test-typing',
@@ -108,11 +111,11 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  // TODO ログインが必要なページへのアクセス制御 (もし必要ならここに追加)
-  // if (to.meta.requiresAuth && !authStore.isLoggedIn) {
-  //   next('/login');
-  //   return;
-  // }
+  // ログインが必要なページへの遷移時にログインしていない場合
+  if (to.meta.requiresAuth && !authStore.isLoggedIn) {
+    next('/login');
+    return;
+  }
 
   next(); // 次のページへ進む
 });

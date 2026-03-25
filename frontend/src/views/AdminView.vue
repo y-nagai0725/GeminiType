@@ -680,13 +680,6 @@ const paginationItems = computed(() => {
  * マウント時処理
  */
 onMounted(async () => {
-  // ログインしていない場合
-  if (!authStore.isLoggedIn) {
-    // ログイン画面へ強制遷移
-    router.push("/login");
-    return;
-  }
-
   // ユーザー情報がない場合
   if (!authStore.user) {
     // ユーザー情報を取得
