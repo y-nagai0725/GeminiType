@@ -123,7 +123,7 @@
             to="/menu"
             class="result-view__button result-view__button--menu"
           >
-            メニューに戻る
+            メインメニューに戻る
             <ArrowIcon class="result-view__arrow-icon" />
           </RouterLink>
         </div>
@@ -189,6 +189,8 @@ import ScoreIcon from "@/components/icons/ScoreIcon.vue";
 import AiIcon from "@/components/icons/AiIcon.vue";
 import Loading from "@/components/Loading.vue";
 import gsap from "gsap";
+
+// TODO AIのアイコン画像は仮です
 
 /**
  * router
@@ -316,9 +318,6 @@ const fetchAiComment = async () => {
       }
     });
 
-    // TODO コメント生成処理とめるテスト用なので、デザイン等が完了次第消す
-    throw new Error("test");
-
     const response = await api.post("/api/typing/ai-comment", {
       kpm: Math.round(resultData.value.stats.kpm),
       accuracy: Math.round(resultData.value.stats.accuracy),
@@ -361,9 +360,15 @@ const handleRetry = () => {
  * // TODO 仮アニメーション
  */
 const setResultCardAnimation = () => {
-  // アニメーションの共通設定
-  const animeCommonSettings = {
-    opacity: 1,
+  // アニメーション共通設定：開始状態
+  const fromAnimationSettings = {
+    autoAlpha: 0,
+    y: 20,
+  };
+
+  // アニメーション共通設定：終了状態
+  const toAnimationSettings = {
+    autoAlpha: 1,
     y: 0,
     duration: 0.8, // 0.8秒かけて表示
     ease: "power2.out",
@@ -373,12 +378,19 @@ const setResultCardAnimation = () => {
   const staggerTime = 0.2;
 
   gsapContext = gsap.context(() => {
-    //
+    // 各結果要素
     const resultCards = gsap.utils.toArray(".result-view__result-card");
 
+    // スコア要素
     const scoreCard = ".result-view__score-card";
+
+    // AIコメント要素
     const aiArea = ".result-view__ai-area";
+
+    // アクションボタンラッパー
     const actions = ".result-view__actions";
+
+    // 詳細結果
     const details = ".result-view__details";
 
     // timelineを作成
@@ -388,11 +400,10 @@ const setResultCardAnimation = () => {
     tl.fromTo(
       resultCards,
       {
-        opacity: 0,
-        y: 20,
+        ...fromAnimationSettings,
       },
       {
-        ...animeCommonSettings,
+        ...toAnimationSettings,
         stagger: staggerTime,
       }
     );
@@ -400,11 +411,10 @@ const setResultCardAnimation = () => {
     tl.fromTo(
       scoreCard,
       {
-        opacity: 0,
-        y: 20,
+        ...fromAnimationSettings,
       },
       {
-        ...animeCommonSettings,
+        ...toAnimationSettings,
       },
       "-=0.6"
     );
@@ -425,11 +435,10 @@ const setResultCardAnimation = () => {
     tl.fromTo(
       aiArea,
       {
-        opacity: 0,
-        y: 20,
+        ...fromAnimationSettings,
       },
       {
-        ...animeCommonSettings,
+        ...toAnimationSettings,
       },
       "-=0.6"
     );
@@ -437,11 +446,10 @@ const setResultCardAnimation = () => {
     tl.fromTo(
       actions,
       {
-        opacity: 0,
-        y: 20,
+        ...fromAnimationSettings,
       },
       {
-        ...animeCommonSettings,
+        ...toAnimationSettings,
       },
       "-=0.6"
     );
@@ -449,11 +457,10 @@ const setResultCardAnimation = () => {
     tl.fromTo(
       details,
       {
-        opacity: 0,
-        y: 20,
+        ...fromAnimationSettings,
       },
       {
-        ...animeCommonSettings,
+        ...toAnimationSettings,
       },
       "-=0.6"
     );
@@ -527,7 +534,7 @@ watch(progressCircleDashoffset, (newValue) => {
   &__result-card-wrapper {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    row-gap: 2.4rem;
+    @include fluid-style(gap, 16, 30);
 
     @include pc {
       grid-template-columns: repeat(4, 1fr);
@@ -542,15 +549,16 @@ watch(progressCircleDashoffset, (newValue) => {
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    width: 14rem;
+    width: 100%;
     aspect-ratio: 1;
     padding: 1.6rem 0;
     border-radius: $radius-lg;
     background-color: $gray;
-    opacity: 0;
+    visibility: hidden; // GSAPアニメーション用
 
     @include pc {
       justify-self: auto;
+      //width: 14rem;
     }
   }
 
@@ -627,7 +635,7 @@ watch(progressCircleDashoffset, (newValue) => {
     padding: 1.6rem 0;
     border-radius: $radius-lg;
     background-color: $gray;
-    opacity: 0;
+    visibility: hidden; // GSAPアニメーション用
   }
 
   &__score-item {
@@ -727,7 +735,7 @@ watch(progressCircleDashoffset, (newValue) => {
     flex-direction: column;
     align-items: center;
     gap: 3.2rem;
-    opacity: 0;
+    visibility: hidden; // GSAPアニメーション用
 
     @include pc {
       flex-direction: row;
@@ -789,7 +797,7 @@ watch(progressCircleDashoffset, (newValue) => {
     display: flex;
     flex-direction: column;
     gap: 2.4rem;
-    opacity: 0;
+    visibility: hidden; // GSAPアニメーション用
 
     @include pc {
       justify-content: space-around;
@@ -824,6 +832,7 @@ watch(progressCircleDashoffset, (newValue) => {
     display: flex;
     flex-direction: column;
     gap: 3.2rem;
+    visibility: hidden; // GSAPアニメーション用
   }
 
   &__details-title {
