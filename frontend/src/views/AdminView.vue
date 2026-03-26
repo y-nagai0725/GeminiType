@@ -60,7 +60,10 @@
               <PlusIcon class="admin-view__input-button-icon" />追加
             </button>
           </form>
-          <div class="admin-view__genre-table-wrapper">
+          <div class="admin-view__table-wrapper">
+            <div v-if="isTableLoading" class="admin-view__loading-overlay">
+              <Loading />
+            </div>
             <table class="admin-view__genre-table">
               <thead>
                 <tr class="admin-view__genre-table-tr">
@@ -252,6 +255,9 @@
           </div>
 
           <div class="admin-view__table-wrapper">
+            <div v-if="isTableLoading" class="admin-view__loading-overlay">
+              <Loading />
+            </div>
             <table class="admin-view__problem-table">
               <thead>
                 <tr class="admin-view__problem-table-tr">
@@ -531,6 +537,7 @@ import PlusIcon from "@/components/icons/PlusIcon.vue";
 import DeleteIcon from "@/components/icons/DeleteIcon.vue";
 import EditIcon from "@/components/icons/EditIcon.vue";
 import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
+import Loading from "@/components/Loading.vue";
 
 /**
  * 認証store
@@ -551,6 +558,16 @@ const notificationStore = useNotificationStore();
  * router
  */
 const router = useRouter();
+
+/**
+ * 表のローディング管理用
+ */
+const isTableLoading = ref(false);
+
+/**
+ * ローディングの最低表示時間 (ミリ秒)
+ */
+const MIN_LOADING_MS = 300;
 
 /**
  * (登録用)新しいジャンル名
@@ -690,7 +707,7 @@ onMounted(async () => {
   if (authStore.isAdmin) {
     try {
       // ジャンルを取得
-      await adminStore.fetchGenres();
+      await fetchGenresWithLoading();
     } catch (error) {
       notificationStore.addNotification(
         error.response?.data?.message || "ジャンルの取得に失敗しました。",
@@ -700,7 +717,7 @@ onMounted(async () => {
 
     try {
       // 問題文（1ページ目）を取得
-      await adminStore.fetchProblems();
+      await fetchProblemsWithLoading();
     } catch (error) {
       notificationStore.addNotification(
         error.response?.data?.message || "問題文の取得に失敗しました。",
@@ -738,6 +755,50 @@ const isValidReading = (text) => {
 };
 
 /**
+ * ジャンル一覧を取得する関数（初期表示で呼ぶ用）
+ */
+const fetchGenresWithLoading = async () => {
+  // ローディング開始
+  isTableLoading.value = true;
+
+  try {
+    // ジャンル一覧を取得、最低限の待ち時間を入れる（ローディング表示用）
+    await Promise.all([
+      adminStore.fetchGenres(),
+      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+    ]);
+  } catch (error) {
+    // エラー処理は呼び出し元へ
+    throw error;
+  } finally {
+    // ローディング終了
+    isTableLoading.value = false;
+  }
+};
+
+/**
+ * 問題一覧を取得する関数（初期表示とページネーションで呼ぶ用）
+ */
+const fetchProblemsWithLoading = async () => {
+  // ローディング開始
+  isTableLoading.value = true;
+
+  try {
+    // 問題一覧を取得、最低限の待ち時間を入れる（ローディング表示用）
+    await Promise.all([
+      adminStore.fetchProblems(),
+      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+    ]);
+  } catch (error) {
+    // エラー処理は呼び出し元へ
+    throw error;
+  } finally {
+    // ローディング終了
+    isTableLoading.value = false;
+  }
+};
+
+/**
  * 「ジャンル追加」ボタンが押された時の処理
  */
 const handleAddGenre = async () => {
@@ -747,9 +808,15 @@ const handleAddGenre = async () => {
     return;
   }
 
+  // ローディング表示
+  isTableLoading.value = true;
+
   try {
-    // ジャンル登録
-    await adminStore.addGenre(newGenreName.value);
+    // ジャンル登録、最低限の待ち時間を入れる（ローディング表示用）
+    await Promise.all([
+      adminStore.addGenre(newGenreName.value),
+      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+    ]);
 
     // 成功通知
     notificationStore.addNotification("ジャンルを追加しました。", "success");
@@ -762,6 +829,9 @@ const handleAddGenre = async () => {
       error.response?.data?.message || "ジャンルの追加に失敗しました。",
       "error"
     );
+  } finally {
+    // ローディング終了
+    isTableLoading.value = false;
   }
 };
 
@@ -793,13 +863,19 @@ const handleAddProblem = async () => {
     return;
   }
 
+  // ローディング開始
+  isTableLoading.value = true;
+
   try {
-    // 問題文登録
-    await adminStore.addProblem(
-      newProblemGenreId.value,
-      newProblemText.value,
-      newProblemHiragana.value
-    );
+    // 問題文登録、最低限の待ち時間を入れる（ローディング表示用）
+    await Promise.all([
+      adminStore.addProblem(
+        newProblemGenreId.value,
+        newProblemText.value,
+        newProblemHiragana.value
+      ),
+      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+    ]);
 
     // 成功通知
     notificationStore.addNotification("問題文を追加しました。", "success");
@@ -814,6 +890,9 @@ const handleAddProblem = async () => {
       error.response?.data?.message || "問題文の追加に失敗しました。",
       "error"
     );
+  } finally {
+    // ローディング終了
+    isTableLoading.value = false;
   }
 };
 
@@ -821,19 +900,28 @@ const handleAddProblem = async () => {
  * 「検索」ボタンが押された時の処理
  */
 const handleSearch = async () => {
+  // ローディング開始
+  isTableLoading.value = true;
+
   try {
     // 入力されてる検索条件をセットする
     adminStore.filterGenreId = localFilterGenreId.value;
     adminStore.filterSearchText = localFilterSearchText.value;
 
-    // 検索実行
-    await adminStore.applyFilters();
+    // 検索実行、最低限の待ち時間を入れる（ローディング表示用）
+    await Promise.all([
+      adminStore.applyFilters(),
+      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+    ]);
   } catch (error) {
     // エラー通知
     notificationStore.addNotification(
       error.response?.data?.message || "検索に失敗しました。",
       "error"
     );
+  } finally {
+    // ローディング終了
+    isTableLoading.value = false;
   }
 };
 
@@ -842,15 +930,24 @@ const handleSearch = async () => {
  * @param {Number} newPage 表示するページ番号
  */
 const handleSetPage = async (newPage) => {
+  // ローディング表示
+  isTableLoading.value = true;
+
   try {
-    // newPageのページを表示する
-    await adminStore.setPage(newPage);
+    // newPageのページを表示する、最低限の待ち時間を入れる（ローディング表示用）
+    await Promise.all([
+      adminStore.setPage(newPage),
+      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+    ]);
   } catch (error) {
     // エラー通知
     notificationStore.addNotification(
       error.response?.data?.message || "ページの取得に失敗しました。",
       "error"
     );
+  } finally {
+    // ローディング終了
+    isTableLoading.value = false;
   }
 };
 
@@ -898,9 +995,15 @@ const handleDeleteProblem = (id, text) => {
 const handleConfirmDelete = async () => {
   // セットされている処理を実行
   if (onConfirmAction.value) {
+    // ローディング表示
+    isTableLoading.value = true;
+
     try {
-      // 処理実行
-      await onConfirmAction.value();
+      // 処理実行、最低限の待ち時間を入れる（ローディング表示用）
+      await Promise.all([
+        onConfirmAction.value(),
+        new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+      ]);
 
       // 成功通知
       notificationStore.addNotification("削除しました。", "success");
@@ -910,6 +1013,9 @@ const handleConfirmDelete = async () => {
         error.response?.data?.message || "削除に失敗しました。",
         "error"
       );
+    } finally {
+      // ローディング終了
+      isTableLoading.value = false;
     }
   }
 
@@ -980,6 +1086,9 @@ const closeEditModal = () => {
  * 編集モーダルの「更新」ボタンが押された時の処理
  */
 const handleUpdateItem = async () => {
+  // ローディング表示
+  isTableLoading.value = true;
+
   try {
     if (editType.value === "genre") {
       // ---ジャンル編集の場合---
@@ -992,8 +1101,11 @@ const handleUpdateItem = async () => {
         return;
       }
 
-      // ジャンル更新
-      await adminStore.updateGenre(editForm.id, editForm.name);
+      // ジャンル更新、最低限の待ち時間を入れる（ローディング表示用）
+      await Promise.all([
+        adminStore.updateGenre(editForm.id, editForm.name),
+        new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+      ]);
     } else {
       // ---問題文編集の場合---
       // ジャンルと問題文とひらがなのバリデーション
@@ -1020,13 +1132,16 @@ const handleUpdateItem = async () => {
         return;
       }
 
-      // 問題文更新
-      await adminStore.updateProblem(
-        editForm.id,
-        editForm.genre_id,
-        editForm.problem_text,
-        editForm.problem_hiragana
-      );
+      // 問題文更新、最低限の待ち時間を入れる（ローディング表示用）
+      await Promise.all([
+        adminStore.updateProblem(
+          editForm.id,
+          editForm.genre_id,
+          editForm.problem_text,
+          editForm.problem_hiragana
+        ),
+        new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+      ]);
     }
 
     // 成功通知
@@ -1039,6 +1154,9 @@ const handleUpdateItem = async () => {
       error.response?.data?.message || "更新に失敗しました。",
       "error"
     );
+  } finally {
+    // ローディング終了
+    isTableLoading.value = false;
   }
 };
 
@@ -1201,8 +1319,22 @@ const handleEscClose = (e) => {
     @include fluid-text(14, 16);
   }
 
-  &__genre-table-wrapper {
+  &__table-wrapper {
+    position: relative;
     overflow-x: auto;
+  }
+
+  &__loading-overlay {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba($white, 0.7);
   }
 
   &__genre-table {
@@ -1341,10 +1473,6 @@ const handleEscClose = (e) => {
 
   &__input-button-icon {
     @include button-icon-style;
-  }
-
-  &__table-wrapper {
-    overflow-x: auto;
   }
 
   &__problem-table {
