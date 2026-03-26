@@ -401,6 +401,26 @@
             <PlusIcon class="admin-view__modal-close-icon" />
           </button>
           <p class="admin-view__modal-title">試し打ち</p>
+          <div class="admin-view__sound-settings">
+            <label class="admin-view__sound-label">
+              <input
+                type="checkbox"
+                class="admin-view__sound-checkbox"
+                v-model="settingsStore.soundEnabled"
+                @change="settingsStore.saveSettings"
+              />
+              タイプ音
+            </label>
+            <label class="admin-view__sound-label">
+              <input
+                type="checkbox"
+                class="admin-view__sound-checkbox"
+                v-model="settingsStore.missSoundEnabled"
+                @change="settingsStore.saveSettings"
+              />
+              ミス音
+            </label>
+          </div>
 
           <TypingCore
             v-if="problemToTry"
@@ -528,6 +548,7 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import { useAdminStore } from "../stores/adminStore";
 import { useNotificationStore } from "../stores/notificationStore";
+import { useSettingsStore } from "../stores/settingsStore";
 import TypingCore from "../components/TypingCore.vue";
 import ConfirmModal from "../components/ConfirmModal.vue";
 import romaMapData from "@/data/romanTypingParseDictionary.json";
@@ -553,6 +574,11 @@ const adminStore = useAdminStore();
  * お知らせstore
  */
 const notificationStore = useNotificationStore();
+
+/**
+ * 設定store
+ */
+const settingsStore = useSettingsStore();
 
 /**
  * router
@@ -1611,11 +1637,61 @@ const handleEscClose = (e) => {
   }
 
   &__modal-title {
-    @include fluid-style(margin-bottom, 16, 24);
+    @include fluid-style(margin-bottom, 10, 16);
     font-weight: $bold;
     @include fluid-text(16, 18);
     letter-spacing: 0.1em;
     text-align: center;
+  }
+
+  &__sound-settings {
+    display: flex;
+    justify-content: flex-end;
+    @include fluid-style(gap, 16, 24);
+    @include fluid-style(margin-bottom, 10, 16);
+  }
+
+  &__sound-label {
+    display: flex;
+    align-items: center;
+    font-weight: $bold;
+    @include fluid-text(12, 14);
+    cursor: pointer;
+    user-select: none;
+    transition: opacity $transition-base;
+
+    @include hover {
+      opacity: 0.7;
+    }
+  }
+
+  &__sound-checkbox {
+    position: relative;
+    display: inline-block;
+    width: 1em;
+    aspect-ratio: 1;
+    margin-right: 1em;
+    background-color: $gray;
+    border: 1px solid $black;
+    border-radius: $radius-sm;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 80%;
+      height: 40%;
+      border-left: 2px solid $green;
+      border-bottom: 2px solid $green;
+      transform: translate(-50%, calc(-50% - 1px)) rotate(-45deg);
+      opacity: 0;
+      transition: opacity $transition-base;
+    }
+
+    &:checked::after {
+      opacity: 1;
+    }
   }
 
   &__modal-form {
