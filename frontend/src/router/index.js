@@ -113,7 +113,11 @@ router.beforeEach(async (to, from, next) => {
 
   // ログインが必要なページへの遷移時にログインしていない場合
   if (to.meta.requiresAuth && !authStore.isLoggedIn) {
-    next('/login');
+    // 元々行きたかったパスをクエリに含めてログイン画面へ遷移
+    next({
+      path: '/login',
+      query: { redirect: to.fullPath }
+    });
     return;
   }
 

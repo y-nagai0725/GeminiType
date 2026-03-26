@@ -46,8 +46,11 @@ export const useAuthStore = defineStore('auth', () => {
       // ユーザー情報を取得する
       await fetchUser();
 
-      // メインメニューへ遷移
-      router.push('/menu');
+      // リダイレクト先をクエリパラメータから取得（なければ '/menu'）
+      const redirectPath = router.currentRoute.value.query.redirect || '/menu';
+
+      // 取得したパスへ遷移
+      router.push(redirectPath);
     } catch (error) {
       // 呼び出し元へエラーを投げる
       throw error;
