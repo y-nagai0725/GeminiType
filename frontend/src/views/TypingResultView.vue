@@ -190,8 +190,6 @@ import AiIcon from "@/components/icons/AiIcon.vue";
 import Loading from "@/components/Loading.vue";
 import gsap from "gsap";
 
-// TODO AIのアイコン画像は仮です
-
 /**
  * router
  */
