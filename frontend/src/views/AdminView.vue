@@ -105,7 +105,7 @@
                   <td
                     class="admin-view__genre-table-td admin-view__genre-table-td--count"
                   >
-                    {{ 0 }}
+                    {{ genre._count.problems }}
                   </td>
                   <td
                     class="admin-view__genre-table-td admin-view__genre-table-td--action"

@@ -261,6 +261,11 @@ app.get('/api/admin/genres', authenticateToken, isAdmin, async (req, res) => {
   try {
     const genres = await prisma.genre.findMany({
       orderBy: { id: 'asc' }, // IDの昇順
+      include: {
+        _count: {
+          select: { problems: true } // problemsの「数」だけを取得
+        }
+      }
     });
     res.json(genres);
   } catch (error) {
