@@ -533,6 +533,7 @@ watch(progressCircleDashoffset, (newValue) => {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     @include fluid-style(gap, 16, 30);
+    min-width: 0;
 
     @include pc {
       grid-template-columns: repeat(4, 1fr);
@@ -542,7 +543,6 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__result-card {
-    justify-self: center;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -553,11 +553,6 @@ watch(progressCircleDashoffset, (newValue) => {
     border-radius: $radius-lg;
     background-color: $gray;
     visibility: hidden; // GSAPアニメーション用
-
-    @include pc {
-      justify-self: auto;
-      //width: 14rem;
-    }
   }
 
   &__card-icon {
@@ -829,12 +824,11 @@ watch(progressCircleDashoffset, (newValue) => {
   &__details {
     display: flex;
     flex-direction: column;
-    gap: 3.2rem;
+    gap: 2.4rem;
     visibility: hidden; // GSAPアニメーション用
   }
 
   &__details-title {
-    text-align: center;
     @include fluid-text(16, 20);
     font-weight: $bold;
     letter-spacing: 0.1em;
