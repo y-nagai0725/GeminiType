@@ -825,7 +825,7 @@ app.get('/api/typing/gemini', async (req, res) => {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
     // .env からモデル名を取得
-    const modelName = process.env.GEMINI_MODEL_NAME || "gemini-2.5-flash-preview-05-20";
+    const modelName = process.env.GEMINI_MODEL_NAME || "gemini-3-flash-preview";
 
     // model
     const model = genAI.getGenerativeModel({ model: modelName });
@@ -880,7 +880,7 @@ app.post('/api/typing/ai-comment', async (req, res) => {
 
     // Geminiの準備
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const modelName = process.env.GEMINI_MODEL_NAME || "gemini-2.5-flash";
+    const modelName = process.env.GEMINI_MODEL_NAME || "gemini-3-flash-preview";
     const model = genAI.getGenerativeModel({ model: modelName });
 
     // 苦手キーの情報を整理（Top 3くらいを教える）
@@ -899,7 +899,7 @@ app.post('/api/typing/ai-comment', async (req, res) => {
     - 150文字以内で簡潔に。
     - 口調は「〜だね！」「〜だよ！」のように親しみやすく、敬語は使いすぎないこと。
     - 「妹キャラ」で話すことが大事ですが、ユーザーの性別は固定ではないので「お兄ちゃん」や「お姉ちゃん」は使わないようにすること。
-    - KPMが320以上なら手放しで褒める。
+    - KPMが350以上且つ正確率が98%以上ならしっかりと褒める。
     - 正確率が95%未満なら、正確さを意識するようアドバイスする。
     - ミスしたキーがあれば、具体的な練習のアドバイスを含める。
     - 絵文字を1〜2個使って可愛くすること。
