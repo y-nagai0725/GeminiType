@@ -131,7 +131,7 @@ const isAdmin = (req, res, next) => {
 };
 
 /**
- * ユーザー登録 (POST /api/register)
+ * [public] ユーザー登録 (POST /api/register)
  */
 app.post('/api/register', async (req, res) => {
   try {
@@ -189,7 +189,7 @@ app.post('/api/register', async (req, res) => {
 });
 
 /**
- * ログイン (POST /api/login)
+ * [public] ログイン (POST /api/login)
  */
 app.post('/api/login', async (req, res) => {
   try {
@@ -244,7 +244,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 /**
- * 認証確認
+ * [public] 認証確認
  */
 app.get('/api/me', authenticateToken, (req, res) => {
   // req.userにはユーザー情報（userId, name, isAdmin）が入ってる
@@ -303,6 +303,97 @@ app.post('/api/admin/genres', authenticateToken, isAdmin, async (req, res) => {
 
     // 500エラー
     console.error('API Error (POST /api/admin/genres):', error);
+    res.status(500).json({
+      message: SERVER_ERROR_MESSAGE_500,
+      error: error.message // TODO 本番環境では消す
+    });
+  }
+});
+
+/**
+ * [admin] ジャンルを更新 (PUT /api/admin/genres/:id)
+ */
+app.put('/api/admin/genres/:id', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    // URLの「:id」を受け取る
+    const { id } = req.params;
+
+    // idが数字かどうか
+    const idNum = parseInt(id, 10);
+    if (isNaN(idNum)) {
+      return res.status(400).json({ message: 'ジャンルIDが、不正な値です。' });
+    }
+
+    // ジャンル名
+    const { name } = req.body;
+
+    // バリデーション
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ message: 'ジャンル名を入力して下さい。' });
+    }
+
+    // 更新
+    const updatedGenre = await prisma.genre.update({
+      where: { id: idNum },
+      data: { name },
+    });
+
+    // 更新データを返す
+    res.json(updatedGenre);
+  } catch (error) {
+    // 存在しない「id」を指定した場合、404エラー
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'ジャンルが見つかりませんでした。' });
+    }
+
+    // 重複エラー、400エラー
+    if (error.code === 'P2002') {
+      return res.status(400).json({ message: 'その「ジャンル名」は、既に登録されています。' });
+    }
+
+    // 500エラー
+    console.error('API Error (PUT /api/admin/genres/:id):', error);
+    res.status(500).json({
+      message: SERVER_ERROR_MESSAGE_500,
+      error: error.message // TODO 本番環境では消す
+    });
+  }
+});
+
+/**
+ * [admin] ジャンルを削除 (DELETE /api/admin/genres/:id)
+ */
+app.delete('/api/admin/genres/:id', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    // URLの「:id」を受け取る
+    const { id } = req.params;
+
+    // idが数字かどうか
+    const idNum = parseInt(id, 10);
+    if (isNaN(idNum)) {
+      return res.status(400).json({ message: 'ジャンルIDが、不正な値です。' });
+    }
+
+    // 削除
+    await prisma.genre.delete({
+      where: { id: idNum },
+    });
+
+    // 削除成功時、204を返す
+    res.status(204).send();
+  } catch (error) {
+    // 存在しない「id」を指定した場合、404エラー
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'ジャンルが見つかりませんでした。' });
+    }
+
+    // 削除対象のジャンルに「問題文」が存在している場合、400エラー
+    if (error.code === 'P2003') {
+      return res.status(400).json({ message: 'そのジャンルにはまだ問題文が存在している為、削除できません。' });
+    }
+
+    // 500エラー
+    console.error('API Error (DELETE /api/admin/genres/:id):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
       error: error.message // TODO 本番環境では消す
@@ -433,97 +524,6 @@ app.post('/api/admin/problems', authenticateToken, isAdmin, async (req, res) => 
 
     // 500エラー
     console.error('API Error (POST /api/admin/problems):', error);
-    res.status(500).json({
-      message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
-    });
-  }
-});
-
-/**
- * [admin] ジャンルを更新 (PUT /api/admin/genres/:id)
- */
-app.put('/api/admin/genres/:id', authenticateToken, isAdmin, async (req, res) => {
-  try {
-    // URLの「:id」を受け取る
-    const { id } = req.params;
-
-    // idが数字かどうか
-    const idNum = parseInt(id, 10);
-    if (isNaN(idNum)) {
-      return res.status(400).json({ message: 'ジャンルIDが、不正な値です。' });
-    }
-
-    // ジャンル名
-    const { name } = req.body;
-
-    // バリデーション
-    if (!name || name.trim() === '') {
-      return res.status(400).json({ message: 'ジャンル名を入力して下さい。' });
-    }
-
-    // 更新
-    const updatedGenre = await prisma.genre.update({
-      where: { id: idNum },
-      data: { name },
-    });
-
-    // 更新データを返す
-    res.json(updatedGenre);
-  } catch (error) {
-    // 存在しない「id」を指定した場合、404エラー
-    if (error.code === 'P2025') {
-      return res.status(404).json({ message: 'ジャンルが見つかりませんでした。' });
-    }
-
-    // 重複エラー、400エラー
-    if (error.code === 'P2002') {
-      return res.status(400).json({ message: 'その「ジャンル名」は、既に登録されています。' });
-    }
-
-    // 500エラー
-    console.error('API Error (PUT /api/admin/genres/:id):', error);
-    res.status(500).json({
-      message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
-    });
-  }
-});
-
-/**
- * [admin] ジャンルを削除 (DELETE /api/admin/genres/:id)
- */
-app.delete('/api/admin/genres/:id', authenticateToken, isAdmin, async (req, res) => {
-  try {
-    // URLの「:id」を受け取る
-    const { id } = req.params;
-
-    // idが数字かどうか
-    const idNum = parseInt(id, 10);
-    if (isNaN(idNum)) {
-      return res.status(400).json({ message: 'ジャンルIDが、不正な値です。' });
-    }
-
-    // 削除
-    await prisma.genre.delete({
-      where: { id: idNum },
-    });
-
-    // 削除成功時、204を返す
-    res.status(204).send();
-  } catch (error) {
-    // 存在しない「id」を指定した場合、404エラー
-    if (error.code === 'P2025') {
-      return res.status(404).json({ message: 'ジャンルが見つかりませんでした。' });
-    }
-
-    // 削除対象のジャンルに「問題文」が存在している場合、400エラー
-    if (error.code === 'P2003') {
-      return res.status(400).json({ message: 'そのジャンルにはまだ問題文が存在している為、削除できません。' });
-    }
-
-    // 500エラー
-    console.error('API Error (DELETE /api/admin/genres/:id):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
       error: error.message // TODO 本番環境では消す
@@ -952,7 +952,7 @@ app.post('/api/typing/ai-comment', async (req, res) => {
 });
 
 /**
- * タイピング結果の保存 (POST /api/typing/result)
+ * [要ログイン] タイピング結果の保存 (POST /api/typing/result)
  */
 app.post('/api/typing/result', authenticateToken, async (req, res) => {
   try {
@@ -1094,7 +1094,7 @@ app.post('/api/typing/result', authenticateToken, async (req, res) => {
 });
 
 /**
- * マイページ統計情報取得 (GET /api/mypage/stats)
+ * [要ログイン] マイページ統計情報取得 (GET /api/mypage/stats)
  */
 app.get('/api/mypage/stats', authenticateToken, async (req, res) => {
   try {
@@ -1160,7 +1160,7 @@ app.get('/api/mypage/stats', authenticateToken, async (req, res) => {
 });
 
 /**
- * マイページ履歴一覧取得 (GET /api/mypage/sessions)
+ * [要ログイン] マイページ履歴一覧取得 (GET /api/mypage/sessions)
  */
 app.get('/api/mypage/sessions', authenticateToken, async (req, res) => {
   try {
@@ -1207,7 +1207,7 @@ app.get('/api/mypage/sessions', authenticateToken, async (req, res) => {
 });
 
 /**
- * マイページ履歴詳細取得 (GET /api/mypage/sessions/:id)
+ * [要ログイン] マイページ履歴詳細取得 (GET /api/mypage/sessions/:id)
  */
 app.get('/api/mypage/sessions/:id', authenticateToken, async (req, res) => {
   try {
