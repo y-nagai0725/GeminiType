@@ -15,6 +15,12 @@
         <template v-if="authStore.isAdmin">
           <p class="admin-view__welcome-message">あなたは「管理者」です！</p>
         </template>
+        <template v-else-if="authStore.isGuestAdmin">
+          <p class="admin-view__welcome-message">
+            あなたは「ゲスト管理者」です。<br />
+            ※ポートフォリオ閲覧用のため、データの追加・更新・削除はできません。
+          </p>
+        </template>
         <template v-else>
           <p class="admin-view__welcome-message">
             あなたは「管理者」ではありませんので、<br />このページでの管理操作が許可されていません。
@@ -26,7 +32,7 @@
         </template>
       </div>
 
-      <div v-if="authStore.isAdmin" class="admin-view__content">
+      <div v-if="authStore.canAccessAdmin" class="admin-view__content">
         <div class="admin-view__tab-control">
           <button
             class="admin-view__tab-button admin-view__tab-button--genre"
@@ -729,8 +735,8 @@ onMounted(async () => {
     await authStore.fetchUser();
   }
 
-  // 管理権限がある場合
-  if (authStore.isAdmin) {
+  // 権限がある場合（roleが"ADMIN" or "GUEST_ADMIN"）
+  if (authStore.canAccessAdmin) {
     try {
       // ジャンルを取得
       await fetchGenresWithLoading();
@@ -761,6 +767,21 @@ onUnmounted(() => {
   adminStore.filterGenreId = "";
   adminStore.filterSearchText = "";
 });
+
+/**
+ * ゲスト権限の操作制限をチェックし、制限対象なら通知を出す
+ * @returns {Boolean} ゲストで操作が制限された場合は true、それ以外は false
+ */
+const isGuestRestricted = () => {
+  if (authStore.isGuestAdmin) {
+    notificationStore.addNotification(
+      "ゲスト権限ではこの操作は許可されていません。",
+      "error"
+    );
+    return true;
+  }
+  return false;
+};
 
 /**
  * 入力された文字列が、タイピング辞書にある文字だけで構成されているかチェック
@@ -828,6 +849,9 @@ const fetchProblemsWithLoading = async () => {
  * 「ジャンル追加」ボタンが押された時の処理
  */
 const handleAddGenre = async () => {
+  // ゲスト権限では実行させない
+  if (isGuestRestricted()) return;
+
   // バリデーション
   if (!newGenreName.value || newGenreName.value.trim() === "") {
     notificationStore.addNotification("ジャンル名を入力して下さい。", "error");
@@ -865,6 +889,9 @@ const handleAddGenre = async () => {
  * 「問題文追加」ボタンが押された時の処理
  */
 const handleAddProblem = async () => {
+  // ゲスト権限では実行させない
+  if (isGuestRestricted()) return;
+
   // バリデーション
   if (
     !newProblemGenreId.value ||
@@ -983,6 +1010,9 @@ const handleSetPage = async (newPage) => {
  * @param {String} name ジャンル名
  */
 const handleDeleteGenre = (id, name) => {
+  // ゲスト権限では実行させない
+  if (isGuestRestricted()) return;
+
   // 確認モーダルのタイトル
   confirmTitle.value = "ジャンルの削除";
 
@@ -1002,6 +1032,9 @@ const handleDeleteGenre = (id, name) => {
  * @param {String} text 問題文
  */
 const handleDeleteProblem = (id, text) => {
+  // ゲスト権限では実行させない
+  if (isGuestRestricted()) return;
+
   // 確認モーダルのタイトル
   confirmTitle.value = "問題文の削除";
 
@@ -1068,6 +1101,9 @@ const closeConfirmModal = () => {
  * @param {String} type 'genre' か 'problem'
  */
 const openEditModal = (item, type) => {
+  // ゲスト権限では実行させない
+  if (isGuestRestricted()) return;
+
   // 'genre' か 'problem'をセットする
   editType.value = type;
 
