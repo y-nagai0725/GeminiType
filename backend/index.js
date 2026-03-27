@@ -108,7 +108,7 @@ const authenticateToken = (req, res, next) => {
       return res.sendStatus(401);
     }
 
-    //正規なトークンが確認次第、ユーザー情報（userId, name, isAdmin）をリクエストデータに保持する
+    //正規なトークンが確認次第、ユーザー情報（userId, name, role）をリクエストデータに保持する
     req.user = user;
 
     //認証完了
@@ -117,17 +117,30 @@ const authenticateToken = (req, res, next) => {
 };
 
 /**
- * 「管理者」かチェックする (ミドルウェア)
+ * 「管理者・ゲスト管理者」のアクセス権限をチェックする (ミドルウェア)
  */
-const isAdmin = (req, res, next) => {
-  // authenticateTokenの認証時に受け取ったユーザー情報を確認する
-  if (req.user && req.user.isAdmin) {
-    // isAdminがtrueの場合
-    next();
-  } else {
-    // 管理者ではないので、403エラー
-    res.status(403).json({ message: '管理者権限がありません。' });
+const checkAdminAccess = (req, res, next) => {
+  // トークンから復元したユーザーの権限を取得
+  const userRole = req.user && req.user.role;
+
+  // 1. フル権限の管理者（ADMIN）はすべての操作(GET, POST, PUT, DELETE)が可能
+  if (userRole === 'ADMIN') {
+    return next();
   }
+
+  // 2. ゲスト管理者（GUEST_ADMIN）はデータの「閲覧(GET)」のみ可能
+  if (userRole === 'GUEST_ADMIN') {
+    if (req.method === 'GET') {
+      // GETリクエストなら通す
+      return next();
+    } else {
+      // 追加・編集・削除をしようとしたら専用のエラーを返す
+      return res.status(403).json({ message: 'ゲスト権限ではこの操作（追加・更新・削除）は許可されていません。' });
+    }
+  }
+
+  // 3. 一般ユーザー(USER)や権限不明の場合は一律で弾く
+  return res.status(403).json({ message: '管理者権限がありません。' });
 };
 
 /**
@@ -224,7 +237,7 @@ app.post('/api/login', async (req, res) => {
       {
         userId: user.id, // ユーザーID
         name: user.name, // ユーザー名
-        isAdmin: user.is_admin // 管理者かどうか
+        role: user.role // 権限情報（"USER" or "ADMIN" or "GUEST_ADMIN"）
       },
       process.env.JWT_SECRET,
       { expiresIn: '24h' } // 期限は24時間
@@ -244,10 +257,10 @@ app.post('/api/login', async (req, res) => {
 });
 
 /**
- * [public] 認証確認
+ * 認証確認
  */
 app.get('/api/me', authenticateToken, (req, res) => {
-  // req.userにはユーザー情報（userId, name, isAdmin）が入ってる
+  // req.userにはユーザー情報（userId, name, role）が入ってる
   res.json({
     message: '正規なユーザーであることを確認できました。',
     user: req.user // そのまま返す
@@ -257,7 +270,7 @@ app.get('/api/me', authenticateToken, (req, res) => {
 /**
  * [admin] ジャンルを全て取得 (GET /api/admin/genres)
  */
-app.get('/api/admin/genres', authenticateToken, isAdmin, async (req, res) => {
+app.get('/api/admin/genres', authenticateToken, checkAdminAccess, async (req, res) => {
   try {
     const genres = await prisma.genre.findMany({
       orderBy: { id: 'asc' }, // IDの昇順
@@ -281,7 +294,7 @@ app.get('/api/admin/genres', authenticateToken, isAdmin, async (req, res) => {
 /**
  * [admin] ジャンルを登録 (POST /api/admin/genres)
  */
-app.post('/api/admin/genres', authenticateToken, isAdmin, async (req, res) => {
+app.post('/api/admin/genres', authenticateToken, checkAdminAccess, async (req, res) => {
   try {
     // ジャンル名
     const { name } = req.body;
@@ -318,7 +331,7 @@ app.post('/api/admin/genres', authenticateToken, isAdmin, async (req, res) => {
 /**
  * [admin] ジャンルを更新 (PUT /api/admin/genres/:id)
  */
-app.put('/api/admin/genres/:id', authenticateToken, isAdmin, async (req, res) => {
+app.put('/api/admin/genres/:id', authenticateToken, checkAdminAccess, async (req, res) => {
   try {
     // URLの「:id」を受け取る
     const { id } = req.params;
@@ -368,7 +381,7 @@ app.put('/api/admin/genres/:id', authenticateToken, isAdmin, async (req, res) =>
 /**
  * [admin] ジャンルを削除 (DELETE /api/admin/genres/:id)
  */
-app.delete('/api/admin/genres/:id', authenticateToken, isAdmin, async (req, res) => {
+app.delete('/api/admin/genres/:id', authenticateToken, checkAdminAccess, async (req, res) => {
   try {
     // URLの「:id」を受け取る
     const { id } = req.params;
@@ -409,7 +422,7 @@ app.delete('/api/admin/genres/:id', authenticateToken, isAdmin, async (req, res)
 /**
  * [admin] 問題文を「検索＆ページネーション」で取得 (GET /api/admin/problems)
  */
-app.get('/api/admin/problems', authenticateToken, isAdmin, async (req, res) => {
+app.get('/api/admin/problems', authenticateToken, checkAdminAccess, async (req, res) => {
   try {
     // クエリの値を取得
     const { genreId: genreIdQuery, search } = req.query;
@@ -482,7 +495,7 @@ app.get('/api/admin/problems', authenticateToken, isAdmin, async (req, res) => {
 /**
  * [admin] 問題文を登録 (POST /api/admin/problems)
  */
-app.post('/api/admin/problems', authenticateToken, isAdmin, async (req, res) => {
+app.post('/api/admin/problems', authenticateToken, checkAdminAccess, async (req, res) => {
   try {
     // ジャンルID、問題文
     const { genre_id, problem_text, problem_hiragana } = req.body;
@@ -539,7 +552,7 @@ app.post('/api/admin/problems', authenticateToken, isAdmin, async (req, res) => 
 /**
  * [admin] 問題文を更新 (PUT /api/admin/problems/:id)
  */
-app.put('/api/admin/problems/:id', authenticateToken, isAdmin, async (req, res) => {
+app.put('/api/admin/problems/:id', authenticateToken, checkAdminAccess, async (req, res) => {
   try {
     // URLの「:id」を受け取る
     const { id } = req.params;
@@ -611,7 +624,7 @@ app.put('/api/admin/problems/:id', authenticateToken, isAdmin, async (req, res) 
 /**
  * [admin] 問題文を削除 (DELETE /api/admin/problems/:id)
  */
-app.delete('/api/admin/problems/:id', authenticateToken, isAdmin, async (req, res) => {
+app.delete('/api/admin/problems/:id', authenticateToken, checkAdminAccess, async (req, res) => {
   try {
     // URLの「:id」を受け取る
     const { id } = req.params;
