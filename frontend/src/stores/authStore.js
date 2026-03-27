@@ -25,9 +25,19 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = computed(() => !!token.value);
 
   /**
-   * 管理権限があるかどうか
+   * フル権限の管理者（ADMIN）かどうか
    */
-  const isAdmin = computed(() => !!user.value && user.value.isAdmin);
+  const isAdmin = computed(() => !!user.value && user.value.role === 'ADMIN');
+
+  /**
+   * ゲスト管理者（GUEST_ADMIN）かどうか
+   */
+  const isGuestAdmin = computed(() => !!user.value && user.value.role === 'GUEST_ADMIN');
+
+  /**
+   * 管理画面にアクセスできる権限（ADMIN または GUEST_ADMIN）があるかどうか
+   */
+  const canAccessAdmin = computed(() => !!user.value && (user.value.role === 'ADMIN' || user.value.role === 'GUEST_ADMIN'));
 
   /**
    * ログイン処理
@@ -92,6 +102,8 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     isLoggedIn,
     isAdmin,
+    isGuestAdmin,
+    canAccessAdmin,
     login,
     fetchUser,
     logout
