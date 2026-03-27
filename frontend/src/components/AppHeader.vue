@@ -95,7 +95,7 @@
                 >マイページ</RouterLink
               >
             </li>
-            <li class="header__menu-item" v-if="authStore.isAdmin">
+            <li class="header__menu-item" v-if="authStore.canAccessAdmin">
               <RouterLink
                 to="/admin"
                 class="header__menu-link"

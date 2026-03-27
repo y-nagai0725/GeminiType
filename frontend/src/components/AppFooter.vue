@@ -41,7 +41,7 @@
                   >マイページ</RouterLink
                 >
               </li>
-              <li v-if="authStore.isAdmin" class="footer__item">
+              <li v-if="authStore.canAccessAdmin" class="footer__item">
                 <RouterLink to="/admin" class="footer__link"
                   >管理画面</RouterLink
                 >

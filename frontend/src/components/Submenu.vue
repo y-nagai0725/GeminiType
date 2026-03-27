@@ -55,7 +55,7 @@
             <MainMenuIcon class="submenu__link-icon" />
           </RouterLink>
         </li>
-        <template v-if="authStore.isLoggedIn && authStore.isAdmin">
+        <template v-if="authStore.isLoggedIn && authStore.canAccessAdmin">
           <li class="submenu__item">
             <RouterLink to="/admin" class="submenu__link">
               <span class="submenu__link-title-wrapper">
