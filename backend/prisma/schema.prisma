@@ -19,7 +19,7 @@ model User {
   name      String
   email     String   @unique
   password  String
-  is_admin  Boolean  @default(false)
+  role      String   @default("USER")
   sessions  TypingSession[] // このユーザーの「まとめ記録」たち
 
   @@map("users")
