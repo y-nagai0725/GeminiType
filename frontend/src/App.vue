@@ -3,7 +3,11 @@
     <AppHeader />
 
     <main class="main-content">
-      <RouterView />
+      <RouterView v-slot="{ Component }">
+        <Transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </Transition>
+      </RouterView>
     </main>
 
     <Submenu />
@@ -48,5 +52,18 @@ import Submenu from "./components/Submenu.vue";
   @include pc {
     padding-top: $header-height-pc;
   }
+}
+
+// --- ページ遷移のアニメーション (fade) ---
+// 入ってくる時と、出ていく時の動き方
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity $transition-base;
+}
+
+// 入ってくる時の「最初の状態」と、出ていく時の「最後の状態」
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0; // 透明にする
 }
 </style>
