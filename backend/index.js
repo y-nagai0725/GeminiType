@@ -1118,7 +1118,7 @@ app.get('/api/mypage/stats', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    // 統計データ（総タイプ数、平均KPM、平均正確率）を集計
+    // 統計データ（総タイプ数、平均KPM、平均正確率、初回・最新プレイ日時）を集計
     const aggregations = await prisma.typingSession.aggregate({
       where: { user_id: userId },
       _sum: {
@@ -1128,6 +1128,12 @@ app.get('/api/mypage/stats', authenticateToken, async (req, res) => {
         average_kpm: true, // KPMの平均
         average_accuracy: true, // 正確率の平均
       },
+      _min: {
+        created_at: true, // 一番古い日時:初回プレイ
+      },
+      _max: {
+        created_at: true, // 一番新しい日時:最新プレイ
+      }
     });
 
     // ユーザーの「全て」のセッションの「詳細データ(session_problems)」から
@@ -1165,7 +1171,9 @@ app.get('/api/mypage/stats', authenticateToken, async (req, res) => {
       total_types: aggregations._sum.total_types || 0,
       average_kpm: Math.round(aggregations._avg.average_kpm || 0), // 整数に丸める
       average_accuracy: Math.round(aggregations._avg.average_accuracy || 0), // 整数に丸める
-      missed_keys_ranking: missedKeysRanking
+      missed_keys_ranking: missedKeysRanking,
+      first_play_at: aggregations._min.created_at || null,
+      latest_play_at: aggregations._max.created_at || null
     });
 
   } catch (error) {
