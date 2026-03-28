@@ -87,7 +87,7 @@
 
       <div class="typing-core__main-text-wrapper">
         <p v-if="targetProblem" class="typing-core__problem">
-          {{ targetProblem.problem_text }}
+          {{ formatSpaceForDisplay(targetProblem.problem_text) }}
         </p>
 
         <div class="typing-core__hiragana">
@@ -98,10 +98,12 @@
               class="hiragana-char"
               :class="{ 'hiragana-typed': index < unitIndex }"
             >
-              {{ unit.hiragana }}
+              {{ formatSpaceForDisplay(unit.hiragana) }}
             </span>
           </template>
-          <p v-else-if="targetHiragana">{{ targetHiragana }}</p>
+          <p v-else-if="targetHiragana">
+            {{ formatSpaceForDisplay(targetHiragana) }}
+          </p>
         </div>
 
         <div
@@ -109,10 +111,10 @@
           :class="{ 'romaji-hidden': !shouldShowRomaji }"
         >
           <span class="typing-core__romaji--typed">
-            {{ typedDisplayRomaji }}
+            {{ formatSpaceForDisplay(typedDisplayRomaji) }}
           </span>
           <span class="typing-core__romaji--remaining">
-            {{ remainingDisplayRomaji }}
+            {{ formatSpaceForDisplay(remainingDisplayRomaji) }}
           </span>
         </div>
       </div>
@@ -726,6 +728,17 @@ const nextExpectedKey = computed(() => {
 });
 
 // --- Methods ---
+
+/**
+ * 表示用にスペースをオープンボックスに変換する
+ * @param {String} text 変換したい文字列
+ * @returns {String} 変換後の文字列
+ */
+const formatSpaceForDisplay = (text) => {
+  if (!text) return "";
+  // 半角スペースと全角スペースの両方をオープンボックスに変換する
+  return text.replace(/[ 　]/g, "␣");
+};
 
 /**
  * 効果音を再生する
