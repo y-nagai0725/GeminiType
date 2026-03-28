@@ -96,6 +96,11 @@
                 </tr>
               </thead>
               <tbody>
+                <tr v-if="!isTableLoading && adminStore.genres.length === 0">
+                  <td colspan="4" class="admin-view__empty-message">
+                    登録されているジャンルがありません。
+                  </td>
+                </tr>
                 <tr
                   v-for="genre in adminStore.genres"
                   :key="genre.id"
@@ -290,6 +295,11 @@
                 </tr>
               </thead>
               <tbody>
+                <tr v-if="!isTableLoading && adminStore.problems.length === 0">
+                  <td colspan="4" class="admin-view__empty-message">
+                    登録されている問題がありません。
+                  </td>
+                </tr>
                 <tr
                   v-for="problem in adminStore.problems"
                   :key="problem.id"
@@ -1402,6 +1412,18 @@ const handleEscClose = (e) => {
   &__genre-table {
     width: 100%;
     min-width: 1100px;
+  }
+
+  &__empty-message {
+    padding: 2rem 1rem;
+    font-weight: $bold;
+    @include fluid-text(14, 16);
+    color: $light-black;
+    text-align: left;
+
+    @include pc {
+      text-align: center;
+    }
   }
 
   &__genre-table-tr {
