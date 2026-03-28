@@ -6,7 +6,7 @@
     </h1>
 
     <div class="mypage-view__contents-wrapper">
-      <template v-if="isLoading">
+      <template v-if="isContentsLoading">
         <Loading
           class="mypage-view__loading"
           :text="'統計データ読み込み中です…'"
@@ -39,7 +39,7 @@
                     <dd
                       class="mypage-view__profile-value mypage-view__profile-value--number"
                     >
-                      2111/11/11
+                      {{ formatDate(stats.first_play_at) }}
                     </dd>
                   </div>
                   <div class="mypage-view__profile-item">
@@ -47,7 +47,7 @@
                     <dd
                       class="mypage-view__profile-value mypage-view__profile-value--number"
                     >
-                      2222/33/44
+                      {{ formatDate(stats.latest_play_at) }}
                     </dd>
                   </div>
                 </dl>
@@ -180,6 +180,12 @@
           </div>
 
           <div v-else class="mypage-view__table-wrapper">
+            <div
+              v-if="isTableLoading"
+              class="mypage-view__table-loading-overlay"
+            >
+              <Loading />
+            </div>
             <table class="mypage-view__table">
               <thead>
                 <tr class="mypage-view__tr">
@@ -312,9 +318,19 @@ const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
 
 /**
- * ローディング状態
+ * ローディングの最低表示時間 (ミリ秒)
  */
-const isLoading = ref(true);
+const MIN_LOADING_MS = 300;
+
+/**
+ * ページ全体のローディング状態
+ */
+const isContentsLoading = ref(false);
+
+/**
+ * 表のローディング状態
+ */
+const isTableLoading = ref(false);
 
 /**
  * 統計データ
@@ -328,6 +344,10 @@ const stats = ref({
   average_accuracy: 0,
   // 苦手キー配列
   missed_keys_ranking: [],
+  // 初回プレイ日時
+  first_play_at: null,
+  // 最新プレイ日時
+  latest_play_at: null,
 });
 
 /**
@@ -406,7 +426,7 @@ const score = computed(() => {
  */
 const scorePercent = computed(() => {
   if (!score.value || score.value === "-") {
-    return "-";
+    return 0;
   }
 
   return Math.round((score.value / maxScore) * 100);
@@ -459,14 +479,22 @@ let gsapContext;
  * 初期データ読み込み
  */
 onMounted(async () => {
+  // ローディング表示
+  isContentsLoading.value = true;
+
   try {
-    await Promise.all([fetchStats(), fetchSessions(1)]);
+    await Promise.all([
+      fetchStats(),
+      fetchSessions(1),
+      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+    ]);
   } catch (error) {
-    // 個別の関数内でエラー処理してるのでここはスルーでもOK
+    // 個別の関数内でエラー処理してるのでここはスルー
   } finally {
-    isLoading.value = false;
+    // ローディング終了
+    isContentsLoading.value = false;
     if (stats.value && sessions.value) {
-      await nextTick;
+      await nextTick();
       setAnimation();
     }
   }
@@ -501,14 +529,23 @@ const fetchStats = async () => {
  * 履歴データの取得
  */
 const fetchSessions = async (page) => {
+  // ローディング表示
+  isTableLoading.value = true;
+
   try {
-    const response = await api.get(`/api/mypage/sessions?page=${page}`);
+    const [response] = await Promise.all([
+      api.get(`/api/mypage/sessions?page=${page}`),
+      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+    ]);
     sessions.value = response.data.sessions;
     totalPages.value = response.data.totalPages;
     totalCount.value = response.data.totalCount;
     currentPage.value = response.data.currentPage;
   } catch (error) {
     notificationStore.addNotification("履歴の取得に失敗しました", "error");
+  } finally {
+    // ローディング終了
+    isTableLoading.value = false;
   }
 };
 
@@ -1020,7 +1057,21 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__table-wrapper {
+    position: relative;
     overflow-x: auto;
+  }
+
+  &__table-loading-overlay {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba($white, 0.7);
   }
 
   &__table {
