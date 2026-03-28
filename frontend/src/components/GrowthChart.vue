@@ -66,7 +66,7 @@ const chartData = computed(() => {
       {
         label: "KPM",
         borderColor: "#3490d1", // 青
-        backgroundColor: "#3490d1",
+        backgroundColor: "#3490d1", // 青
         data: kpmData,
         yAxisID: "y-left", // 左の軸を使う
         tension: 0.3, // 線をちょっと滑らかにする
@@ -74,7 +74,7 @@ const chartData = computed(() => {
       {
         label: "正確率 (%)",
         borderColor: "#41a9a5", // 緑
-        backgroundColor: "#41a9a5",
+        backgroundColor: "#41a9a5", // 緑
         data: accData,
         yAxisID: "y-right", // 右の軸を使う
         tension: 0.3,
@@ -93,12 +93,49 @@ const chartOptions = {
     mode: "index",
     intersect: false,
   },
+  plugins: {
+    legend: {
+      // 上に出る凡例の設定
+      labels: {
+        color: "#444444", // 黒
+        font: {
+          family: "'Noto Sans JP', sans-serif",
+          weight: "bold",
+        },
+      },
+    },
+  },
   scales: {
+    x: {
+      // 横軸（日付）の設定
+      ticks: {
+        color: "#444444", // 黒
+        font: {
+          family: "'Roboto Mono', monospace",
+          weight: "bold",
+        },
+      },
+    },
     "y-left": {
       type: "linear",
       display: true,
       position: "left",
-      title: { display: true, text: "KPM" }, //TODO 文字色やフォントの指定はできるのか？
+      title: {
+        display: true,
+        text: "KPM",
+        color: "#3490d1", // 青
+        font: {
+          family: "'Noto Sans JP', sans-serif",
+          size: 14,
+          weight: "bold",
+        },
+      },
+      ticks: {
+        color: "#3490d1", // 青
+        font: {
+          family: "'Roboto Mono', monospace",
+        },
+      },
     },
     "y-right": {
       type: "linear",
@@ -106,9 +143,24 @@ const chartOptions = {
       position: "right",
       min: 0,
       max: 100,
-      title: { display: true, text: "正確率 (%)" }, //TODO 文字色やフォントの指定はできるのか？
+      title: {
+        display: true,
+        text: "正確率 (%)",
+        color: "#41a9a5", // 緑
+        font: {
+          family: "'Noto Sans JP', sans-serif",
+          size: 14,
+          weight: "bold",
+        },
+      },
+      ticks: {
+        color: "#41a9a5", // 緑
+        font: {
+          family: "'Roboto Mono', monospace",
+        },
+      },
       grid: {
-        drawOnChartArea: false, // グリッド線が重なると見にくいから消す
+        drawOnChartArea: false,
       },
     },
   },
