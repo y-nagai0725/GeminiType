@@ -112,7 +112,7 @@
                 <span class="mypage-view__card-title">平均 KPM</span>
                 <span
                   class="mypage-view__card-value mypage-view__card-value--kpm"
-                  >{{ stats.average_kpm }}</span
+                  >{{ stats.total_types === 0 ? "-" : stats.average_kpm }}</span
                 >
               </div>
               <div class="mypage-view__stat-card">
@@ -122,7 +122,9 @@
                 <span class="mypage-view__card-title">平均 正確率</span>
                 <span
                   class="mypage-view__card-value mypage-view__card-value--accuracy"
-                  >{{ stats.average_accuracy }}%</span
+                  >{{
+                    stats.total_types === 0 ? "-" : `${stats.average_accuracy}%`
+                  }}</span
                 >
               </div>
               <div class="mypage-view__stat-card">
@@ -132,19 +134,28 @@
                 <span class="mypage-view__card-title">総タイプ数</span>
                 <span
                   class="mypage-view__card-value mypage-view__card-value--total-type-count"
-                  >{{ stats.total_types.toLocaleString() }}</span
+                  >{{
+                    stats.total_types === 0
+                      ? "-"
+                      : stats.total_types.toLocaleString()
+                  }}</span
                 >
               </div>
             </div>
           </section>
-          <section
-            class="mypage-view__section mypage-view__section--weak-keys"
-            v-if="stats.missed_keys_ranking.length > 0"
-          >
+          <section class="mypage-view__section mypage-view__section--weak-keys">
             <h2 class="mypage-view__subtitle">
               苦手なキー<span class="en">(Top5)</span>
             </h2>
-            <div class="mypage-view__ranking-wrapper">
+
+            <div
+              v-if="stats.missed_keys_ranking.length === 0"
+              class="mypage-view__no-data"
+            >
+              まだ履歴がありません。たくさん遊んでね！
+            </div>
+
+            <div v-else class="mypage-view__ranking-wrapper">
               <div
                 v-for="(item, index) in stats.missed_keys_ranking"
                 :key="item.key"
@@ -162,12 +173,14 @@
           </section>
         </div>
 
-        <section
-          class="mypage-view__section mypage-view__section--chart"
-          v-if="sessions.length > 0"
-        >
+        <section class="mypage-view__section mypage-view__section--chart">
           <h2 class="mypage-view__subtitle">成長グラフ</h2>
-          <div class="mypage-view__chart-wrapper">
+
+          <div v-if="sessions.length === 0" class="mypage-view__no-data">
+            まだ履歴がありません。たくさん遊んでね！
+          </div>
+
+          <div v-else class="mypage-view__chart-wrapper">
             <GrowthChart class="mypage-view__chart" :sessions="sessions" />
           </div>
         </section>
@@ -672,7 +685,14 @@ const setAnimation = () => {
  */
 watch(progressCircleDashoffset, (newValue) => {
   // プログレスバー割合
-  const percent = (1 - newValue / circumference) * 100;
+  const percent = Math.max(0, (1 - newValue / circumference) * 100);
+
+  // 履歴データが無い時
+  if (percent === 0) {
+    scoreRankClass.value = "rank-none";
+    rank.value = "-";
+    return;
+  }
 
   // 割合でランク付け
   if (percent >= 95) {
@@ -909,6 +929,10 @@ watch(progressCircleDashoffset, (newValue) => {
     &.rank-c {
       color: $blue;
     }
+
+    &.rank-none {
+      color: $light-black;
+    }
   }
 
   &__rank-title {
@@ -994,6 +1018,10 @@ watch(progressCircleDashoffset, (newValue) => {
     &--total-type-count {
       color: $light-black;
     }
+  }
+
+  &__no-data {
+    @include fluid-text(12, 14);
   }
 
   &__ranking-wrapper {
