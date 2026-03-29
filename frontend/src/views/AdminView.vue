@@ -776,6 +776,9 @@ onUnmounted(() => {
   // 検索条件を初期化しておく
   adminStore.filterGenreId = "";
   adminStore.filterSearchText = "";
+
+  // 問題テーブルのページネーションを初期位置へ
+  adminStore.currentPage = 1;
 });
 
 /**
