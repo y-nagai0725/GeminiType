@@ -12,6 +12,16 @@
           :text="'統計データ読み込み中です…'"
         />
       </template>
+      <template v-else-if="errorMessage">
+        <div class="mypage-view__error">
+          <p class="mypage-view__error-message">
+            {{ errorMessage }}
+          </p>
+          <RouterLink to="/menu" class="mypage-view__back-button">
+            メインメニューに戻る<ArrowIcon class="mypage-view__arrow-icon" />
+          </RouterLink>
+        </div>
+      </template>
       <template v-else>
         <div class="mypage-view__top-grid-wrapper">
           <section class="mypage-view__section mypage-view__section--profile">
@@ -331,6 +341,11 @@ const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
 
 /**
+ * エラーメッセージ
+ */
+const errorMessage = ref("");
+
+/**
  * ローディングの最低表示時間 (ミリ秒)
  */
 const MIN_LOADING_MS = 300;
@@ -502,11 +517,12 @@ onMounted(async () => {
       new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
     ]);
   } catch (error) {
-    // 個別の関数内でエラー処理してるのでここはスルー
+    // どちらかのAPIでエラーが発生した場合
+    errorMessage.value = "データの取得に失敗しました。";
   } finally {
     // ローディング終了
     isContentsLoading.value = false;
-    if (stats.value && sessions.value) {
+    if (!errorMessage.value) {
       await nextTick();
       setAnimation();
     }
@@ -535,6 +551,7 @@ const fetchStats = async () => {
       "統計データの取得に失敗しました",
       "error"
     );
+    throw error;
   }
 };
 
@@ -556,6 +573,7 @@ const fetchSessions = async (page) => {
     currentPage.value = response.data.currentPage;
   } catch (error) {
     notificationStore.addNotification("履歴の取得に失敗しました", "error");
+    throw error;
   } finally {
     // ローディング終了
     isTableLoading.value = false;
@@ -565,12 +583,16 @@ const fetchSessions = async (page) => {
 /**
  * ページ切り替え
  */
-const handlePageChange = (page) => {
+const handlePageChange = async (page) => {
   // 「...」や無効なページ番号の場合は何もしない
   if (page === "..." || page < 1 || page > totalPages.value) return;
 
   // 該当ページの履歴データ取得
-  fetchSessions(page);
+  try {
+    await fetchSessions(page);
+  } catch (error) {
+    // エラー時の通知は fetchSessions の中で処理を行っている
+  }
 };
 
 /**
@@ -739,6 +761,30 @@ watch(progressCircleDashoffset, (newValue) => {
       max-width: none;
       margin-inline: 0;
     }
+  }
+
+  &__error {
+    display: flex;
+    flex-direction: column;
+    @include fluid-style(gap, 16, 24);
+    text-align: center;
+  }
+
+  &__error-message {
+    @include fluid-text(12, 16);
+    color: $red;
+  }
+
+  &__back-button {
+    @include button-style-fill($green);
+    @include fluid-style(width, 240, 350);
+    @include fluid-style(padding-block, 17, 22);
+    margin-inline: auto;
+    @include fluid-text(14, 18);
+  }
+
+  &__arrow-icon {
+    @include button-arrow-icon-style;
   }
 
   &__top-grid-wrapper {
