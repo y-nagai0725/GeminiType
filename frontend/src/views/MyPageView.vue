@@ -190,7 +190,12 @@
             まだ履歴がありません。たくさん遊んでね！
           </div>
 
-          <div v-else class="mypage-view__chart-wrapper">
+          <div
+            v-else
+            class="mypage-view__chart-wrapper"
+            @scroll="handleScroll($event, 'chart')"
+          >
+            <ScrollHint :show="!scrollStates.chart" />
             <GrowthChart class="mypage-view__chart" :sessions="sessions" />
           </div>
         </section>
@@ -202,7 +207,12 @@
             まだ履歴がありません。たくさん遊んでね！
           </div>
 
-          <div v-else class="mypage-view__table-wrapper">
+          <div
+            v-else
+            class="mypage-view__table-wrapper"
+            @scroll="handleScroll($event, 'table')"
+          >
+            <ScrollHint :show="!scrollStates.table" />
             <div
               v-if="isTableLoading"
               class="mypage-view__table-loading-overlay"
@@ -319,6 +329,7 @@ import ScoreIcon from "@/components/icons/ScoreIcon.vue";
 import UserIcon from "@/components/icons/UserIcon.vue";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import Loading from "@/components/Loading.vue";
+import ScrollHint from "@/components/ScrollHint.vue";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -359,6 +370,14 @@ const isContentsLoading = ref(false);
  * 表のローディング状態
  */
 const isTableLoading = ref(false);
+
+/**
+ * スクロールヒントの非表示状態を管理するオブジェクト
+ */
+const scrollStates = ref({
+  chart: false,
+  table: false,
+});
 
 /**
  * 統計データ
@@ -612,6 +631,19 @@ const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
     handlePageChange(currentPage.value);
+  }
+};
+
+/**
+ * スクロールイベントハンドラ
+ */
+const handleScroll = (e, targetKey) => {
+  // すでにスクロールヒントが消えている（true）なら、これ以上計算しない
+  if (scrollStates.value[targetKey]) return;
+
+  // 5px以上スクロールされたら、スクロールヒントを消す
+  if (e.target.scrollLeft > 5) {
+    scrollStates.value[targetKey] = true;
   }
 };
 
@@ -1122,6 +1154,7 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__chart-wrapper {
+    position: relative;
     overflow-x: auto;
   }
 
