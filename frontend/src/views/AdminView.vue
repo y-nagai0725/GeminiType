@@ -66,84 +66,91 @@
               <PlusIcon class="admin-view__input-button-icon" />追加
             </button>
           </form>
-          <div class="admin-view__table-wrapper">
+          <div class="admin-view__table-container">
+            <ScrollHint :show="!scrollStates.genres" />
             <div v-if="isTableLoading" class="admin-view__loading-overlay">
               <Loading />
             </div>
-            <table class="admin-view__genre-table">
-              <thead>
-                <tr class="admin-view__genre-table-tr">
-                  <th
-                    class="admin-view__genre-table-th admin-view__genre-table-th--id"
-                  >
-                    ID
-                  </th>
-                  <th
-                    class="admin-view__genre-table-th admin-view__genre-table-th--genre"
-                  >
-                    ジャンル名
-                  </th>
-                  <th
-                    class="admin-view__genre-table-th admin-view__genre-table-th--count"
-                  >
-                    登録問題数
-                  </th>
-                  <th
-                    class="admin-view__genre-table-th admin-view__genre-table-th--action"
-                  >
-                    操作
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-if="!isTableLoading && adminStore.genres.length === 0">
-                  <td colspan="4" class="admin-view__empty-message">
-                    登録されているジャンルがありません。
-                  </td>
-                </tr>
-                <tr
-                  v-for="genre in adminStore.genres"
-                  :key="genre.id"
-                  class="admin-view__genre-table-tr"
-                >
-                  <td
-                    class="admin-view__genre-table-td admin-view__genre-table-td--id"
-                  >
-                    {{ genre.id }}
-                  </td>
-                  <td
-                    class="admin-view__genre-table-td admin-view__genre-table-td--genre"
-                  >
-                    {{ genre.name }}
-                  </td>
-                  <td
-                    class="admin-view__genre-table-td admin-view__genre-table-td--count"
-                  >
-                    {{ genre._count.problems }}
-                  </td>
-                  <td
-                    class="admin-view__genre-table-td admin-view__genre-table-td--action"
-                  >
-                    <button
-                      class="admin-view__genre-table-button admin-view__genre-table-button--edit"
-                      @click="openEditModal(genre, 'genre')"
+            <div
+              class="admin-view__table-wrapper"
+              ref="genresTableWrapper"
+              @scroll="handleScroll($event, 'genres')"
+            >
+              <table class="admin-view__genre-table">
+                <thead>
+                  <tr class="admin-view__genre-table-tr">
+                    <th
+                      class="admin-view__genre-table-th admin-view__genre-table-th--id"
                     >
-                      <EditIcon
-                        class="admin-view__table-button-icon admin-view__table-button-icon--edit"
-                      />
-                    </button>
-                    <button
-                      class="admin-view__genre-table-button admin-view__genre-table-button--delete"
-                      @click="handleDeleteGenre(genre.id, genre.name)"
+                      ID
+                    </th>
+                    <th
+                      class="admin-view__genre-table-th admin-view__genre-table-th--genre"
                     >
-                      <DeleteIcon
-                        class="admin-view__table-button-icon admin-view__table-button-icon--delete"
-                      />
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                      ジャンル名
+                    </th>
+                    <th
+                      class="admin-view__genre-table-th admin-view__genre-table-th--count"
+                    >
+                      登録問題数
+                    </th>
+                    <th
+                      class="admin-view__genre-table-th admin-view__genre-table-th--action"
+                    >
+                      操作
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-if="!isTableLoading && adminStore.genres.length === 0">
+                    <td colspan="4" class="admin-view__empty-message">
+                      登録されているジャンルがありません。
+                    </td>
+                  </tr>
+                  <tr
+                    v-for="genre in adminStore.genres"
+                    :key="genre.id"
+                    class="admin-view__genre-table-tr"
+                  >
+                    <td
+                      class="admin-view__genre-table-td admin-view__genre-table-td--id"
+                    >
+                      {{ genre.id }}
+                    </td>
+                    <td
+                      class="admin-view__genre-table-td admin-view__genre-table-td--genre"
+                    >
+                      {{ genre.name }}
+                    </td>
+                    <td
+                      class="admin-view__genre-table-td admin-view__genre-table-td--count"
+                    >
+                      {{ genre._count.problems }}
+                    </td>
+                    <td
+                      class="admin-view__genre-table-td admin-view__genre-table-td--action"
+                    >
+                      <button
+                        class="admin-view__genre-table-button admin-view__genre-table-button--edit"
+                        @click="openEditModal(genre, 'genre')"
+                      >
+                        <EditIcon
+                          class="admin-view__table-button-icon admin-view__table-button-icon--edit"
+                        />
+                      </button>
+                      <button
+                        class="admin-view__genre-table-button admin-view__genre-table-button--delete"
+                        @click="handleDeleteGenre(genre.id, genre.name)"
+                      >
+                        <DeleteIcon
+                          class="admin-view__table-button-icon admin-view__table-button-icon--delete"
+                        />
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
 
@@ -265,94 +272,103 @@
             </div>
           </div>
 
-          <div class="admin-view__table-wrapper">
+          <div class="admin-view__table-container">
+            <ScrollHint :show="!scrollStates.problems" />
             <div v-if="isTableLoading" class="admin-view__loading-overlay">
               <Loading />
             </div>
-            <table class="admin-view__problem-table">
-              <thead>
-                <tr class="admin-view__problem-table-tr">
-                  <th
-                    class="admin-view__problem-table-th admin-view__problem-table-th--genre"
-                  >
-                    ジャンル
-                  </th>
-                  <th
-                    class="admin-view__problem-table-th admin-view__problem-table-th--problem"
-                  >
-                    問題文
-                  </th>
-                  <th
-                    class="admin-view__problem-table-th admin-view__problem-table-th--hiragana"
-                  >
-                    ひらがな
-                  </th>
-                  <th
-                    class="admin-view__problem-table-th admin-view__problem-table-th--action"
-                  >
-                    操作
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-if="!isTableLoading && adminStore.problems.length === 0">
-                  <td colspan="4" class="admin-view__empty-message">
-                    登録されている問題がありません。
-                  </td>
-                </tr>
-                <tr
-                  v-for="problem in adminStore.problems"
-                  :key="problem.id"
-                  class="admin-view__problem-table-tr"
-                >
-                  <td
-                    class="admin-view__problem-table-td admin-view__problem-table-td--genre"
-                  >
-                    {{ problem.genre.name }}
-                  </td>
-                  <td
-                    class="admin-view__problem-table-td admin-view__problem-table-td--problem"
-                  >
-                    {{ problem.problem_text }}
-                  </td>
-                  <td
-                    class="admin-view__problem-table-td admin-view__problem-table-td--hiragana"
-                  >
-                    {{ problem.problem_hiragana }}
-                  </td>
-                  <td
-                    class="admin-view__problem-table-td admin-view__problem-table-td--action"
-                  >
-                    <button
-                      class="admin-view__problem-table-button admin-view__problem-table-button--try"
-                      @click="openTryModal(problem)"
+            <div
+              class="admin-view__table-wrapper"
+              ref="problemsTableWrapper"
+              @scroll="handleScroll($event, 'problems')"
+            >
+              <table class="admin-view__problem-table">
+                <thead>
+                  <tr class="admin-view__problem-table-tr">
+                    <th
+                      class="admin-view__problem-table-th admin-view__problem-table-th--genre"
                     >
-                      <TotalTypeCountIcon
-                        class="admin-view__table-button-icon admin-view__table-button-icon--keyboard"
-                      />
-                    </button>
-                    <button
-                      class="admin-view__problem-table-button admin-view__problem-table-button--edit"
-                      @click="openEditModal(problem, 'problem')"
+                      ジャンル
+                    </th>
+                    <th
+                      class="admin-view__problem-table-th admin-view__problem-table-th--problem"
                     >
-                      <EditIcon
-                        class="admin-view__table-button-icon admin-view__table-button-icon--edit"
-                      />
-                    </button>
-                    <button
-                      class="admin-view__problem-table-button admin-view__problem-table-button--delete"
-                      @click="
-                        handleDeleteProblem(problem.id, problem.problem_text)
-                      "
+                      問題文
+                    </th>
+                    <th
+                      class="admin-view__problem-table-th admin-view__problem-table-th--hiragana"
                     >
-                      <DeleteIcon
-                        class="admin-view__table-button-icon admin-view__table-button-icon--delete"
-                      />
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                      ひらがな
+                    </th>
+                    <th
+                      class="admin-view__problem-table-th admin-view__problem-table-th--action"
+                    >
+                      操作
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-if="!isTableLoading && adminStore.problems.length === 0"
+                  >
+                    <td colspan="4" class="admin-view__empty-message">
+                      登録されている問題がありません。
+                    </td>
+                  </tr>
+                  <tr
+                    v-for="problem in adminStore.problems"
+                    :key="problem.id"
+                    class="admin-view__problem-table-tr"
+                  >
+                    <td
+                      class="admin-view__problem-table-td admin-view__problem-table-td--genre"
+                    >
+                      {{ problem.genre.name }}
+                    </td>
+                    <td
+                      class="admin-view__problem-table-td admin-view__problem-table-td--problem"
+                    >
+                      {{ problem.problem_text }}
+                    </td>
+                    <td
+                      class="admin-view__problem-table-td admin-view__problem-table-td--hiragana"
+                    >
+                      {{ problem.problem_hiragana }}
+                    </td>
+                    <td
+                      class="admin-view__problem-table-td admin-view__problem-table-td--action"
+                    >
+                      <button
+                        class="admin-view__problem-table-button admin-view__problem-table-button--try"
+                        @click="openTryModal(problem)"
+                      >
+                        <TotalTypeCountIcon
+                          class="admin-view__table-button-icon admin-view__table-button-icon--keyboard"
+                        />
+                      </button>
+                      <button
+                        class="admin-view__problem-table-button admin-view__problem-table-button--edit"
+                        @click="openEditModal(problem, 'problem')"
+                      >
+                        <EditIcon
+                          class="admin-view__table-button-icon admin-view__table-button-icon--edit"
+                        />
+                      </button>
+                      <button
+                        class="admin-view__problem-table-button admin-view__problem-table-button--delete"
+                        @click="
+                          handleDeleteProblem(problem.id, problem.problem_text)
+                        "
+                      >
+                        <DeleteIcon
+                          class="admin-view__table-button-icon admin-view__table-button-icon--delete"
+                        />
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div
@@ -575,6 +591,7 @@ import DeleteIcon from "@/components/icons/DeleteIcon.vue";
 import EditIcon from "@/components/icons/EditIcon.vue";
 import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 import Loading from "@/components/Loading.vue";
+import ScrollHint from "@/components/ScrollHint.vue";
 
 /**
  * 認証store
@@ -600,6 +617,24 @@ const settingsStore = useSettingsStore();
  * router
  */
 const router = useRouter();
+
+/**
+ * スクロールヒントの非表示状態を管理するオブジェクト
+ */
+const scrollStates = ref({
+  genres: false,
+  problems: false,
+});
+
+/**
+ * ジャンルテーブル要素参照
+ */
+const genresTableWrapper = ref(null);
+
+/**
+ * 問題テーブル要素参照
+ */
+const problemsTableWrapper = ref(null);
 
 /**
  * 表のローディング管理用
@@ -881,6 +916,9 @@ const handleAddGenre = async () => {
       new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
     ]);
 
+    // データが更新された後にスクロールをリセット
+    resetTableScroll("genres", genresTableWrapper);
+
     // 成功通知
     notificationStore.addNotification("ジャンルを追加しました。", "success");
 
@@ -943,6 +981,9 @@ const handleAddProblem = async () => {
       new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
     ]);
 
+    // データが更新された後にスクロールをリセット
+    resetTableScroll("problems", problemsTableWrapper);
+
     // 成功通知
     notificationStore.addNotification("問題文を追加しました。", "success");
 
@@ -979,6 +1020,9 @@ const handleSearch = async () => {
       adminStore.applyFilters(),
       new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
     ]);
+
+    // データが更新された後にスクロールをリセット
+    resetTableScroll("problems", problemsTableWrapper);
   } catch (error) {
     // エラー通知
     notificationStore.addNotification(
@@ -1005,6 +1049,9 @@ const handleSetPage = async (newPage) => {
       adminStore.setPage(newPage),
       new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
     ]);
+
+    // データが更新された後にスクロールをリセット
+    resetTableScroll("problems", problemsTableWrapper);
   } catch (error) {
     // エラー通知
     notificationStore.addNotification(
@@ -1033,7 +1080,10 @@ const handleDeleteGenre = (id, name) => {
   confirmMessage.value = `本当に「${name}」を削除しますか？\n（※問題文 が残ってると削除できません）`;
 
   // 確認OK時の処理をセット
-  onConfirmAction.value = () => adminStore.deleteGenre(id);
+  onConfirmAction.value = async () => {
+    await adminStore.deleteGenre(id);
+    resetTableScroll("genres", genresTableWrapper);
+  };
 
   // 確認モーダルを開く
   isConfirmOpen.value = true;
@@ -1055,7 +1105,10 @@ const handleDeleteProblem = (id, text) => {
   confirmMessage.value = `本当に「${text}」を削除しますか？`;
 
   // 確認OK時の処理をセット
-  onConfirmAction.value = () => adminStore.deleteProblem(id);
+  onConfirmAction.value = async () => {
+    await adminStore.deleteProblem(id);
+    resetTableScroll("problems", problemsTableWrapper);
+  };
 
   // 確認モーダルを開く
   isConfirmOpen.value = true;
@@ -1181,6 +1234,9 @@ const handleUpdateItem = async () => {
         adminStore.updateGenre(editForm.id, editForm.name),
         new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
       ]);
+
+      // データが更新された後にスクロールをリセット
+      resetTableScroll("genres", genresTableWrapper);
     } else {
       // ---問題文編集の場合---
       // ジャンルと問題文とひらがなのバリデーション
@@ -1217,6 +1273,9 @@ const handleUpdateItem = async () => {
         ),
         new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
       ]);
+
+      // データが更新された後にスクロールをリセット
+      resetTableScroll("problems", problemsTableWrapper);
     }
 
     // 成功通知
@@ -1273,6 +1332,31 @@ const handleEscClose = (e) => {
     // モーダルを閉じる処理
     closeTryModal();
   }
+};
+
+/**
+ * スクロールイベントハンドラ
+ */
+const handleScroll = (e, targetKey) => {
+  // すでにスクロールヒントが消えている（true）なら、これ以上計算しない
+  if (scrollStates.value[targetKey]) return;
+
+  // 5px以上スクロールされたら、スクロールヒントを消す
+  if (e.target.scrollLeft > 5) {
+    scrollStates.value[targetKey] = true;
+  }
+};
+
+/**
+ * スクロール位置とヒント表示をリセットする関数
+ */
+const resetTableScroll = (targetKey, wrapperRef) => {
+  // スクロール位置を一番左（0）に戻す
+  if (wrapperRef.value) {
+    wrapperRef.value.scrollLeft = 0;
+  }
+  // スクロールヒントがもう一度表示されるように状態をリセットする
+  scrollStates.value[targetKey] = false;
 };
 </script>
 
@@ -1394,8 +1478,12 @@ const handleEscClose = (e) => {
     @include fluid-text(14, 16);
   }
 
-  &__table-wrapper {
+  &__table-container {
     position: relative;
+    width: 100%;
+  }
+
+  &__table-wrapper {
     overflow-x: auto;
   }
 
