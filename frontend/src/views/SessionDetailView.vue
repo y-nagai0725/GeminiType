@@ -6,7 +6,7 @@
     </h1>
     <div class="session-detail__contents-wrapper">
       <Loading
-        v-if="isLoading"
+        v-if="isContentsLoading"
         class="session-detail__loading"
         :text="'データ読み込み中です…'"
       />
@@ -18,7 +18,7 @@
         /></RouterLink>
       </div>
 
-      <div v-else class="session-detail__content">
+      <div v-else-if="session" class="session-detail__content">
         <div class="session-detail__information">
           <span class="session-detail__information-label">実施日時</span>
           <span
@@ -94,55 +94,67 @@
 
         <div class="session-detail__history">
           <h2 class="session-detail__subtitle">問題別スコア</h2>
-          <div class="session-detail__table-wrapper">
-            <table class="session-detail__table">
-              <thead>
-                <tr class="session-detail__tr">
-                  <th class="session-detail__th session-detail__th--no">No.</th>
-                  <th class="session-detail__th session-detail__th--problem">
-                    問題文
-                  </th>
-                  <th class="session-detail__th session-detail__th--romaji">
-                    ローマ字
-                  </th>
-                  <th class="session-detail__th session-detail__th--kpm">
-                    KPM
-                  </th>
-                  <th class="session-detail__th session-detail__th--acc">
-                    正確率
-                  </th>
-                  <th class="session-detail__th session-detail__th--miss-keys">
-                    ミスしたキー
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(problem, index) in session.session_problems"
-                  :key="problem.id"
-                  class="session-detail__tr"
-                >
-                  <td class="session-detail__td session-detail__td--no">
-                    {{ index + 1 }}
-                  </td>
-                  <td class="session-detail__td session-detail__td--problem">
-                    {{ problem.problem_text }}
-                  </td>
-                  <td class="session-detail__td session-detail__td--romaji">
-                    {{ problem.romaji_text || "-" }}
-                  </td>
-                  <td class="session-detail__td session-detail__td--kpm">
-                    {{ Math.round(problem.kpm) }}
-                  </td>
-                  <td class="session-detail__td session-detail__td--acc">
-                    {{ Math.round(problem.accuracy) }}%
-                  </td>
-                  <td class="session-detail__td session-detail__td--miss-keys">
-                    {{ formatMissedKeys(problem.missed_keys) }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="session-detail__table-container">
+            <ScrollHint :show="!scrollStates.table" />
+            <div
+              class="session-detail__table-wrapper"
+              @scroll="handleScroll($event, 'table')"
+            >
+              <table class="session-detail__table">
+                <thead>
+                  <tr class="session-detail__tr">
+                    <th class="session-detail__th session-detail__th--no">
+                      No.
+                    </th>
+                    <th class="session-detail__th session-detail__th--problem">
+                      問題文
+                    </th>
+                    <th class="session-detail__th session-detail__th--romaji">
+                      ローマ字
+                    </th>
+                    <th class="session-detail__th session-detail__th--kpm">
+                      KPM
+                    </th>
+                    <th class="session-detail__th session-detail__th--acc">
+                      正確率
+                    </th>
+                    <th
+                      class="session-detail__th session-detail__th--miss-keys"
+                    >
+                      ミスしたキー
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(problem, index) in session.session_problems"
+                    :key="problem.id"
+                    class="session-detail__tr"
+                  >
+                    <td class="session-detail__td session-detail__td--no">
+                      {{ index + 1 }}
+                    </td>
+                    <td class="session-detail__td session-detail__td--problem">
+                      {{ problem.problem_text }}
+                    </td>
+                    <td class="session-detail__td session-detail__td--romaji">
+                      {{ problem.romaji_text || "-" }}
+                    </td>
+                    <td class="session-detail__td session-detail__td--kpm">
+                      {{ Math.round(problem.kpm) }}
+                    </td>
+                    <td class="session-detail__td session-detail__td--acc">
+                      {{ Math.round(problem.accuracy) }}%
+                    </td>
+                    <td
+                      class="session-detail__td session-detail__td--miss-keys"
+                    >
+                      {{ formatMissedKeys(problem.missed_keys) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -173,6 +185,7 @@ import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 import TotalMissCountIcon from "@/components/icons/TotalMissCountIcon.vue";
 import WorstKeyIcon from "@/components/icons/WorstKeyIcon.vue";
 import Loading from "@/components/Loading.vue";
+import ScrollHint from "@/components/ScrollHint.vue";
 import gsap from "gsap";
 
 /**
@@ -193,7 +206,19 @@ const notificationStore = useNotificationStore();
 /**
  * ローディング状態
  */
-const isLoading = ref(true);
+const isContentsLoading = ref(false);
+
+/**
+ * ローディングの最低表示時間 (ミリ秒)
+ */
+const MIN_LOADING_MS = 300;
+
+/**
+ * スクロールヒントの非表示状態を管理するオブジェクト
+ */
+const scrollStates = ref({
+  table: false,
+});
 
 /**
  * エラーメッセージ
@@ -296,6 +321,19 @@ const setAnimation = () => {
 };
 
 /**
+ * スクロールイベントハンドラ
+ */
+const handleScroll = (e, targetKey) => {
+  // すでにヒントが消えているなら何もしない
+  if (scrollStates.value[targetKey]) return;
+
+  // 5px以上スクロールされたらヒントを消す
+  if (e.target.scrollLeft > 5) {
+    scrollStates.value[targetKey] = true;
+  }
+};
+
+/**
  * 初期データ読み込み
  */
 onMounted(async () => {
@@ -307,9 +345,15 @@ onMounted(async () => {
     return;
   }
 
+  // ローディング表示
+  isContentsLoading.value = true;
+
   try {
-    // 詳細APIを叩く
-    const response = await api.get(`/api/mypage/sessions/${sessionId}`);
+    // 詳細APIと最低時間の待機（ローディング表示用）
+    const [response] = await Promise.all([
+      api.get(`/api/mypage/sessions/${sessionId}`),
+      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+    ]);
     session.value = response.data;
   } catch (error) {
     console.error("詳細取得エラー:", error);
@@ -321,8 +365,11 @@ onMounted(async () => {
     // エラー通知表示
     notificationStore.addNotification("データの取得に失敗しました", "error");
   } finally {
-    isLoading.value = false;
-    if (session.value) {
+    // ローディング終了
+    isContentsLoading.value = false;
+
+    // 正常にデータ取得時のみgsapアニメーション設定
+    if (!errorMessage.value && session.value) {
       await nextTick();
       setAnimation();
     }
@@ -500,6 +547,11 @@ onUnmounted(() => {
     font-weight: $bold;
     @include fluid-text(14, 16);
     letter-spacing: 0.1em;
+  }
+
+  &__table-container {
+    position: relative;
+    width: 100%;
   }
 
   &__table-wrapper {
