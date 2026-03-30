@@ -190,13 +190,21 @@
             まだ履歴がありません。たくさん遊んでね！
           </div>
 
-          <div
-            v-else
-            class="mypage-view__chart-wrapper"
-            @scroll="handleScroll($event, 'chart')"
-          >
+          <div v-else class="mypage-view__chart-container">
             <ScrollHint :show="!scrollStates.chart" />
-            <GrowthChart class="mypage-view__chart" :sessions="sessions" />
+            <div
+              v-if="isSessionLoading"
+              class="mypage-view__session-loading-overlay"
+            >
+              <Loading />
+            </div>
+            <div
+              class="mypage-view__chart-wrapper"
+              ref="chartWrapper"
+              @scroll="handleScroll($event, 'chart')"
+            >
+              <GrowthChart class="mypage-view__chart" :sessions="sessions" />
+            </div>
           </div>
         </section>
 
@@ -207,107 +215,160 @@
             まだ履歴がありません。たくさん遊んでね！
           </div>
 
-          <div
-            v-else
-            class="mypage-view__table-wrapper"
-            @scroll="handleScroll($event, 'table')"
-          >
-            <ScrollHint :show="!scrollStates.table" />
+          <template v-else>
             <div
-              v-if="isTableLoading"
-              class="mypage-view__table-loading-overlay"
+              class="mypage-view__pagination-container"
+              v-if="totalPages > 1"
             >
-              <Loading />
-            </div>
-            <table class="mypage-view__table">
-              <thead>
-                <tr class="mypage-view__tr">
-                  <th class="mypage-view__th mypage-view__th--date">日時</th>
-                  <th class="mypage-view__th mypage-view__th--mode">
-                    モード(AI or DB): お題
-                  </th>
-                  <th class="mypage-view__th mypage-view__th--kpm">KPM</th>
-                  <th class="mypage-view__th mypage-view__th--acc">正確率</th>
-                  <th class="mypage-view__th mypage-view__th--action"></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="session in sessions"
-                  class="mypage-view__tr"
-                  :key="session.id"
-                >
-                  <td class="mypage-view__td mypage-view__td--date">
-                    {{ formatDate(session.created_at) }}
-                  </td>
-                  <td class="mypage-view__td mypage-view__td--mode">
-                    <span v-if="session.session_type === 'db'" class="db">
-                      DB:
-                      {{ session.genre ? session.genre.name : "削除済" }}
-                    </span>
-                    <span v-else class="ai"
-                      >AI:
-                      {{ truncateText(session.gemini_prompt, 15) }}
-                    </span>
-                  </td>
-                  <td class="mypage-view__td mypage-view__td--kpm">
-                    {{ Math.round(session.average_kpm) }}
-                  </td>
-                  <td class="mypage-view__td mypage-view__td--acc">
-                    {{ Math.round(session.average_accuracy) }}%
-                  </td>
-                  <td class="mypage-view__td mypage-view__td--action">
-                    <RouterLink
-                      :to="`/mypage/session/${session.id}`"
-                      class="mypage-view__detail-link"
-                    >
-                      詳細
-                      <ArrowIcon class="mypage-view__arrow-icon" />
-                    </RouterLink>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="mypage-view__pagination-container" v-if="totalPages > 1">
-            <div class="mypage-view__pagination">
-              <button
-                class="mypage-view__page-button mypage-view__page-button--prev"
-                :class="{ 'is-disabled': currentPage === 1 }"
-                @click="prevPage"
-                :disabled="currentPage === 1"
-              ></button>
-
-              <template v-for="(item, index) in paginationItems">
+              <div class="mypage-view__pagination">
                 <button
-                  v-if="item !== '...'"
-                  :key="`num-${index}`"
-                  class="mypage-view__page-button mypage-view__page-button--number"
-                  :class="{
-                    'is-active': item === currentPage,
-                  }"
-                  @click="handlePageChange(item)"
-                >
-                  {{ item }}
-                </button>
+                  class="mypage-view__page-button mypage-view__page-button--prev"
+                  :class="{ 'is-disabled': currentPage === 1 }"
+                  @click="prevPage"
+                  :disabled="currentPage === 1"
+                ></button>
 
-                <span
-                  v-else
-                  :key="`dots-${index}`"
-                  class="mypage-view__page-dots"
-                >
-                  …
-                </span>
-              </template>
+                <template v-for="(item, index) in paginationItems">
+                  <button
+                    v-if="item !== '...'"
+                    :key="`num-${index}`"
+                    class="mypage-view__page-button mypage-view__page-button--number"
+                    :class="{
+                      'is-active': item === currentPage,
+                    }"
+                    @click="handlePageChange(item)"
+                  >
+                    {{ item }}
+                  </button>
 
-              <button
-                class="mypage-view__page-button mypage-view__page-button--next"
-                :class="{ 'is-disabled': currentPage === totalPages }"
-                @click="nextPage"
-                :disabled="currentPage === totalPages"
-              ></button>
+                  <span
+                    v-else
+                    :key="`dots-${index}`"
+                    class="mypage-view__page-dots"
+                  >
+                    …
+                  </span>
+                </template>
+
+                <button
+                  class="mypage-view__page-button mypage-view__page-button--next"
+                  :class="{ 'is-disabled': currentPage === totalPages }"
+                  @click="nextPage"
+                  :disabled="currentPage === totalPages"
+                ></button>
+              </div>
             </div>
-          </div>
+            <div class="mypage-view__table-container">
+              <ScrollHint :show="!scrollStates.table" />
+              <div
+                v-if="isSessionLoading"
+                class="mypage-view__session-loading-overlay"
+              >
+                <Loading />
+              </div>
+              <div
+                class="mypage-view__table-wrapper"
+                ref="historyTableWrapper"
+                @scroll="handleScroll($event, 'table')"
+              >
+                <table class="mypage-view__table">
+                  <thead>
+                    <tr class="mypage-view__tr">
+                      <th class="mypage-view__th mypage-view__th--date">
+                        日時
+                      </th>
+                      <th class="mypage-view__th mypage-view__th--mode">
+                        モード(AI or DB): お題
+                      </th>
+                      <th class="mypage-view__th mypage-view__th--kpm">KPM</th>
+                      <th class="mypage-view__th mypage-view__th--acc">
+                        正確率
+                      </th>
+                      <th class="mypage-view__th mypage-view__th--action"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="session in sessions"
+                      class="mypage-view__tr"
+                      :key="session.id"
+                    >
+                      <td class="mypage-view__td mypage-view__td--date">
+                        {{ formatDate(session.created_at) }}
+                      </td>
+                      <td class="mypage-view__td mypage-view__td--mode">
+                        <span v-if="session.session_type === 'db'" class="db">
+                          DB:
+                          {{ session.genre ? session.genre.name : "削除済" }}
+                        </span>
+                        <span v-else class="ai"
+                          >AI:
+                          {{ truncateText(session.gemini_prompt, 15) }}
+                        </span>
+                      </td>
+                      <td class="mypage-view__td mypage-view__td--kpm">
+                        {{ Math.round(session.average_kpm) }}
+                      </td>
+                      <td class="mypage-view__td mypage-view__td--acc">
+                        {{ Math.round(session.average_accuracy) }}%
+                      </td>
+                      <td class="mypage-view__td mypage-view__td--action">
+                        <RouterLink
+                          :to="`/mypage/session/${session.id}`"
+                          class="mypage-view__detail-link"
+                        >
+                          詳細
+                          <ArrowIcon class="mypage-view__arrow-icon" />
+                        </RouterLink>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div
+              class="mypage-view__pagination-container"
+              v-if="totalPages > 1"
+            >
+              <div class="mypage-view__pagination">
+                <button
+                  class="mypage-view__page-button mypage-view__page-button--prev"
+                  :class="{ 'is-disabled': currentPage === 1 }"
+                  @click="prevPage"
+                  :disabled="currentPage === 1"
+                ></button>
+
+                <template v-for="(item, index) in paginationItems">
+                  <button
+                    v-if="item !== '...'"
+                    :key="`num-${index}`"
+                    class="mypage-view__page-button mypage-view__page-button--number"
+                    :class="{
+                      'is-active': item === currentPage,
+                    }"
+                    @click="handlePageChange(item)"
+                  >
+                    {{ item }}
+                  </button>
+
+                  <span
+                    v-else
+                    :key="`dots-${index}`"
+                    class="mypage-view__page-dots"
+                  >
+                    …
+                  </span>
+                </template>
+
+                <button
+                  class="mypage-view__page-button mypage-view__page-button--next"
+                  :class="{ 'is-disabled': currentPage === totalPages }"
+                  @click="nextPage"
+                  :disabled="currentPage === totalPages"
+                ></button>
+              </div>
+            </div>
+          </template>
         </section>
       </template>
     </div>
@@ -352,6 +413,16 @@ const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
 
 /**
+ * グラフ要素を取得するための参照
+ */
+const chartWrapper = ref(null);
+
+/**
+ * 履歴テーブル要素を取得するための参照
+ */
+const historyTableWrapper = ref(null);
+
+/**
  * エラーメッセージ
  */
 const errorMessage = ref("");
@@ -367,9 +438,9 @@ const MIN_LOADING_MS = 300;
 const isContentsLoading = ref(false);
 
 /**
- * 表のローディング状態
+ * グラフと表のローディング状態
  */
-const isTableLoading = ref(false);
+const isSessionLoading = ref(false);
 
 /**
  * スクロールヒントの非表示状態を管理するオブジェクト
@@ -578,8 +649,8 @@ const fetchStats = async () => {
  * 履歴データの取得
  */
 const fetchSessions = async (page) => {
-  // ローディング表示
-  isTableLoading.value = true;
+  // グラフと表のローディング表示
+  isSessionLoading.value = true;
 
   try {
     const [response] = await Promise.all([
@@ -590,12 +661,16 @@ const fetchSessions = async (page) => {
     totalPages.value = response.data.totalPages;
     totalCount.value = response.data.totalCount;
     currentPage.value = response.data.currentPage;
+
+    // スクロール位置リセット
+    resetScroll("chart", chartWrapper);
+    resetScroll("table", historyTableWrapper);
   } catch (error) {
     notificationStore.addNotification("履歴の取得に失敗しました", "error");
     throw error;
   } finally {
     // ローディング終了
-    isTableLoading.value = false;
+    isSessionLoading.value = false;
   }
 };
 
@@ -645,6 +720,16 @@ const handleScroll = (e, targetKey) => {
   if (e.target.scrollLeft > 5) {
     scrollStates.value[targetKey] = true;
   }
+};
+
+/**
+ * スクロール位置とヒント表示をリセットする
+ */
+const resetScroll = (targetKey, wrapperRef) => {
+  if (wrapperRef.value) {
+    wrapperRef.value.scrollLeft = 0;
+  }
+  scrollStates.value[targetKey] = false;
 };
 
 /**
@@ -1153,22 +1238,13 @@ watch(progressCircleDashoffset, (newValue) => {
     }
   }
 
-  &__chart-wrapper {
+  &__chart-container,
+  &__table-container {
     position: relative;
-    overflow-x: auto;
-  }
-
-  &__chart {
     width: 100%;
-    min-width: 1000px;
   }
 
-  &__table-wrapper {
-    position: relative;
-    overflow-x: auto;
-  }
-
-  &__table-loading-overlay {
+  &__session-loading-overlay {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1179,6 +1255,19 @@ watch(progressCircleDashoffset, (newValue) => {
     width: 100%;
     height: 100%;
     background: rgba($white, 0.7);
+  }
+
+  &__chart-wrapper {
+    overflow-x: auto;
+  }
+
+  &__chart {
+    width: 100%;
+    min-width: 1000px;
+  }
+
+  &__table-wrapper {
+    overflow-x: auto;
   }
 
   &__table {
