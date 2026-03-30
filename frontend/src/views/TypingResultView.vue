@@ -130,45 +130,53 @@
       </div>
       <div v-if="resultData" class="result-view__details">
         <h2 class="result-view__details-title">詳細結果</h2>
-        <div class="result-view__table-wrapper">
-          <table class="result-view__table">
-            <thead>
-              <tr class="result-view__tr">
-                <th class="result-view__th result-view__th--problem">問題文</th>
-                <th class="result-view__th result-view__th--romaji">
-                  ローマ字
-                </th>
-                <th class="result-view__th result-view__th--kpm">KPM</th>
-                <th class="result-view__th result-view__th--acc">正確率</th>
-                <th class="result-view__th result-view__th--miss-keys">
-                  ミスしたキー
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="(problem, index) in resultData.results"
-                class="result-view__tr"
-                :key="index"
-              >
-                <td class="result-view__td result-view__td--problem">
-                  {{ problem.problem_text }}
-                </td>
-                <td class="result-view__td result-view__td--romaji">
-                  {{ problem.romaji_text || "-" }}
-                </td>
-                <td class="result-view__td result-view__td--kpm">
-                  {{ Math.round(problem.kpm) }}
-                </td>
-                <td class="result-view__td result-view__td--acc">
-                  {{ Math.round(problem.accuracy) }}%
-                </td>
-                <td class="result-view__td result-view__td--miss-keys">
-                  {{ formatMissedKeys(problem.missed_keys) }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="result-view__table-container">
+          <ScrollHint :show="!scrollStates.table" />
+          <div
+            class="result-view__table-wrapper"
+            @scroll="handleScroll($event, 'table')"
+          >
+            <table class="result-view__table">
+              <thead>
+                <tr class="result-view__tr">
+                  <th class="result-view__th result-view__th--problem">
+                    問題文
+                  </th>
+                  <th class="result-view__th result-view__th--romaji">
+                    ローマ字
+                  </th>
+                  <th class="result-view__th result-view__th--kpm">KPM</th>
+                  <th class="result-view__th result-view__th--acc">正確率</th>
+                  <th class="result-view__th result-view__th--miss-keys">
+                    ミスしたキー
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(problem, index) in resultData.results"
+                  class="result-view__tr"
+                  :key="index"
+                >
+                  <td class="result-view__td result-view__td--problem">
+                    {{ problem.problem_text }}
+                  </td>
+                  <td class="result-view__td result-view__td--romaji">
+                    {{ problem.romaji_text || "-" }}
+                  </td>
+                  <td class="result-view__td result-view__td--kpm">
+                    {{ Math.round(problem.kpm) }}
+                  </td>
+                  <td class="result-view__td result-view__td--acc">
+                    {{ Math.round(problem.accuracy) }}%
+                  </td>
+                  <td class="result-view__td result-view__td--miss-keys">
+                    {{ formatMissedKeys(problem.missed_keys) }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -188,12 +196,20 @@ import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 import ScoreIcon from "@/components/icons/ScoreIcon.vue";
 import AiIcon from "@/components/icons/AiIcon.vue";
 import Loading from "@/components/Loading.vue";
+import ScrollHint from "@/components/ScrollHint.vue";
 import gsap from "gsap";
 
 /**
  * router
  */
 const router = useRouter();
+
+/**
+ * スクロールヒントの非表示状態を管理するオブジェクト
+ */
+const scrollStates = ref({
+  table: false,
+});
 
 /**
  * タイピング結果データ
@@ -285,7 +301,7 @@ onMounted(async () => {
     resultData.value = JSON.parse(savedResult);
     await nextTick();
     setResultCardAnimation();
-    await fetchAiComment();
+    fetchAiComment();
   } else {
     router.push("/");
   }
@@ -300,6 +316,19 @@ onUnmounted(() => {
     gsapContext.revert();
   }
 });
+
+/**
+ * スクロールイベントハンドラ
+ */
+const handleScroll = (e, targetKey) => {
+  // すでにヒントが消えているなら何もしない
+  if (scrollStates.value[targetKey]) return;
+
+  // 5px以上スクロールされたらヒントを消す
+  if (e.target.scrollLeft > 5) {
+    scrollStates.value[targetKey] = true;
+  }
+};
 
 /**
  * AIコメント取得
@@ -832,6 +861,11 @@ watch(progressCircleDashoffset, (newValue) => {
     @include fluid-text(16, 20);
     font-weight: $bold;
     letter-spacing: 0.1em;
+  }
+
+  &__table-container {
+    position: relative;
+    width: 100%;
   }
 
   &__table-wrapper {
