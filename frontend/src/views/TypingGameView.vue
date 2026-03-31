@@ -75,9 +75,14 @@ const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
 
 /**
+ * ローディングの最低表示時間 (ミリ秒)
+ */
+const MIN_LOADING_MS = 300;
+
+/**
  * ローディング中かどうか
  */
-const isLoading = ref(true);
+const isLoading = ref(false);
 
 /**
  * ローディングメッセージ
@@ -162,6 +167,8 @@ const loadProblems = async () => {
   errorMessage.value = "";
 
   try {
+    let response;
+
     // DBモードの場合
     if (mode.value === "db") {
       loadingMessage.value = "データベースから問題を抽出中...";
@@ -171,8 +178,10 @@ const loadProblems = async () => {
       params.append("count", settingsStore.problemCount);
       if (genreId.value) params.append("genreId", genreId.value);
 
-      const response = await api.get(`/api/typing/db?${params.toString()}`);
-      problems.value = response.data;
+      [response] = await Promise.all([
+        api.get(`/api/typing/db?${params.toString()}`),
+        new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+      ]);
     }
     // Geminiモードの場合
     else if (mode.value === "gemini") {
@@ -182,9 +191,14 @@ const loadProblems = async () => {
       params.append("count", settingsStore.problemCount);
       if (prompt.value) params.append("prompt", prompt.value);
 
-      const response = await api.get(`/api/typing/gemini?${params.toString()}`);
-      problems.value = response.data;
+      [response] = await Promise.all([
+        api.get(`/api/typing/gemini?${params.toString()}`),
+        new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+      ]);
     }
+
+    // 取得したデータを problems に入れる
+    problems.value = response.data;
 
     // 問題が取れなかった場合
     if (problems.value.length === 0) {
@@ -290,10 +304,7 @@ const handleComplete = async (data) => {
       console.error("保存エラー:", error);
       // (401の時は、インターセプター が「セッション切れ」通知をしてくれる為)
       if (!error.response || error.response.status !== 401) {
-        notificationStore.addNotification(
-          "結果の保存に失敗しました",
-          "error"
-        );
+        notificationStore.addNotification("結果の保存に失敗しました", "error");
       }
     }
   } else if (!isNormalMode) {
