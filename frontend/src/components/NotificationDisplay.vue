@@ -47,10 +47,13 @@ const notificationStore = useNotificationStore();
   &__item-wrapper {
     display: flex;
     flex-direction: column;
+    align-items: flex-end;
     gap: 1.6rem;
   }
 
   &__item {
+    width: max-content; // 親が縮んでも文字の幅をキープ
+    max-width: 90vw; // ただし、スマホで文字が長すぎた時は画面からはみ出さないように
     padding: 1em;
     font-weight: $bold;
     @include fluid-text(12, 16);
@@ -70,8 +73,6 @@ const notificationStore = useNotificationStore();
   }
 }
 
-// TODO 通知のアニメーション、最後の一つが消えるときへんなかんじになるのを解決したい
-/* --- フワッて動かす「アニメーション」 --- */
 .notification-fade-enter-active,
 .notification-fade-leave-active {
   transition: opacity 0.5s ease-out, transform 0.5s ease-out;
@@ -79,9 +80,10 @@ const notificationStore = useNotificationStore();
 .notification-fade-enter-from,
 .notification-fade-leave-to {
   opacity: 0;
-  transform: translateX(30px); /* 右からスライドイン */
+  transform: translateX(30px);
 }
 .notification-fade-leave-active {
-  position: absolute; /* 消えるとき、下のが「ガクッ」てならないように！ */
+  position: absolute;
+  right: 0;
 }
 </style>
