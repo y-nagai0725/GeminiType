@@ -4,6 +4,14 @@
       <Loading :text="'問題準備中…'" :bgColor="'white'" :lineColor="'blue'" />
     </div>
 
+    <div v-else-if="errorMessage" class="typing-core__error">
+      <p class="typing-core__error-title">Error</p>
+      <p class="typing-core__error-message">{{ errorMessage }}</p>
+      <RouterLink to="/menu" class="typing-core__back-button">
+        メインメニューに戻る<ArrowIcon class="typing-core__arrow-icon" />
+      </RouterLink>
+    </div>
+
     <div v-else-if="isCompleted" class="typing-core__completed">
       <p class="typing-core__completed-title">Finish!</p>
       <p class="typing-core__completed-message">お疲れ様でした！</p>
@@ -233,7 +241,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, RouterLink } from "vue-router";
 import api from "../services/api";
 import romaMapData from "@/data/romanTypingParseDictionary.json";
 import { useNotificationStore } from "../stores/notificationStore";
@@ -242,6 +250,7 @@ import TimerIcon from "@/components/icons/TimerIcon.vue";
 import SuddenDeathIcon from "@/components/icons/SuddenDeathIcon.vue";
 import HeartIcon from "@/components/icons/HeartIcon.vue";
 import Loading from "@/components/Loading.vue";
+import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 
 /**
  * キーボードレイアウト配列
@@ -454,6 +463,11 @@ const props = defineProps({
  */
 const emit = defineEmits(["complete"]);
 
+/**
+ * ローディングの最低表示時間
+ */
+const MIN_LOADING_MS = 300;
+
 // --- 状態 (State) ---
 
 /**
@@ -470,6 +484,11 @@ const isCompleted = ref(false);
  * スタートしたかどうか (待機画面用)
  */
 const isStarted = ref(false);
+
+/**
+ * エラーメッセージ
+ */
+const errorMessage = ref("");
 
 /**
  * 全問分のひらがなリスト
@@ -882,17 +901,12 @@ const parseHiragana = (hiragana) => {
   } catch (error) {
     console.error("Critical Parsing Error:", error);
 
-    // ユーザーへの通知
-    notificationStore.addNotification(
-      `問題データの生成に失敗しました（未対応の文字が含まれています）。メニューに戻ります。`,
-      "error"
-    );
+    // エラー表示
+    errorMessage.value = "未対応の文字が含まれているため、処理を中断しました。";
+    notificationStore.addNotification(errorMessage.value, "error");
 
-    // メニュー画面へ強制遷移
-    router.push("/menu");
-
-    // 空配列を返して終わらせる
-    return [];
+    // 空の配列を返す
+    return { parsedUnits: [], defaultActivePatterns: [] };
   }
 };
 
@@ -1242,11 +1256,17 @@ onMounted(async () => {
       // --- DBモード (ひらがな有り) ---
       // APIを使わず、持っているデータをそのまま使う
       hiraganas = props.problems.map((p) => p.problem_hiragana);
+
+      // 一瞬で画面が切り替わってチラつくのを防ぐために待つ
+      await new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS));
     } else {
       // --- AIモード (ひらがな無し) ---
-      // APIでひらがなを取得する
       const texts = props.problems.map((p) => p.problem_text);
-      const response = await api.post("/api/get-hiragana", { texts: texts });
+      // APIでひらがなを取得、最低待機時間（ローディング表示用）
+      const [response] = await Promise.all([
+        api.post("/api/get-hiragana", { texts: texts }),
+        new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+      ]);
       hiraganas = response.data.hiraganas;
     }
 
@@ -1255,13 +1275,12 @@ onMounted(async () => {
 
     // ゲーム開始準備
     setupCurrentProblem();
-    isLoading.value = false;
   } catch (error) {
-    notificationStore.addNotification(
-      error.response?.data?.message || "問題データの読み込みに失敗しました。",
-      "error"
-    );
-    router.push("/menu");
+    errorMessage.value =
+      error.response?.data?.message || "問題データの読み込みに失敗しました。";
+    notificationStore.addNotification(errorMessage.value, "error");
+  } finally {
+    isLoading.value = false;
   }
 });
 
@@ -1284,6 +1303,7 @@ onUnmounted(() => {
   min-width: 800px;
 
   &__loading,
+  &__error,
   &__completed,
   &__ready {
     display: flex;
@@ -1307,6 +1327,30 @@ onUnmounted(() => {
   &__ready-text {
     font-size: 2.2rem;
     font-weight: $bold;
+  }
+
+  &__error-title {
+    font-family: $roboto-mono;
+    font-size: 3.8rem;
+    font-weight: $bold;
+    color: $red;
+  }
+
+  &__error-message {
+    font-size: 1.8rem;
+    font-weight: $bold;
+    color: $red;
+  }
+
+  &__back-button {
+    @include button-style-fill($green);
+    @include fluid-style(width, 240, 350);
+    @include fluid-style(padding-block, 17, 22);
+    @include fluid-text(14, 18);
+  }
+
+  &__arrow-icon {
+    @include button-arrow-icon-style;
   }
 
   &__ready-highlight {
