@@ -41,11 +41,23 @@
         </p>
         <div class="main-menu__list-outer-wrapper">
           <Simplebar class="main-menu__genre-list-wrapper" :auto-hide="false">
-            <Loading v-if="isLoading" class="main-menu__loading" />
+            <Loading
+              v-if="isGenreLoading"
+              class="main-menu__loading"
+              :text="'ジャンル読み込み中です…'"
+              :bgColor="'white'"
+            />
+
+            <div v-else-if="genreErrorMessage" class="main-menu__error">
+              <p class="main-menu__error-message">{{ genreErrorMessage }}</p>
+            </div>
+
             <template v-else>
-              <p v-if="genres.length <= 0" class="main-menu__no-data">
-                {{ NO_GENRES_MESSAGE }}
-              </p>
+              <div v-if="genres.length <= 0" class="main-menu__no-data">
+                <p class="main-menu__no-data-message">
+                  {{ NO_GENRES_MESSAGE }}
+                </p>
+              </div>
               <div v-else class="main-menu__genre-list">
                 <button
                   v-for="genre in genres"
@@ -75,11 +87,6 @@ import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import Loading from "@/components/Loading.vue";
 
 /**
- * ジャンル名が無い場合のメッセージ
- */
-const NO_GENRES_MESSAGE = "ジャンルデータがありません。";
-
-/**
  * router
  */
 const router = useRouter();
@@ -90,14 +97,29 @@ const router = useRouter();
 const notificationStore = useNotificationStore();
 
 /**
+ * ジャンル名が無い場合のメッセージ
+ */
+const NO_GENRES_MESSAGE = "ジャンルデータがありません。";
+
+/**
+ * ローディングの最低表示時間 (ミリ秒)
+ */
+const MIN_LOADING_MS = 300;
+
+/**
+ * ジャンル一覧のローディング状態
+ */
+const isGenreLoading = ref(false);
+
+/**
+ * ジャンル取得時のエラーメッセージ
+ */
+const genreErrorMessage = ref("");
+
+/**
  * ジャンル一覧
  */
 const genres = ref([]);
-
-/**
- * ローディング中かどうか
- */
-const isLoading = ref(false);
 
 /**
  * AI生成モードのお題
@@ -108,19 +130,25 @@ const aiPrompt = ref("");
  * 画面を開いた時にジャンル一覧を取得
  */
 onMounted(async () => {
-  isLoading.value = true;
+  // ローディング表示
+  isGenreLoading.value = true;
+  genreErrorMessage.value = "";
+
   try {
-    // ジャンルを取得
-    const response = await api.get("/api/genres");
+    // ジャンルを取得、最低待ち時間（ローディング表示用）
+    const [response] = await Promise.all([
+      api.get("/api/genres"),
+      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+    ]);
     genres.value = response.data;
   } catch (error) {
-    // エラー通知
+    genreErrorMessage.value = "ジャンルの取得に失敗しました。";
     notificationStore.addNotification(
       error.response?.data?.message || "ジャンルの読み込みに失敗しました。",
       "error"
     );
   } finally {
-    isLoading.value = false;
+    isGenreLoading.value = false;
   }
 });
 
@@ -322,11 +350,21 @@ const handleStartDbMode = (genreId, genreName) => {
     transform: translate(-50%, -50%);
   }
 
+  &__error,
   &__no-data {
-    text-align: center;
-    @include fluid-text(14, 18);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+  }
+
+  &__error-message,
+  &__no-data-message {
     font-weight: $bold;
+    @include fluid-text(12, 16);
     color: $red;
+    text-align: center;
   }
 
   &__genre-list {
