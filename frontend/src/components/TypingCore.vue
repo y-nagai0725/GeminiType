@@ -491,9 +491,14 @@ const isStarted = ref(false);
 const errorMessage = ref("");
 
 /**
- * 全問分のひらがなリスト
+ * 全問のひらがなリスト
  */
 const hiraganaList = ref([]);
+
+/**
+ * 全問のパース（分割）結果を保持する配列
+ */
+const parsedProblemsList = ref([]);
 
 /**
  * 現在の問題番号 (0始まり)
@@ -867,47 +872,34 @@ const forceFinishGame = (reason) => {
  * @param {String} hiragana 問題文のひらがな
  */
 const parseHiragana = (hiragana) => {
-  try {
-    const units = [];
-    const defaultPatterns = [];
-    let cursor = 0;
+  const units = [];
+  const defaultPatterns = [];
+  let cursor = 0;
 
-    while (cursor < hiragana.length) {
-      let matched = false;
-      // 3文字、2文字、1文字といった順番で検索していく
-      for (let len = 3; len >= 1; len--) {
-        const chunk = hiragana.substring(cursor, cursor + len);
-        if (romaMap.has(chunk)) {
-          const patterns = romaMap.get(chunk);
-          units.push({ hiragana: chunk, patterns: patterns });
-          defaultPatterns.push(patterns[0]);
-          cursor += len;
-          matched = true;
-          break;
-        }
-      }
-      if (!matched) {
-        const errorChar = hiragana[cursor];
-        throw new Error(
-          `問題文に、辞書にない文字「${errorChar}」が含まれています。`
-        );
+  while (cursor < hiragana.length) {
+    let matched = false;
+    // 3文字、2文字、1文字といった順番で検索していく
+    for (let len = 3; len >= 1; len--) {
+      const chunk = hiragana.substring(cursor, cursor + len);
+      if (romaMap.has(chunk)) {
+        const patterns = romaMap.get(chunk);
+        units.push({ hiragana: chunk, patterns: patterns });
+        defaultPatterns.push(patterns[0]);
+        cursor += len;
+        matched = true;
+        break;
       }
     }
-
-    return {
-      parsedUnits: units,
-      defaultActivePatterns: defaultPatterns,
-    };
-  } catch (error) {
-    console.error("Critical Parsing Error:", error);
-
-    // エラー表示
-    errorMessage.value = "未対応の文字が含まれているため、処理を中断しました。";
-    notificationStore.addNotification(errorMessage.value, "error");
-
-    // 空の配列を返す
-    return { parsedUnits: [], defaultActivePatterns: [] };
+    if (!matched) {
+      const errorChar = hiragana[cursor];
+      throw new Error(`未対応の文字「${errorChar}」が含まれています。`);
+    }
   }
+
+  return {
+    parsedUnits: units,
+    defaultActivePatterns: defaultPatterns,
+  };
 };
 
 /**
@@ -1103,11 +1095,11 @@ const setupCurrentProblem = () => {
   missKeyCount.value = 0;
   currentMissedKeys.value = {};
 
-  const hiragana = hiraganaList.value[currentProblemIndex.value];
-  // パース処理
-  const { parsedUnits, defaultActivePatterns } = parseHiragana(hiragana);
-  parsedProblem.value = parsedUnits;
-  activePatterns.value = defaultActivePatterns;
+  // 事前に用意したリストから取得
+  const currentParsedData = parsedProblemsList.value[currentProblemIndex.value];
+  parsedProblem.value = currentParsedData.parsedUnits;
+  // activePatternsはユーザーのタイピングによって動的に変化するので新たに配列を生成して代入
+  activePatterns.value = [...currentParsedData.defaultActivePatterns];
 };
 
 /**
@@ -1273,11 +1265,24 @@ onMounted(async () => {
     // データをセット
     hiraganaList.value = hiraganas;
 
+    // 全問まとめてパースする
+    const parsedList = [];
+    for (let i = 0; i < hiraganas.length; i++) {
+      const parsed = parseHiragana(hiraganas[i]);
+      parsedList.push(parsed);
+    }
+    parsedProblemsList.value = parsedList;
+
     // ゲーム開始準備
     setupCurrentProblem();
   } catch (error) {
+    // APIエラーの場合は error.response?.data?.message
+    // parseHiragana でのエラーの場合は error.message
     errorMessage.value =
-      error.response?.data?.message || "問題データの読み込みに失敗しました。";
+      error.response?.data?.message ||
+      error.message ||
+      "問題データの読み込みに失敗しました。";
+
     notificationStore.addNotification(errorMessage.value, "error");
   } finally {
     isLoading.value = false;
