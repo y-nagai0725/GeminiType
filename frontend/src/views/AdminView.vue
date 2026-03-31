@@ -32,392 +32,409 @@
         </template>
       </div>
 
-      <div v-if="authStore.canAccessAdmin" class="admin-view__content">
-        <div class="admin-view__tab-control">
-          <button
-            class="admin-view__tab-button admin-view__tab-button--genre"
-            :class="{ selected: currentTab === 'genre' }"
-            @click="currentTab = 'genre'"
-          >
-            ジャンル管理
-          </button>
-          <button
-            class="admin-view__tab-button admin-view__tab-button--problem"
-            :class="{ selected: currentTab === 'problem' }"
-            @click="currentTab = 'problem'"
-          >
-            問題管理
-          </button>
+      <template v-if="authStore.canAccessAdmin">
+        <Loading
+          v-if="isContentsLoading"
+          class="admin-view__loading"
+          :text="'データ読み込み中です…'"
+        />
+
+        <div v-else-if="errorMessage" class="admin-view__error">
+          <p class="admin-view__error-message">{{ errorMessage }}</p>
         </div>
-        <section v-if="currentTab === 'genre'" class="admin-view__section">
-          <form
-            class="admin-view__form"
-            @submit.prevent="handleAddGenre"
-            novalidate
-          >
-            <input
-              type="text"
-              class="admin-view__input"
-              placeholder="追加するジャンル名を入力…"
-              v-model="newGenreName"
-              required
-            />
-            <button type="submit" class="admin-view__input-button">
-              <PlusIcon class="admin-view__input-button-icon" />追加
-            </button>
-          </form>
-          <div class="admin-view__table-container">
-            <ScrollHint :show="!scrollStates.genres" />
-            <div v-if="isTableLoading" class="admin-view__loading-overlay">
-              <Loading />
-            </div>
-            <div
-              class="admin-view__table-wrapper"
-              ref="genresTableWrapper"
-              @scroll="handleScroll($event, 'genres')"
+
+        <div v-else class="admin-view__content">
+          <div class="admin-view__tab-control">
+            <button
+              class="admin-view__tab-button admin-view__tab-button--genre"
+              :class="{ selected: currentTab === 'genre' }"
+              @click="currentTab = 'genre'"
             >
-              <table class="admin-view__genre-table">
-                <thead>
-                  <tr class="admin-view__genre-table-tr">
-                    <th
-                      class="admin-view__genre-table-th admin-view__genre-table-th--id"
+              ジャンル管理
+            </button>
+            <button
+              class="admin-view__tab-button admin-view__tab-button--problem"
+              :class="{ selected: currentTab === 'problem' }"
+              @click="currentTab = 'problem'"
+            >
+              問題管理
+            </button>
+          </div>
+          <section v-if="currentTab === 'genre'" class="admin-view__section">
+            <form
+              class="admin-view__form"
+              @submit.prevent="handleAddGenre"
+              novalidate
+            >
+              <input
+                type="text"
+                class="admin-view__input"
+                placeholder="追加するジャンル名を入力…"
+                v-model="newGenreName"
+                required
+              />
+              <button type="submit" class="admin-view__input-button">
+                <PlusIcon class="admin-view__input-button-icon" />追加
+              </button>
+            </form>
+            <div class="admin-view__table-container">
+              <ScrollHint :show="!scrollStates.genres" />
+              <div v-if="isTableLoading" class="admin-view__loading-overlay">
+                <Loading />
+              </div>
+              <div
+                class="admin-view__table-wrapper"
+                ref="genresTableWrapper"
+                @scroll="handleScroll($event, 'genres')"
+              >
+                <table class="admin-view__genre-table">
+                  <thead>
+                    <tr class="admin-view__genre-table-tr">
+                      <th
+                        class="admin-view__genre-table-th admin-view__genre-table-th--id"
+                      >
+                        ID
+                      </th>
+                      <th
+                        class="admin-view__genre-table-th admin-view__genre-table-th--genre"
+                      >
+                        ジャンル名
+                      </th>
+                      <th
+                        class="admin-view__genre-table-th admin-view__genre-table-th--count"
+                      >
+                        登録問題数
+                      </th>
+                      <th
+                        class="admin-view__genre-table-th admin-view__genre-table-th--action"
+                      >
+                        操作
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-if="!isTableLoading && adminStore.genres.length === 0"
                     >
-                      ID
-                    </th>
-                    <th
-                      class="admin-view__genre-table-th admin-view__genre-table-th--genre"
+                      <td colspan="4" class="admin-view__empty-message">
+                        登録されているジャンルがありません。
+                      </td>
+                    </tr>
+                    <tr
+                      v-for="genre in adminStore.genres"
+                      :key="genre.id"
+                      class="admin-view__genre-table-tr"
                     >
-                      ジャンル名
-                    </th>
-                    <th
-                      class="admin-view__genre-table-th admin-view__genre-table-th--count"
-                    >
-                      登録問題数
-                    </th>
-                    <th
-                      class="admin-view__genre-table-th admin-view__genre-table-th--action"
-                    >
-                      操作
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-if="!isTableLoading && adminStore.genres.length === 0">
-                    <td colspan="4" class="admin-view__empty-message">
-                      登録されているジャンルがありません。
-                    </td>
-                  </tr>
-                  <tr
+                      <td
+                        class="admin-view__genre-table-td admin-view__genre-table-td--id"
+                      >
+                        {{ genre.id }}
+                      </td>
+                      <td
+                        class="admin-view__genre-table-td admin-view__genre-table-td--genre"
+                      >
+                        {{ genre.name }}
+                      </td>
+                      <td
+                        class="admin-view__genre-table-td admin-view__genre-table-td--count"
+                      >
+                        {{ genre._count.problems }}
+                      </td>
+                      <td
+                        class="admin-view__genre-table-td admin-view__genre-table-td--action"
+                      >
+                        <button
+                          class="admin-view__genre-table-button admin-view__genre-table-button--edit"
+                          @click="openEditModal(genre, 'genre')"
+                        >
+                          <EditIcon
+                            class="admin-view__table-button-icon admin-view__table-button-icon--edit"
+                          />
+                        </button>
+                        <button
+                          class="admin-view__genre-table-button admin-view__genre-table-button--delete"
+                          @click="handleDeleteGenre(genre.id, genre.name)"
+                        >
+                          <DeleteIcon
+                            class="admin-view__table-button-icon admin-view__table-button-icon--delete"
+                          />
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section
+            v-else-if="currentTab === 'problem'"
+            class="admin-view__section"
+          >
+            <form
+              class="admin-view__form"
+              @submit.prevent="handleAddProblem"
+              novalidate
+            >
+              <div class="admin-view__select-wrapper">
+                <select
+                  class="admin-view__select"
+                  v-model="newProblemGenreId"
+                  required
+                >
+                  <option value="" disabled>（ジャンルを選択）</option>
+                  <option
                     v-for="genre in adminStore.genres"
                     :key="genre.id"
-                    class="admin-view__genre-table-tr"
+                    :value="genre.id"
                   >
-                    <td
-                      class="admin-view__genre-table-td admin-view__genre-table-td--id"
-                    >
-                      {{ genre.id }}
-                    </td>
-                    <td
-                      class="admin-view__genre-table-td admin-view__genre-table-td--genre"
-                    >
-                      {{ genre.name }}
-                    </td>
-                    <td
-                      class="admin-view__genre-table-td admin-view__genre-table-td--count"
-                    >
-                      {{ genre._count.problems }}
-                    </td>
-                    <td
-                      class="admin-view__genre-table-td admin-view__genre-table-td--action"
-                    >
-                      <button
-                        class="admin-view__genre-table-button admin-view__genre-table-button--edit"
-                        @click="openEditModal(genre, 'genre')"
-                      >
-                        <EditIcon
-                          class="admin-view__table-button-icon admin-view__table-button-icon--edit"
-                        />
-                      </button>
-                      <button
-                        class="admin-view__genre-table-button admin-view__genre-table-button--delete"
-                        @click="handleDeleteGenre(genre.id, genre.name)"
-                      >
-                        <DeleteIcon
-                          class="admin-view__table-button-icon admin-view__table-button-icon--delete"
-                        />
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <section
-          v-else-if="currentTab === 'problem'"
-          class="admin-view__section"
-        >
-          <form
-            class="admin-view__form"
-            @submit.prevent="handleAddProblem"
-            novalidate
-          >
-            <div class="admin-view__select-wrapper">
-              <select
-                class="admin-view__select"
-                v-model="newProblemGenreId"
+                    {{ genre.name }}
+                  </option>
+                </select>
+              </div>
+              <input
+                type="text"
+                class="admin-view__input"
+                placeholder="新しい問題文"
+                v-model="newProblemText"
                 required
-              >
-                <option value="" disabled>（ジャンルを選択）</option>
-                <option
-                  v-for="genre in adminStore.genres"
-                  :key="genre.id"
-                  :value="genre.id"
-                >
-                  {{ genre.name }}
-                </option>
-              </select>
-            </div>
-            <input
-              type="text"
-              class="admin-view__input"
-              placeholder="新しい問題文"
-              v-model="newProblemText"
-              required
-            />
-            <input
-              type="text"
-              class="admin-view__input"
-              placeholder="ひらがな"
-              v-model="newProblemHiragana"
-              required
-            />
-            <button type="submit" class="admin-view__input-button">
-              <PlusIcon class="admin-view__input-button-icon" />追加
-            </button>
-          </form>
+              />
+              <input
+                type="text"
+                class="admin-view__input"
+                placeholder="ひらがな"
+                v-model="newProblemHiragana"
+                required
+              />
+              <button type="submit" class="admin-view__input-button">
+                <PlusIcon class="admin-view__input-button-icon" />追加
+              </button>
+            </form>
 
-          <form
-            class="admin-view__form"
-            @submit.prevent="handleSearch"
-            novalidate
-          >
-            <div class="admin-view__select-wrapper">
-              <select class="admin-view__select" v-model="localFilterGenreId">
-                <option value="">（全てのジャンル）</option>
-                <option
-                  v-for="genre in adminStore.genres"
-                  :key="genre.id"
-                  :value="genre.id"
-                >
-                  {{ genre.name }}
-                </option>
-              </select>
-            </div>
-            <input
-              type="text"
-              class="admin-view__input"
-              placeholder="（問題文）と（ひらがな）で検索"
-              v-model="localFilterSearchText"
-            />
-            <button type="submit" class="admin-view__input-button">
-              <SearchIcon class="admin-view__input-button-icon" />検索
-            </button>
-          </form>
-
-          <div
-            class="admin-view__pagination-container"
-            v-if="adminStore.totalPages > 1"
-          >
-            <div class="admin-view__pagination">
-              <button
-                class="admin-view__page-button admin-view__page-button--prev"
-                :class="{ 'is-disabled': adminStore.currentPage === 1 }"
-                @click="handleSetPage(adminStore.currentPage - 1)"
-                :disabled="adminStore.currentPage === 1"
-              ></button>
-
-              <template v-for="(item, index) in paginationItems">
-                <button
-                  v-if="item !== '...'"
-                  :key="`num-${index}`"
-                  class="admin-view__page-button admin-view__page-button--number"
-                  :class="{
-                    'is-active': item === adminStore.currentPage,
-                  }"
-                  @click="handleSetPage(item)"
-                >
-                  {{ item }}
-                </button>
-
-                <span
-                  v-else
-                  :key="`dots-${index}`"
-                  class="admin-view__page-dots"
-                >
-                  …
-                </span>
-              </template>
-
-              <button
-                class="admin-view__page-button admin-view__page-button--next"
-                :class="{
-                  'is-disabled':
-                    adminStore.currentPage === adminStore.totalPages,
-                }"
-                @click="handleSetPage(adminStore.currentPage + 1)"
-                :disabled="adminStore.currentPage === adminStore.totalPages"
-              ></button>
-            </div>
-          </div>
-
-          <div class="admin-view__table-container">
-            <ScrollHint :show="!scrollStates.problems" />
-            <div v-if="isTableLoading" class="admin-view__loading-overlay">
-              <Loading />
-            </div>
-            <div
-              class="admin-view__table-wrapper"
-              ref="problemsTableWrapper"
-              @scroll="handleScroll($event, 'problems')"
+            <form
+              class="admin-view__form"
+              @submit.prevent="handleSearch"
+              novalidate
             >
-              <table class="admin-view__problem-table">
-                <thead>
-                  <tr class="admin-view__problem-table-tr">
-                    <th
-                      class="admin-view__problem-table-th admin-view__problem-table-th--genre"
-                    >
-                      ジャンル
-                    </th>
-                    <th
-                      class="admin-view__problem-table-th admin-view__problem-table-th--problem"
-                    >
-                      問題文
-                    </th>
-                    <th
-                      class="admin-view__problem-table-th admin-view__problem-table-th--hiragana"
-                    >
-                      ひらがな
-                    </th>
-                    <th
-                      class="admin-view__problem-table-th admin-view__problem-table-th--action"
-                    >
-                      操作
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    v-if="!isTableLoading && adminStore.problems.length === 0"
+              <div class="admin-view__select-wrapper">
+                <select class="admin-view__select" v-model="localFilterGenreId">
+                  <option value="">（全てのジャンル）</option>
+                  <option
+                    v-for="genre in adminStore.genres"
+                    :key="genre.id"
+                    :value="genre.id"
                   >
-                    <td colspan="4" class="admin-view__empty-message">
-                      登録されている問題がありません。
-                    </td>
-                  </tr>
-                  <tr
-                    v-for="problem in adminStore.problems"
-                    :key="problem.id"
-                    class="admin-view__problem-table-tr"
-                  >
-                    <td
-                      class="admin-view__problem-table-td admin-view__problem-table-td--genre"
-                    >
-                      {{ problem.genre.name }}
-                    </td>
-                    <td
-                      class="admin-view__problem-table-td admin-view__problem-table-td--problem"
-                    >
-                      {{ problem.problem_text }}
-                    </td>
-                    <td
-                      class="admin-view__problem-table-td admin-view__problem-table-td--hiragana"
-                    >
-                      {{ problem.problem_hiragana }}
-                    </td>
-                    <td
-                      class="admin-view__problem-table-td admin-view__problem-table-td--action"
-                    >
-                      <button
-                        class="admin-view__problem-table-button admin-view__problem-table-button--try"
-                        @click="openTryModal(problem)"
-                      >
-                        <TotalTypeCountIcon
-                          class="admin-view__table-button-icon admin-view__table-button-icon--keyboard"
-                        />
-                      </button>
-                      <button
-                        class="admin-view__problem-table-button admin-view__problem-table-button--edit"
-                        @click="openEditModal(problem, 'problem')"
-                      >
-                        <EditIcon
-                          class="admin-view__table-button-icon admin-view__table-button-icon--edit"
-                        />
-                      </button>
-                      <button
-                        class="admin-view__problem-table-button admin-view__problem-table-button--delete"
-                        @click="
-                          handleDeleteProblem(problem.id, problem.problem_text)
-                        "
-                      >
-                        <DeleteIcon
-                          class="admin-view__table-button-icon admin-view__table-button-icon--delete"
-                        />
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+                    {{ genre.name }}
+                  </option>
+                </select>
+              </div>
+              <input
+                type="text"
+                class="admin-view__input"
+                placeholder="（問題文）と（ひらがな）で検索"
+                v-model="localFilterSearchText"
+              />
+              <button type="submit" class="admin-view__input-button">
+                <SearchIcon class="admin-view__input-button-icon" />検索
+              </button>
+            </form>
 
-          <div
-            class="admin-view__pagination-container"
-            v-if="adminStore.totalPages > 1"
-          >
-            <div class="admin-view__pagination">
-              <button
-                class="admin-view__page-button admin-view__page-button--prev"
-                :class="{ 'is-disabled': adminStore.currentPage === 1 }"
-                @click="handleSetPage(adminStore.currentPage - 1)"
-                :disabled="adminStore.currentPage === 1"
-              ></button>
-
-              <template v-for="(item, index) in paginationItems">
+            <div
+              class="admin-view__pagination-container"
+              v-if="adminStore.totalPages > 1"
+            >
+              <div class="admin-view__pagination">
                 <button
-                  v-if="item !== '...'"
-                  :key="`num-${index}`"
-                  class="admin-view__page-button admin-view__page-button--number"
+                  class="admin-view__page-button admin-view__page-button--prev"
+                  :class="{ 'is-disabled': adminStore.currentPage === 1 }"
+                  @click="handleSetPage(adminStore.currentPage - 1)"
+                  :disabled="adminStore.currentPage === 1"
+                ></button>
+
+                <template v-for="(item, index) in paginationItems">
+                  <button
+                    v-if="item !== '...'"
+                    :key="`num-${index}`"
+                    class="admin-view__page-button admin-view__page-button--number"
+                    :class="{
+                      'is-active': item === adminStore.currentPage,
+                    }"
+                    @click="handleSetPage(item)"
+                  >
+                    {{ item }}
+                  </button>
+
+                  <span
+                    v-else
+                    :key="`dots-${index}`"
+                    class="admin-view__page-dots"
+                  >
+                    …
+                  </span>
+                </template>
+
+                <button
+                  class="admin-view__page-button admin-view__page-button--next"
                   :class="{
-                    'is-active': item === adminStore.currentPage,
+                    'is-disabled':
+                      adminStore.currentPage === adminStore.totalPages,
                   }"
-                  @click="handleSetPage(item)"
-                >
-                  {{ item }}
-                </button>
-
-                <span
-                  v-else
-                  :key="`dots-${index}`"
-                  class="admin-view__page-dots"
-                >
-                  …
-                </span>
-              </template>
-
-              <button
-                class="admin-view__page-button admin-view__page-button--next"
-                :class="{
-                  'is-disabled':
-                    adminStore.currentPage === adminStore.totalPages,
-                }"
-                @click="handleSetPage(adminStore.currentPage + 1)"
-                :disabled="adminStore.currentPage === adminStore.totalPages"
-              ></button>
+                  @click="handleSetPage(adminStore.currentPage + 1)"
+                  :disabled="adminStore.currentPage === adminStore.totalPages"
+                ></button>
+              </div>
             </div>
-          </div>
-        </section>
-      </div>
+
+            <div class="admin-view__table-container">
+              <ScrollHint :show="!scrollStates.problems" />
+              <div v-if="isTableLoading" class="admin-view__loading-overlay">
+                <Loading />
+              </div>
+              <div
+                class="admin-view__table-wrapper"
+                ref="problemsTableWrapper"
+                @scroll="handleScroll($event, 'problems')"
+              >
+                <table class="admin-view__problem-table">
+                  <thead>
+                    <tr class="admin-view__problem-table-tr">
+                      <th
+                        class="admin-view__problem-table-th admin-view__problem-table-th--genre"
+                      >
+                        ジャンル
+                      </th>
+                      <th
+                        class="admin-view__problem-table-th admin-view__problem-table-th--problem"
+                      >
+                        問題文
+                      </th>
+                      <th
+                        class="admin-view__problem-table-th admin-view__problem-table-th--hiragana"
+                      >
+                        ひらがな
+                      </th>
+                      <th
+                        class="admin-view__problem-table-th admin-view__problem-table-th--action"
+                      >
+                        操作
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-if="!isTableLoading && adminStore.problems.length === 0"
+                    >
+                      <td colspan="4" class="admin-view__empty-message">
+                        登録されている問題がありません。
+                      </td>
+                    </tr>
+                    <tr
+                      v-for="problem in adminStore.problems"
+                      :key="problem.id"
+                      class="admin-view__problem-table-tr"
+                    >
+                      <td
+                        class="admin-view__problem-table-td admin-view__problem-table-td--genre"
+                      >
+                        {{ problem.genre.name }}
+                      </td>
+                      <td
+                        class="admin-view__problem-table-td admin-view__problem-table-td--problem"
+                      >
+                        {{ problem.problem_text }}
+                      </td>
+                      <td
+                        class="admin-view__problem-table-td admin-view__problem-table-td--hiragana"
+                      >
+                        {{ problem.problem_hiragana }}
+                      </td>
+                      <td
+                        class="admin-view__problem-table-td admin-view__problem-table-td--action"
+                      >
+                        <button
+                          class="admin-view__problem-table-button admin-view__problem-table-button--try"
+                          @click="openTryModal(problem)"
+                        >
+                          <TotalTypeCountIcon
+                            class="admin-view__table-button-icon admin-view__table-button-icon--keyboard"
+                          />
+                        </button>
+                        <button
+                          class="admin-view__problem-table-button admin-view__problem-table-button--edit"
+                          @click="openEditModal(problem, 'problem')"
+                        >
+                          <EditIcon
+                            class="admin-view__table-button-icon admin-view__table-button-icon--edit"
+                          />
+                        </button>
+                        <button
+                          class="admin-view__problem-table-button admin-view__problem-table-button--delete"
+                          @click="
+                            handleDeleteProblem(
+                              problem.id,
+                              problem.problem_text
+                            )
+                          "
+                        >
+                          <DeleteIcon
+                            class="admin-view__table-button-icon admin-view__table-button-icon--delete"
+                          />
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div
+              class="admin-view__pagination-container"
+              v-if="adminStore.totalPages > 1"
+            >
+              <div class="admin-view__pagination">
+                <button
+                  class="admin-view__page-button admin-view__page-button--prev"
+                  :class="{ 'is-disabled': adminStore.currentPage === 1 }"
+                  @click="handleSetPage(adminStore.currentPage - 1)"
+                  :disabled="adminStore.currentPage === 1"
+                ></button>
+
+                <template v-for="(item, index) in paginationItems">
+                  <button
+                    v-if="item !== '...'"
+                    :key="`num-${index}`"
+                    class="admin-view__page-button admin-view__page-button--number"
+                    :class="{
+                      'is-active': item === adminStore.currentPage,
+                    }"
+                    @click="handleSetPage(item)"
+                  >
+                    {{ item }}
+                  </button>
+
+                  <span
+                    v-else
+                    :key="`dots-${index}`"
+                    class="admin-view__page-dots"
+                  >
+                    …
+                  </span>
+                </template>
+
+                <button
+                  class="admin-view__page-button admin-view__page-button--next"
+                  :class="{
+                    'is-disabled':
+                      adminStore.currentPage === adminStore.totalPages,
+                  }"
+                  @click="handleSetPage(adminStore.currentPage + 1)"
+                  :disabled="adminStore.currentPage === adminStore.totalPages"
+                ></button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </template>
     </div>
 
     <Transition name="modal-fade">
@@ -619,6 +636,16 @@ const settingsStore = useSettingsStore();
 const router = useRouter();
 
 /**
+ * ページ全体のローディング状態
+ */
+const isContentsLoading = ref(false);
+
+/**
+ * エラーメッセージ
+ */
+const errorMessage = ref("");
+
+/**
  * スクロールヒントの非表示状態を管理するオブジェクト
  */
 const scrollStates = ref({
@@ -782,24 +809,25 @@ onMounted(async () => {
 
   // 権限がある場合（roleが"ADMIN" or "GUEST_ADMIN"）
   if (authStore.canAccessAdmin) {
-    try {
-      // ジャンルを取得
-      await fetchGenresWithLoading();
-    } catch (error) {
-      notificationStore.addNotification(
-        error.response?.data?.message || "ジャンルの取得に失敗しました。",
-        "error"
-      );
-    }
+    // ページ全体のローディング開始
+    isContentsLoading.value = true;
 
     try {
-      // 問題文（1ページ目）を取得
-      await fetchProblemsWithLoading();
+      // ジャンルと問題の取得、最低限の時間待機（ローディング表示用）
+      await Promise.all([
+        adminStore.fetchGenres(),
+        adminStore.fetchProblems(),
+        new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+      ]);
     } catch (error) {
+      errorMessage.value = "データの取得に失敗しました。";
       notificationStore.addNotification(
-        error.response?.data?.message || "問題文の取得に失敗しました。",
+        error.response?.data?.message || "データの取得に失敗しました。",
         "error"
       );
+    } finally {
+      // ローディング終了
+      isContentsLoading.value = false;
     }
   }
 });
@@ -847,50 +875,6 @@ const isValidReading = (text) => {
     }
   }
   return true;
-};
-
-/**
- * ジャンル一覧を取得する関数（初期表示で呼ぶ用）
- */
-const fetchGenresWithLoading = async () => {
-  // ローディング開始
-  isTableLoading.value = true;
-
-  try {
-    // ジャンル一覧を取得、最低限の待ち時間を入れる（ローディング表示用）
-    await Promise.all([
-      adminStore.fetchGenres(),
-      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
-    ]);
-  } catch (error) {
-    // エラー処理は呼び出し元へ
-    throw error;
-  } finally {
-    // ローディング終了
-    isTableLoading.value = false;
-  }
-};
-
-/**
- * 問題一覧を取得する関数（初期表示とページネーションで呼ぶ用）
- */
-const fetchProblemsWithLoading = async () => {
-  // ローディング開始
-  isTableLoading.value = true;
-
-  try {
-    // 問題一覧を取得、最低限の待ち時間を入れる（ローディング表示用）
-    await Promise.all([
-      adminStore.fetchProblems(),
-      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
-    ]);
-  } catch (error) {
-    // エラー処理は呼び出し元へ
-    throw error;
-  } finally {
-    // ローディング終了
-    isTableLoading.value = false;
-  }
 };
 
 /**
@@ -1413,6 +1397,18 @@ const resetTableScroll = (targetKey, wrapperRef) => {
 
   &__arrow-icon {
     @include button-arrow-icon-style;
+  }
+
+  &__error {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__error-message {
+    font-weight: $bold;
+    @include fluid-text(12, 16);
+    color: $red;
+    text-align: center;
   }
 
   &__content {
