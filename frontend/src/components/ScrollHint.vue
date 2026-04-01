@@ -1,7 +1,7 @@
 <template>
   <Transition name="fade">
     <div v-if="show" class="scroll-hint">
-      <span class="scroll-hint__text">横にスクロールできます</span>
+      <span class="scroll-hint__text">スワイプできます</span>
       <ArrowIcon class="scroll-hint__icon" />
     </div>
   </Transition>
@@ -19,23 +19,21 @@ defineProps({
 </script>
 
 <style lang="scss" scoped>
-// TODO デザインは仮
 .scroll-hint {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  top: 50%;
+  right: 1.6rem;
+  transform: translateY(-50%);
+
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  gap: 8px;
-  width: 4.8rem;
-  background: linear-gradient(
-    to right,
-    rgba($white, 0),
-    rgba($white, 0.95) 40%
-  );
+  gap: 0.8rem;
+
+  padding: 0.8rem 1.6rem;
+  border-radius: 100vmax;
+  background-color: rgba($black, 0.65); // 半透明の黒背景
+  box-shadow: 0 2px 8px rgba($black, 0.15); // 少しだけ影をつける
+
   pointer-events: none;
   z-index: 5;
 
@@ -44,26 +42,28 @@ defineProps({
   }
 
   &__text {
-    writing-mode: vertical-rl;
     font-weight: $bold;
     @include fluid-text(12, 14);
-    color: $green;
-    letter-spacing: 0.1em;
+    color: $white;
+    letter-spacing: 0.05em;
+    line-height: 1;
   }
 
   &__icon {
-    width: 2rem;
-    fill: $green;
+    width: 1.2rem;
+    fill: $white;
   }
 }
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity $transition-base;
+  transition: opacity $transition-base, transform $transition-base;
 }
 
+// 少し右からフワッとスライドしてくるアニメーション
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+  transform: translate(10px, -50%);
 }
 </style>
