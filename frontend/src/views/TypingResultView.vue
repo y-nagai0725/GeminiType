@@ -5,7 +5,7 @@
       <span class="ja">タイピング結果</span>
     </h1>
 
-    <div class="result-view__contents-wrapper">
+    <div class="result-view__contents-wrapper" ref="resultWrapperRef">
       <div v-if="resultData" class="result-view__top-wrapper">
         <div class="result-view__result-card-wrapper">
           <div class="result-view__result-card">
@@ -203,6 +203,11 @@ import gsap from "gsap";
  * router
  */
 const router = useRouter();
+
+/**
+ * GSAPアニメーションのスコープ（範囲）用
+ */
+const resultWrapperRef = ref(null);
 
 /**
  * スクロールヒントの非表示状態を管理するオブジェクト
@@ -404,17 +409,18 @@ const setResultCardAnimation = () => {
   // アニメーション設定の「ずらす間隔」
   const staggerTime = 0.2;
 
+  // アニメーション設定
   gsapContext = gsap.context(() => {
     // 各結果要素
     const resultCards = gsap.utils.toArray(".result-view__result-card");
 
-    // スコア要素
+    // スコア
     const scoreCard = ".result-view__score-card";
 
-    // AIコメント要素
+    // AIコメント
     const aiArea = ".result-view__ai-area";
 
-    // アクションボタンラッパー
+    // アクション要素（リンクボタン部分）
     const actions = ".result-view__actions";
 
     // 詳細結果
@@ -423,29 +429,22 @@ const setResultCardAnimation = () => {
     // timelineを作成
     const tl = gsap.timeline();
 
-    // TODO 仮アニメーション
+    // 各結果要素のアニメーション設定
     tl.fromTo(
       resultCards,
-      {
-        ...fromAnimationSettings,
-      },
-      {
-        ...toAnimationSettings,
-        stagger: staggerTime,
-      }
+      { ...fromAnimationSettings },
+      { ...toAnimationSettings, stagger: staggerTime }
     );
 
+    // スコアのアニメーション設定
     tl.fromTo(
       scoreCard,
-      {
-        ...fromAnimationSettings,
-      },
-      {
-        ...toAnimationSettings,
-      },
+      { ...fromAnimationSettings },
+      { ...toAnimationSettings },
       "-=0.6"
     );
 
+    // ランクのプログレスバーのアニメーション設定
     tl.fromTo(
       progressCircleDashoffset,
       {
@@ -453,45 +452,36 @@ const setResultCardAnimation = () => {
       },
       {
         value: resultDashoffset.value,
-        duration: 0.8,
-        ease: "none",
+        duration: 1.5,
+        ease: "power3.out", // 最初は早く、最後はゆっくり
       },
       "-=0.6"
     );
 
+    // AIコメントのアニメーション設定
     tl.fromTo(
       aiArea,
-      {
-        ...fromAnimationSettings,
-      },
-      {
-        ...toAnimationSettings,
-      },
+      { ...fromAnimationSettings },
+      { ...toAnimationSettings },
       "-=0.6"
     );
 
+    // アクション要素のアニメーション設定
     tl.fromTo(
       actions,
-      {
-        ...fromAnimationSettings,
-      },
-      {
-        ...toAnimationSettings,
-      },
+      { ...fromAnimationSettings },
+      { ...toAnimationSettings },
       "-=0.6"
     );
 
+    // 詳細結果のアニメーション設定
     tl.fromTo(
       details,
-      {
-        ...fromAnimationSettings,
-      },
-      {
-        ...toAnimationSettings,
-      },
+      { ...fromAnimationSettings },
+      { ...toAnimationSettings },
       "-=0.6"
     );
-  });
+  }, resultWrapperRef.value);
 };
 
 /**
