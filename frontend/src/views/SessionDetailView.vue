@@ -4,7 +4,7 @@
       <span class="en">SESSION DETAIL</span>
       <span class="ja">セッション詳細</span>
     </h1>
-    <div class="session-detail__contents-wrapper">
+    <div class="session-detail__contents-wrapper" ref="sessionDetailWrapperRef">
       <Loading
         v-if="isContentsLoading"
         class="session-detail__loading"
@@ -231,13 +231,17 @@ const errorMessage = ref("");
 const session = ref(null);
 
 /**
+ * GSAPアニメーションのスコープ（範囲）用
+ */
+const sessionDetailWrapperRef = ref(null);
+
+/**
  * GSAPコンテキスト
  */
 let gsapContext;
 
 /**
  * アニメーション設定
- * TODO 仮アニメーションです
  */
 const setAnimation = () => {
   // アニメーション共通設定：開始状態
@@ -257,6 +261,7 @@ const setAnimation = () => {
   // アニメーション設定の「ずらす間隔」
   const staggerTime = 0.2;
 
+  // アニメーション設定
   gsapContext = gsap.context(() => {
     // informationセクション
     const information = ".session-detail__information";
@@ -273,51 +278,33 @@ const setAnimation = () => {
     // timelineを作成
     const tl = gsap.timeline();
 
-    // TODO 仮アニメーション
     tl.fromTo(
       information,
-      {
-        ...fromAnimationSettings,
-      },
-      {
-        ...toAnimationSettings,
-      }
+      { ...fromAnimationSettings },
+      { ...toAnimationSettings }
     );
 
     tl.fromTo(
       scoreItems,
-      {
-        ...fromAnimationSettings,
-      },
-      {
-        ...toAnimationSettings,
-        stagger: staggerTime,
-      },
+      { ...fromAnimationSettings },
+      { ...toAnimationSettings, stagger: staggerTime },
       "-=0.6"
     );
 
     tl.fromTo(
       history,
-      {
-        ...fromAnimationSettings,
-      },
-      {
-        ...toAnimationSettings,
-      },
+      { ...fromAnimationSettings },
+      { ...toAnimationSettings },
       "-=0.6"
     );
 
     tl.fromTo(
       back,
-      {
-        ...fromAnimationSettings,
-      },
-      {
-        ...toAnimationSettings,
-      },
+      { ...fromAnimationSettings },
+      { ...toAnimationSettings },
       "-=0.6"
     );
-  });
+  }, sessionDetailWrapperRef.value);
 };
 
 /**
