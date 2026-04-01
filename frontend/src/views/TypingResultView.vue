@@ -389,7 +389,6 @@ const handleRetry = () => {
 
 /**
  * 結果表示アニメーション設定
- * // TODO 仮アニメーション
  */
 const setResultCardAnimation = () => {
   // アニメーション共通設定：開始状態
