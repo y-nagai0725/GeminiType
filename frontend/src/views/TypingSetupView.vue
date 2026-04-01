@@ -154,7 +154,7 @@
             </label>
           </div>
           <p class="setup-view__credit">
-            使用した音素材<br />OtoLogic(https://otologic.jp)
+            使用した音素材<br />OtoLogic(https://otologic.jp) 様
           </p>
         </div>
 
