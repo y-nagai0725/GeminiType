@@ -88,8 +88,22 @@ const router = createRouter({
    * @returns スクロール位置
    */
   scrollBehavior(to, from, savedPosition) {
-    // ページが変わったら、常に一番上（y: 0）に戻す
-    return { top: 0 };
+    // 戻る/進むボタンの時は、元の位置を記憶していればそこに戻す
+    if (savedPosition) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(savedPosition);
+        }, 300); // フェードアウトの時間待つ
+      });
+    }
+
+    // 通常のページ遷移の時は、一番上に戻す
+    return new Promise((resolve) => {
+      // setTimeoutを使って、フェードアウトが終わるまでスクロールを「待機」させる
+      setTimeout(() => {
+        resolve({ top: 0 });
+      }, 300); // フェードアウトの時間
+    });
   },
 });
 
