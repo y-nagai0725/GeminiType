@@ -1,74 +1,76 @@
 <template>
-  <div v-if="isVisible" class="submenu">
-    <div class="submenu__inner">
-      <div class="submenu__title-wrapper">
-        <span class="submenu__title-en">SUBMENU</span>
-        <span class="submenu__title-jp">サブメニュー</span>
+  <Transition name="submenu-fade">
+    <div v-if="isVisible" class="submenu">
+      <div class="submenu__inner">
+        <div class="submenu__title-wrapper">
+          <span class="submenu__title-en">SUBMENU</span>
+          <span class="submenu__title-jp">サブメニュー</span>
+        </div>
+        <ul class="submenu__list">
+          <template v-if="!authStore.isLoggedIn">
+            <li class="submenu__item">
+              <RouterLink to="/login" class="submenu__link">
+                <span class="submenu__link-title-wrapper">
+                  <span class="submenu__link-title-en">LOGIN</span>
+                  <span class="submenu__link-title-jp">ログイン</span>
+                </span>
+                <LoginIcon class="submenu__link-icon" />
+              </RouterLink>
+            </li>
+            <li class="submenu__item">
+              <RouterLink to="/register" class="submenu__link">
+                <span class="submenu__link-title-wrapper">
+                  <span class="submenu__link-title-en">REGISTER</span>
+                  <span class="submenu__link-title-jp">ユーザー登録</span>
+                </span>
+                <RegisterIcon class="submenu__link-icon" />
+              </RouterLink>
+            </li>
+          </template>
+          <template v-else>
+            <li class="submenu__item">
+              <RouterLink to="/mypage" class="submenu__link">
+                <span class="submenu__link-title-wrapper">
+                  <span class="submenu__link-title-en">MYPAGE</span>
+                  <span class="submenu__link-title-jp">マイページ</span>
+                </span>
+                <MyPageIcon class="submenu__link-icon" />
+              </RouterLink>
+            </li>
+            <li class="submenu__item">
+              <button class="submenu__link" @click="handleLogout">
+                <span class="submenu__link-title-wrapper">
+                  <span class="submenu__link-title-en">LOGOUT</span>
+                  <span class="submenu__link-title-jp">ログアウト</span>
+                </span>
+                <LogoutIcon class="submenu__link-icon" />
+              </button>
+            </li>
+          </template>
+          <li class="submenu__item">
+            <RouterLink to="/menu" class="submenu__link">
+              <span class="submenu__link-title-wrapper">
+                <span class="submenu__link-title-en">MAIN MENU</span>
+                <span class="submenu__link-title-jp">メインメニュー</span>
+              </span>
+              <MainMenuIcon class="submenu__link-icon" />
+            </RouterLink>
+          </li>
+          <template v-if="authStore.isLoggedIn && authStore.canAccessAdmin">
+            <li class="submenu__item">
+              <RouterLink to="/admin" class="submenu__link">
+                <span class="submenu__link-title-wrapper">
+                  <span class="submenu__link-title-en">ADMIN</span>
+                  <span class="submenu__link-title-jp">管理画面</span>
+                </span>
+                <AdminIcon class="submenu__link-icon" />
+              </RouterLink>
+            </li>
+          </template>
+        </ul>
       </div>
-      <ul class="submenu__list">
-        <template v-if="!authStore.isLoggedIn">
-          <li class="submenu__item">
-            <RouterLink to="/login" class="submenu__link">
-              <span class="submenu__link-title-wrapper">
-                <span class="submenu__link-title-en">LOGIN</span>
-                <span class="submenu__link-title-jp">ログイン</span>
-              </span>
-              <LoginIcon class="submenu__link-icon" />
-            </RouterLink>
-          </li>
-          <li class="submenu__item">
-            <RouterLink to="/register" class="submenu__link">
-              <span class="submenu__link-title-wrapper">
-                <span class="submenu__link-title-en">REGISTER</span>
-                <span class="submenu__link-title-jp">ユーザー登録</span>
-              </span>
-              <RegisterIcon class="submenu__link-icon" />
-            </RouterLink>
-          </li>
-        </template>
-        <template v-else>
-          <li class="submenu__item">
-            <RouterLink to="/mypage" class="submenu__link">
-              <span class="submenu__link-title-wrapper">
-                <span class="submenu__link-title-en">MYPAGE</span>
-                <span class="submenu__link-title-jp">マイページ</span>
-              </span>
-              <MyPageIcon class="submenu__link-icon" />
-            </RouterLink>
-          </li>
-          <li class="submenu__item">
-            <button class="submenu__link" @click="handleLogout">
-              <span class="submenu__link-title-wrapper">
-                <span class="submenu__link-title-en">LOGOUT</span>
-                <span class="submenu__link-title-jp">ログアウト</span>
-              </span>
-              <LogoutIcon class="submenu__link-icon" />
-            </button>
-          </li>
-        </template>
-        <li class="submenu__item">
-          <RouterLink to="/menu" class="submenu__link">
-            <span class="submenu__link-title-wrapper">
-              <span class="submenu__link-title-en">MAIN MENU</span>
-              <span class="submenu__link-title-jp">メインメニュー</span>
-            </span>
-            <MainMenuIcon class="submenu__link-icon" />
-          </RouterLink>
-        </li>
-        <template v-if="authStore.isLoggedIn && authStore.canAccessAdmin">
-          <li class="submenu__item">
-            <RouterLink to="/admin" class="submenu__link">
-              <span class="submenu__link-title-wrapper">
-                <span class="submenu__link-title-en">ADMIN</span>
-                <span class="submenu__link-title-jp">管理画面</span>
-              </span>
-              <AdminIcon class="submenu__link-icon" />
-            </RouterLink>
-          </li>
-        </template>
-      </ul>
     </div>
-  </div>
+  </Transition>
 </template>
 <script setup>
 import { computed } from "vue";
@@ -233,5 +235,22 @@ const handleLogout = () => {
     aspect-ratio: 1;
     fill: $green;
   }
+}
+
+// 現れるとき
+.submenu-fade-enter-active {
+  transition: opacity $transition-base;
+  transition-delay: 0.3s; // メイン部分のフェードアウト時間分遅らせる
+}
+
+// 消える時
+.submenu-fade-leave-active {
+  transition: opacity $transition-base;
+}
+
+
+.submenu-fade-enter-from,
+.submenu-fade-leave-to {
+  opacity: 0;
 }
 </style>
