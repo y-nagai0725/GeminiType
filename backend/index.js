@@ -14,6 +14,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const modelName = process.env.GEMINI_MODEL_NAME || "gemini-3.1-flash-lite-preview";
+
+// アプリ起動時に1回だけ「モデル」を作って使い回す
+const geminiModel = genAI.getGenerativeModel({
+  model: modelName,
+  generationConfig: {
+    thinkingConfig: {
+      thinkingLevel: "low",
+    },
+  }
+});
+
 /**
  * Yahoo web APIのURL
  */
@@ -839,15 +852,6 @@ app.get('/api/typing/gemini', async (req, res) => {
     if (isNaN(limit) || limit < 1) limit = 5; // デフォルト5問
     if (limit > 10) limit = 10; // 最大10問
 
-    // Gemini
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-    // .env からモデル名を取得
-    const modelName = process.env.GEMINI_MODEL_NAME || "gemini-3-flash-preview";
-
-    // model
-    const model = genAI.getGenerativeModel({ model: modelName });
-
     // プロンプト作成
     const promptText = `
       あなたはタイピング練習ゲームの問題作成係です。
@@ -864,7 +868,7 @@ app.get('/api/typing/gemini', async (req, res) => {
     `;
 
     // Geminiによる問題生成
-    const result = await model.generateContent(promptText);
+    const result = await geminiModel.generateContent(promptText);
     const responseText = result.response.text();
 
     // 結果を加工する (改行で分割、空白を除去、空行を消す)
@@ -895,11 +899,6 @@ app.get('/api/typing/gemini', async (req, res) => {
 app.post('/api/typing/ai-comment', async (req, res) => {
   try {
     const { kpm, accuracy, missedKeys, specialModeInfo } = req.body;
-
-    // Geminiの準備
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const modelName = process.env.GEMINI_MODEL_NAME || "gemini-3-flash-preview";
-    const model = genAI.getGenerativeModel({ model: modelName });
 
     // 苦手キーの情報を整理（Top 3くらいを教える）
     // missedKeys は { "a": 2, "k": 1 } みたいなオブジェクト
@@ -957,7 +956,7 @@ app.post('/api/typing/ai-comment', async (req, res) => {
     ${statusDescription}`;
 
     // Geminiでコメント生成
-    const result = await model.generateContent([systemInstruction, prompt]);
+    const result = await geminiModel.generateContent([systemInstruction, prompt]);
     const comment = result.response.text();
 
     res.json({ comment });
