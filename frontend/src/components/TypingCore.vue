@@ -929,7 +929,7 @@ const handleKeydown = (e) => {
   // ロード中や完了時は操作を受け付けない
   if (isLoading.value || isCompleted.value) return;
 
-  // (★) まだスタートしてない時
+  // まだスタートしてない時
   if (!isStarted.value) {
     // スペースキーが押されたらスタート！
     if (e.code === "Space") {
@@ -947,6 +947,7 @@ const handleKeydown = (e) => {
     e.preventDefault();
     return;
   }
+
   // 1文字キー以外は無視
   if (e.key.length !== 1) return;
 
@@ -1085,8 +1086,7 @@ const finishCurrentProblem = () => {
 
   // 次の問題へ遷移
   if (currentProblemIndex.value < props.problems.length - 1) {
-    // 少し余韻を持たせて次へ
-    // TODO どうして余韻を持たせるんだっけ？
+    // 最後の文字を打ち終わったことを(視覚的に色変化で)見せるために、0.2秒だけ待つ
     setTimeout(() => {
       currentProblemIndex.value++;
       setupCurrentProblem();
@@ -1320,6 +1320,7 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+@use "sass:color";
 .typing-core {
   display: flex;
   flex-direction: column;
@@ -1700,11 +1701,10 @@ onUnmounted(() => {
       visibility: hidden;
     }
 
-    //TODO タイピング対象のキーのbox-shadowの色どうしよう？
     &.active {
       background-color: $orange;
       color: $white;
-      box-shadow: 0 4px 0 rgba($orange, 0.5);
+      box-shadow: 0 4px 0 color.adjust($orange, $lightness: -10%);
       transform: translateY(2px);
     }
   }
