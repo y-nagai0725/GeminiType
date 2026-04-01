@@ -21,6 +21,27 @@
         :bgColor="'white'"
         :lineColor="'blue'"
       />
+      <div v-if="showDebug" class="typing-core__stats">
+        <span class="typing-core__stat-label">Stats</span>
+        <span class="typing-core__stat-label"
+          >KPM:
+          <span class="typing-core__stat-value typing-core__stat-value--kpm">{{
+            sessionAverageKpm
+          }}</span></span
+        >
+        <span class="typing-core__stat-label"
+          >Acc:
+          <span class="typing-core__stat-value typing-core__stat-value--acc"
+            >{{ sessionAverageAccuracy }}%</span
+          ></span
+        >
+        <span class="typing-core__stat-label"
+          >Miss:
+          <span class="typing-core__stat-value typing-core__stat-value--miss">{{
+            totalMissCountSession
+          }}</span></span
+        >
+      </div>
     </div>
 
     <div v-else-if="!isStarted" class="typing-core__ready">
