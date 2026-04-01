@@ -5,7 +5,7 @@
       <span class="ja">マイページ</span>
     </h1>
 
-    <div class="mypage-view__contents-wrapper">
+    <div class="mypage-view__contents-wrapper" ref="mypageWrapperRef">
       <template v-if="isContentsLoading">
         <Loading
           class="mypage-view__loading"
@@ -423,6 +423,11 @@ const chartWrapper = ref(null);
 const historyTableWrapper = ref(null);
 
 /**
+ * GSAPアニメーションのスコープ（範囲）用
+ */
+const mypageWrapperRef = ref(null);
+
+/**
  * エラーメッセージ
  */
 const errorMessage = ref("");
@@ -734,7 +739,6 @@ const resetScroll = (targetKey, wrapperRef) => {
 
 /**
  * 結果表示アニメーション設定
- * TODO 仮アニメーションです
  */
 const setAnimation = () => {
   // アニメーション共通設定：開始状態
@@ -751,6 +755,7 @@ const setAnimation = () => {
     ease: "power2.out",
   };
 
+  // アニメーション設定
   gsapContext = gsap.context(() => {
     // プロフィールセクション
     const profileSection = ".mypage-view__section--profile";
@@ -794,6 +799,7 @@ const setAnimation = () => {
       },
     });
 
+    // プロフィールセクション自体の表示アニメーション
     timelineProfileSection.fromTo(
       profileSection,
       {
@@ -804,6 +810,7 @@ const setAnimation = () => {
       }
     );
 
+    // スコアランクプログレスバーのアニメーション
     timelineProfileSection.fromTo(
       progressCircleDashoffset,
       {
@@ -811,12 +818,12 @@ const setAnimation = () => {
       },
       {
         value: resultDashoffset.value,
-        duration: 0.8,
-        ease: "none",
+        duration: 1.5,
+        ease: "power3.out", // 最初は早く、最後はゆっくり
       },
       "-=0.6"
     );
-  });
+  }, mypageWrapperRef.value);
 };
 
 /**
