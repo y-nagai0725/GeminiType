@@ -153,6 +153,9 @@
               ミス音
             </label>
           </div>
+          <p class="setup-view__credit">
+            使用した音素材<br />OtoLogic(https://otologic.jp)
+          </p>
         </div>
 
         <button type="submit" class="setup-view__start-button">
@@ -426,6 +429,11 @@ const handleStart = () => {
     &:checked::after {
       opacity: 1;
     }
+  }
+
+  &__credit {
+    @include fluid-text(11, 12);
+    color: $light-black;
   }
 
   &__timer-icon,
