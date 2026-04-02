@@ -51,7 +51,7 @@
               </p>
               <img
                 class="top-view__image"
-                src="@/assets/images/top/test.png"
+                src="@/assets/images/top/feature-1.webp"
                 alt=""
               />
             </div>
