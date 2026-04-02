@@ -227,14 +227,40 @@ const handleComplete = async (data) => {
   // 特殊モード情報など
   const info = data.info;
 
-  // 集計処理
+  // 総タイプ数
+  const totalTypes = results.reduce((sum, r) => {
+    const count = (r.correct_key_count || 0) + (r.miss_count || 0);
+    return sum + count;
+  }, 0);
+
+  // 合計ミス数
+  const totalMissCount = results.reduce((sum, r) => {
+    return sum + (r.miss_count || 0);
+  }, 0);
+
+  // 合計正解キー数
+  const totalCorrectKeys = results.reduce((sum, r) => {
+    return sum + (r.correct_key_count || 0);
+  }, 0);
+
+  // 合計問題数
   const totalProblems = results.length;
+
+  // 平均KPM
   const avgKpm = Math.round(
     results.reduce((sum, r) => sum + r.kpm, 0) / totalProblems
   );
-  const avgAccuracy = Math.round(
-    results.reduce((sum, r) => sum + r.accuracy, 0) / totalProblems
-  );
+
+  // 平均正確率（「合計正解キー数 ÷ 総タイプ数」で計算）
+  let avgAccuracy = 0;
+  if (totalTypes > 0) {
+    avgAccuracy = Math.round((totalCorrectKeys / totalTypes) * 100);
+
+    // 四捨五入後のavgAccuracyが100でも、ミスが1回でもある場合は99%にする
+    if (totalMissCount > 0 && avgAccuracy === 100) {
+      avgAccuracy = 99;
+    }
+  }
 
   // ミスキー集計
   const totalMissedKeys = {};
@@ -253,17 +279,6 @@ const handleComplete = async (data) => {
       mostMissedKey = key;
     }
   }
-
-  // TypingCore が送ってくれた「正解数 + ミス数」を全部足し算
-  const totalTypes = results.reduce((sum, r) => {
-    // correct_key_count と miss_key_count を使う
-    const count = (r.correct_key_count || 0) + (r.miss_key_count || 0);
-    return sum + count;
-  }, 0);
-
-  const totalMissCount = results.reduce((sum, r) => {
-    return sum + (r.miss_count || 0);
-  }, 0);
 
   const specialModeInfo = {
     config: {

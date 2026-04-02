@@ -876,7 +876,6 @@ const forceFinishGame = (reason) => {
       miss_count: missKeyCount.value,
       romaji_text: displayRomaji.value,
       correct_key_count: correctKeyCount.value,
-      miss_key_count: missKeyCount.value,
       duration_ms: Date.now() - problemStartTime.value,
     });
   }
@@ -1078,7 +1077,6 @@ const finishCurrentProblem = () => {
     miss_count: missKeyCount.value,
     romaji_text: displayRomaji.value,
     correct_key_count: correctKeyCount.value,
-    miss_key_count: missKeyCount.value,
     duration_ms: durationMs,
   };
 
