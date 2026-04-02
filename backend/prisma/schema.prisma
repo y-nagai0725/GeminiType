@@ -71,16 +71,17 @@ model TypingSession {
 
 // 詳細記録 (session_problems)
 model SessionProblem {
-  id           Int      @id @default(autoincrement())
-  session_id   Int
-  problem_text String
-  romaji_text  String
-  kpm          Float
-  accuracy     Float
-  miss_count   Int
-  missed_keys  String   // ここは「JSON文字列」で保存する
+  id                Int      @id @default(autoincrement())
+  session_id        Int
+  problem_text      String
+  problem_hiragana  String
+  romaji_text       String
+  kpm               Float
+  accuracy          Float
+  miss_count        Int
+  missed_keys       String   // ここは「JSON文字列」で保存する
 
-  session      TypingSession @relation(fields: [session_id], references: [id]) // まとめ記録との「つながり」
+  session           TypingSession @relation(fields: [session_id], references: [id]) // まとめ記録との「つながり」
 
   @@map("session_problems")
 }

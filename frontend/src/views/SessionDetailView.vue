@@ -103,9 +103,6 @@
               <table class="session-detail__table">
                 <thead>
                   <tr class="session-detail__tr">
-                    <th class="session-detail__th session-detail__th--no">
-                      No.
-                    </th>
                     <th class="session-detail__th session-detail__th--problem">
                       問題文
                     </th>
@@ -123,17 +120,17 @@
                     >
                       ミスしたキー
                     </th>
+                    <th class="session-detail__th session-detail__th--action">
+                      練習
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr
-                    v-for="(problem, index) in session.session_problems"
+                    v-for="problem in session.session_problems"
                     :key="problem.id"
                     class="session-detail__tr"
                   >
-                    <td class="session-detail__td session-detail__td--no">
-                      {{ index + 1 }}
-                    </td>
                     <td class="session-detail__td session-detail__td--problem">
                       {{ problem.problem_text }}
                     </td>
@@ -151,6 +148,16 @@
                     >
                       {{ formatMissedKeys(problem.missed_keys) }}
                     </td>
+                    <td class="session-detail__td session-detail__td--action">
+                      <button
+                        class="session-detail__button session-detail__button--try"
+                        @click="openTryModal(problem)"
+                      >
+                        <TotalTypeCountIcon
+                          class="session-detail__button-icon session-detail__button-icon--keyboard"
+                        />
+                      </button>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -165,6 +172,48 @@
         </div>
       </div>
     </div>
+    <Transition name="modal-fade">
+      <div
+        v-if="isTryModalOpen"
+        class="session-detail__modal-overlay"
+        @click.self="closeTryModal"
+      >
+        <div
+          class="session-detail__modal-content session-detail__modal-content--typing-test"
+        >
+          <button @click="closeTryModal" class="session-detail__modal-close">
+            <PlusIcon class="session-detail__modal-close-icon" />
+          </button>
+          <p class="session-detail__modal-title">試し打ち</p>
+          <div class="session-detail__sound-settings">
+            <label class="session-detail__sound-label">
+              <input
+                type="checkbox"
+                class="session-detail__sound-checkbox"
+                v-model="settingsStore.soundEnabled"
+                @change="settingsStore.saveSettings"
+              />
+              タイプ音
+            </label>
+            <label class="session-detail__sound-label">
+              <input
+                type="checkbox"
+                class="session-detail__sound-checkbox"
+                v-model="settingsStore.missSoundEnabled"
+                @change="settingsStore.saveSettings"
+              />
+              ミス音
+            </label>
+          </div>
+
+          <TypingCore
+            v-if="problemToTry"
+            :problems="[problemToTry]"
+            :showDebug="true"
+          />
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -173,11 +222,14 @@ import { ref, onMounted, onUnmounted, nextTick } from "vue";
 import { useRoute, useRouter, RouterLink } from "vue-router";
 import api from "../services/api";
 import { useNotificationStore } from "../stores/notificationStore";
+import { useSettingsStore } from "../stores/settingsStore";
 import {
   formatDate,
   truncateText,
   formatMissedKeys,
 } from "../utils/formatters";
+import TypingCore from "../components/TypingCore.vue";
+import PlusIcon from "@/components/icons/PlusIcon.vue";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import KpmIcon from "@/components/icons/KpmIcon.vue";
 import AccuracyIcon from "@/components/icons/AccuracyIcon.vue";
@@ -202,6 +254,11 @@ const router = useRouter();
  * お知らせstore
  */
 const notificationStore = useNotificationStore();
+
+/**
+ * 設定store
+ */
+const settingsStore = useSettingsStore();
 
 /**
  * ローディング状態
@@ -234,6 +291,16 @@ const session = ref(null);
  * GSAPアニメーションのスコープ（範囲）用
  */
 const sessionDetailWrapperRef = ref(null);
+
+/**
+ * 試し打ちモーダルの表示・非表示
+ */
+const isTryModalOpen = ref(false);
+
+/**
+ * 試し打ちの問題
+ */
+const problemToTry = ref(null);
 
 /**
  * GSAPコンテキスト
@@ -317,6 +384,46 @@ const handleScroll = (e, targetKey) => {
   // 5px以上スクロールされたらヒントを消す
   if (e.target.scrollLeft > 5) {
     scrollStates.value[targetKey] = true;
+  }
+};
+
+/**
+ * 「試し打ち」ボタンが押された時の処理
+ * @param {*} problem 問題オブジェクト
+ */
+const openTryModal = (problem) => {
+  // 「試し打ち」の問題をセット
+  problemToTry.value = problem;
+
+  // モーダルを開く
+  isTryModalOpen.value = true;
+
+  // ESCキーで閉じられるようにイベントをセット
+  window.addEventListener("keydown", handleEscClose);
+};
+
+/**
+ * 「モーダル」を閉じる時の処理
+ */
+const closeTryModal = () => {
+  // モーダルを閉じる
+  isTryModalOpen.value = false;
+
+  // 「試し打ち」してた問題をリセット
+  problemToTry.value = null;
+
+  // イベント削除
+  window.removeEventListener("keydown", handleEscClose);
+};
+
+/**
+ * ESCキーが押された時の処理
+ * @param {KeyboardEvent} e キーボードイベントオブジェクト
+ */
+const handleEscClose = (e) => {
+  if (e.key === "Escape") {
+    // モーダルを閉じる処理
+    closeTryModal();
   }
 };
 
@@ -565,13 +672,6 @@ onUnmounted(() => {
     color: $white;
     background-color: $green;
 
-    &--no {
-      width: 5%;
-      font-family: $roboto-mono;
-      letter-spacing: 0.05em;
-      text-align: right;
-    }
-
     &--problem {
       width: 30%;
       text-align: left;
@@ -598,16 +698,16 @@ onUnmounted(() => {
       width: 15%;
       text-align: center;
     }
+
+    &--action {
+      width: 5%;
+      text-align: center;
+    }
   }
 
   &__td {
     padding: 1em;
     font-size: 1.4rem;
-
-    &--no {
-      font-family: $roboto-mono;
-      text-align: right;
-    }
 
     &--problem {
       text-align: left;
@@ -634,6 +734,11 @@ onUnmounted(() => {
       font-family: $roboto-mono;
       color: $red;
     }
+
+    &--action {
+      display: flex;
+      justify-content: center;
+    }
   }
 
   &__back {
@@ -650,6 +755,149 @@ onUnmounted(() => {
 
   &__arrow-icon {
     @include button-arrow-icon-style;
+  }
+
+  &__button {
+    @include fluid-text(11, 13);
+    padding: 1em;
+
+    &--try {
+      @include button-style-fill($blue, $hover-action: "none");
+    }
+  }
+
+  &__button-icon {
+    width: 1.4em;
+
+    &--keyboard {
+      fill: currentColor;
+    }
+  }
+
+  &__modal-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.33);
+  }
+
+  &__modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin-inline: 2rem;
+    @include fluid-style(padding, 16, 24);
+    border-radius: $radius-md;
+    background-color: $white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+
+    &--typing-test {
+      width: 900px;
+      max-width: none;
+    }
+  }
+
+  &__modal-close {
+    position: absolute;
+    @include fluid-style(top, 16, 24);
+    @include fluid-style(right, 16, 24);
+    @include fluid-style(width, 16, 24);
+    @include fluid-style(height, 16, 24);
+    cursor: pointer;
+    color: $black;
+    transform: rotate(45deg);
+    transition: color $transition-base;
+
+    @include hover {
+      color: $red;
+    }
+  }
+
+  &__modal-close-icon {
+    width: 100%;
+    fill: currentColor;
+  }
+
+  &__modal-title {
+    @include fluid-style(margin-bottom, 10, 16);
+    font-weight: $bold;
+    @include fluid-text(16, 18);
+    letter-spacing: 0.1em;
+    text-align: center;
+  }
+
+  &__sound-settings {
+    display: flex;
+    justify-content: flex-end;
+    @include fluid-style(gap, 16, 24);
+    @include fluid-style(margin-bottom, 10, 16);
+  }
+
+  &__sound-label {
+    display: flex;
+    align-items: center;
+    font-weight: $bold;
+    @include fluid-text(12, 14);
+    cursor: pointer;
+    user-select: none;
+    transition: opacity $transition-base;
+
+    @include hover {
+      opacity: 0.7;
+    }
+  }
+
+  &__sound-checkbox {
+    position: relative;
+    display: inline-block;
+    width: 1em;
+    aspect-ratio: 1;
+    margin-right: 1em;
+    background-color: $gray;
+    border: 1px solid $black;
+    border-radius: $radius-sm;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 80%;
+      height: 40%;
+      border-left: 2px solid $green;
+      border-bottom: 2px solid $green;
+      transform: translate(-50%, calc(-50% - 1px)) rotate(-45deg);
+      opacity: 0;
+      transition: opacity $transition-base;
+    }
+
+    &:checked::after {
+      opacity: 1;
+    }
+  }
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+
+  .session-detail__modal-content {
+    transform: translateY(-20px);
+  }
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity $transition-base;
+
+  .session-detail__modal-content {
+    transition: transform $transition-base;
   }
 }
 </style>

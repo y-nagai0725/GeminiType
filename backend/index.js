@@ -1068,6 +1068,11 @@ app.post('/api/typing/result', authenticateToken, async (req, res) => {
         return res.status(400).json({ message: '個別の結果には problem_text が必要です。' });
       }
 
+      // problem_hiraganaは、空ではない事
+      if (!p.problem_hiragana || typeof p.problem_hiragana !== 'string') {
+        return res.status(400).json({ message: '個別の結果には problem_hiragana が必要です。' });
+      }
+
       // kpmは、数字かどうか
       if (typeof p.kpm !== 'number' || isNaN(p.kpm)) {
         return res.status(400).json({ message: '個別の結果の kpm は数字にして下さい。' });
@@ -1110,6 +1115,7 @@ app.post('/api/typing/result', authenticateToken, async (req, res) => {
         session_problems: {
           create: problem_results.map(p => ({
             problem_text: p.problem_text,
+            problem_hiragana: p.problem_hiragana,
             romaji_text: p.romaji_text,
             kpm: parseFloat(p.kpm),
             accuracy: parseFloat(p.accuracy),

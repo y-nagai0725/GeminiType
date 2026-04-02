@@ -870,6 +870,7 @@ const forceFinishGame = (reason) => {
   if (!isCompleted.value) {
     sessionResults.value.push({
       problem_text: targetProblem.value.problem_text + ` (${reason})`,
+      problem_hiragana: targetHiragana.value,
       kpm: 0,
       accuracy: currentAccuracy.value,
       missed_keys: { ...currentMissedKeys.value },
@@ -1071,6 +1072,7 @@ const finishCurrentProblem = () => {
 
   const result = {
     problem_text: targetProblem.value.problem_text,
+    problem_hiragana: targetHiragana.value,
     kpm: currentKpm.value,
     accuracy: currentAccuracy.value,
     missed_keys: { ...currentMissedKeys.value },
