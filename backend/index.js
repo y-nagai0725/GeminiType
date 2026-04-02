@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const prisma = new PrismaClient();
@@ -14,8 +15,30 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// アクセス制限のルールを作成
+// 全体用：1分間に60回
+const apiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 60,
+  message: { message: 'アクセスが集中しています。少し時間をおいてから再度お試しください。' },
+});
+app.use('/api/', apiLimiter); // 全APIに適用
+
+// Gemini専用：1分間に10回
+const geminiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 10,
+  message: { message: 'AIの呼び出し回数が上限に達しました。1分ほど待ってからお試しください。' },
+});
+app.use('/api/typing/gemini', geminiLimiter);
+app.use('/api/typing/ai-comment', geminiLimiter);
+
+// Gemini API用
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const modelName = process.env.GEMINI_MODEL_NAME || "gemini-3.1-flash-lite-preview";
+
+// Gemini APIのタイムアウト時間（ミリ秒）
+const GEMINI_TIMEOUT_MS = 10000;
 
 // アプリ起動時に1回だけ「モデル」を作って使い回す
 const geminiModel = genAI.getGenerativeModel({
@@ -781,11 +804,8 @@ app.get('/api/typing/db', async (req, res) => {
 
     // バリデーション (count)
     let limit = parseInt(count, 10);
-    if (isNaN(limit) || limit < 1) {
-      limit = 10; // 指定がなければデフォルト「10問」
-    }
-    // 最大「100問」制限
-    if (limit > 100) limit = 100;
+    if (isNaN(limit) || limit < 1) limit = 5; // デフォルト5問
+    if (limit > 30) limit = 30; // 最大30問
 
     // 検索条件 (where)
     const where = {};
@@ -850,7 +870,7 @@ app.get('/api/typing/gemini', async (req, res) => {
     // 問題数
     let limit = parseInt(count, 10);
     if (isNaN(limit) || limit < 1) limit = 5; // デフォルト5問
-    if (limit > 10) limit = 10; // 最大10問
+    if (limit > 30) limit = 30; // 最大30問
 
     // プロンプト作成
     const promptText = `
@@ -868,7 +888,7 @@ app.get('/api/typing/gemini', async (req, res) => {
     `;
 
     // Geminiによる問題生成
-    const result = await geminiModel.generateContent(promptText);
+    const result = await geminiModel.generateContent(promptText, { timeout: GEMINI_TIMEOUT_MS });
     const responseText = result.response.text();
 
     // 結果を加工する (改行で分割、空白を除去、空行を消す)
@@ -956,15 +976,16 @@ app.post('/api/typing/ai-comment', async (req, res) => {
     ${statusDescription}`;
 
     // Geminiでコメント生成
-    const result = await geminiModel.generateContent([systemInstruction, prompt]);
+    const result = await geminiModel.generateContent([systemInstruction, prompt], { timeout: GEMINI_TIMEOUT_MS });
     const comment = result.response.text();
 
     res.json({ comment });
-
   } catch (error) {
     console.error('API Error (POST /api/typing/ai-comment):', error);
-    // エラーの時は、固定の励ましメッセージを返す（クライアントを止めないため）
-    res.json({ comment: 'お疲れ様！ すごい集中力だったね！次もがんばろう！🤖' });
+    res.status(500).json({
+      message: SERVER_ERROR_MESSAGE_500,
+      error: error.message //TODO 本番環境では消す
+    });
   }
 });
 
