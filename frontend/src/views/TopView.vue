@@ -159,60 +159,65 @@
         class="top-view__horizontal-scroll-wrapper"
         ref="horizontalScrollWrapper"
       >
-        <h2 class="top-view__gallery-title">様々な機能</h2>
         <div class="top-view__slide-wrapper" ref="slideWrapper">
           <div class="top-view__slide top-view__slide--green">
             <div class="top-view__slide-inner">
+              <h3 class="top-view__slide-title">飽きさせない多彩なモード</h3>
               <img
-                src="https://picsum.photos/800/450"
-                alt="スライド画像1"
+                src="@/assets/images/top/gallery-1.webp"
+                alt="タイピング画面"
                 class="top-view__slide-image"
               />
               <p class="top-view__slide-desc">
-                Slide
-                1の説明文サンプルサンプルサンプルサンプルサンプルサンプルサンプルサンプル
+                「通常モード」に加え、白熱の「時間制限」「サドンデス」モードを搭載！<br />
+                画面上のキーボードと運指ガイドが、正しい指の配置をしっかりサポートします。
               </p>
             </div>
           </div>
 
           <div class="top-view__slide top-view__slide--orange">
             <div class="top-view__slide-inner">
+              <h3 class="top-view__slide-title">
+                AIコーチからのフィードバック
+              </h3>
               <img
-                src="https://picsum.photos/800/450"
-                alt="スライド画像2"
+                src="@/assets/images/top/gallery-2.webp"
+                alt="タイピング結果画面"
                 class="top-view__slide-image"
               />
               <p class="top-view__slide-desc">
-                Slide
-                2の説明文サンプルサンプルサンプルサンプルサンプルサンプルサンプルサンプル
+                プレイ後はスコアやランクと一緒に、AIからのパーソナルなアドバイスがもらえます。<br />
+                あなたの頑張りをしっかり分析して、可愛く応援してくれます！
               </p>
             </div>
           </div>
 
           <div class="top-view__slide top-view__slide--blue">
             <div class="top-view__slide-inner">
+              <h3 class="top-view__slide-title">成長が目に見えるマイページ</h3>
               <img
-                src="https://picsum.photos/800/450"
-                alt="スライド画像3"
+                src="@/assets/images/top/gallery-3.webp"
+                alt="マイページの成長グラフ"
                 class="top-view__slide-image"
               />
               <p class="top-view__slide-desc">
-                Slide
-                3の説明文サンプルサンプルサンプルサンプルサンプルサンプルサンプルサンプル
+                毎日のプレイ記録は自動で保存され、「成長グラフ」として可視化されます。<br />
+                KPMや正確率の推移がひと目で分かるので、成長する実感が湧いてモチベーションUP！
               </p>
             </div>
           </div>
 
           <div class="top-view__slide top-view__slide--yellow">
             <div class="top-view__slide-inner">
+              <h3 class="top-view__slide-title">弱点を克服する詳細データ</h3>
               <img
-                src="https://picsum.photos/800/450"
-                alt="スライド画像4"
+                src="@/assets/images/top/gallery-4.webp"
+                alt="苦手キーと詳細履歴"
                 class="top-view__slide-image"
               />
               <p class="top-view__slide-desc">
-                Slide
-                4の説明文サンプルサンプルサンプルサンプルサンプルサンプルサンプルサンプル
+                過去のデータから「苦手なキー」を自動で集計＆ランキング化。<br />
+                問題ごとの詳細データも振り返れるので、弱点をピンポイントで克服する練習が可能です。
               </p>
             </div>
           </div>
@@ -610,26 +615,6 @@ onUnmounted(() => {
     overflow: hidden;
   }
 
-  &__gallery-title {
-    position: absolute;
-    top: calc($header-height-sp + 2rem);
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    @include fluid-text(24, 32);
-    font-weight: $bold;
-    letter-spacing: 0.1em;
-    white-space: nowrap;
-
-    @include tab {
-      top: calc($header-height-tab + 2rem);
-    }
-
-    @include pc {
-      top: calc($header-height-pc + 2rem);
-    }
-  }
-
   &__slide-wrapper {
     display: flex;
   }
@@ -667,11 +652,19 @@ onUnmounted(() => {
     @include contents-width;
   }
 
+  &__slide-title {
+    font-weight: $bold;
+    @include fluid-text(18, 26);
+    letter-spacing: 0.1em;
+    text-align: center;
+    color: $black;
+  }
+
   &__slide-image {
     width: 100%;
-    max-width: 800px;
+    max-width: 900px;
     height: auto;
-    border-radius: $radius-lg;
+    border-radius: $radius-md;
   }
 
   &__slide-desc {
