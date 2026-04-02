@@ -299,15 +299,15 @@ const horizontalScrollWrapper = ref(null);
 const slideWrapper = ref(null);
 
 /**
- *
+ * GSAPコンテキスト
  */
-let ctx;
+let gsapContext;
 
 /**
  * gsap横スクロールアニメーション設定
  */
 const setHorizontalScrollAnimation = () => {
-  ctx = gsap.context(() => {
+  gsapContext = gsap.context(() => {
     // スライド
     const slides = gsap.utils.toArray(".top-view__slide");
 
@@ -363,8 +363,8 @@ onMounted(() => {
  */
 onUnmounted(() => {
   // コンポーネントが破棄される時にアニメーションをリセットする
-  if (ctx) {
-    ctx.revert();
+  if (gsapContext) {
+    gsapContext.revert();
   }
 });
 </script>
