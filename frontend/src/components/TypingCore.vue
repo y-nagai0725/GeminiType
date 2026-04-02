@@ -728,7 +728,7 @@ const sessionAverageAccuracy = computed(() => {
   // 過去問題集計
   sessionResults.value.forEach((res) => {
     totalCorrect += res.correct_key_count;
-    totalMiss += res.miss_key_count;
+    totalMiss += res.miss_count;
   });
 
   // 今の問題の分
