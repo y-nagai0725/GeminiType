@@ -1048,7 +1048,7 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__progress-ring-background {
-    stroke: $light-black;
+    stroke: $light-green;
   }
 
   &__progress-ring-circle {
