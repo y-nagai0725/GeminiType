@@ -565,7 +565,7 @@ onUnmounted(() => {
     width: 4.8rem;
     aspect-ratio: 1;
     border-radius: 100vmax;
-    background-color: $blue;
+    background-color: $green;
     transition: background-color $transition-base, transform $transition-base;
 
     &::before,
@@ -593,7 +593,7 @@ onUnmounted(() => {
 
       &::before,
       &::after {
-        background-color: $blue;
+        background-color: $green;
       }
 
       &::before {
