@@ -370,6 +370,12 @@
             </div>
           </template>
         </section>
+
+        <div class="mypage-view__back">
+          <RouterLink to="/menu" class="mypage-view__back-button">
+            メインメニューに戻る<ArrowIcon class="mypage-view__arrow-icon" />
+          </RouterLink>
+        </div>
       </template>
     </div>
   </div>
@@ -738,7 +744,7 @@ const resetScroll = (targetKey, wrapperRef) => {
 };
 
 /**
- * 結果表示アニメーション設定
+ * GSAPアニメーション設定
  */
 const setAnimation = () => {
   // アニメーション共通設定：開始状態
@@ -772,8 +778,11 @@ const setAnimation = () => {
     // 履歴セクション
     const historySection = ".mypage-view__section--history";
 
+    // 戻るボタン
+    const back = ".mypage-view__back";
+
     // --- [プレイデータ,苦手キー,成長グラフ,履歴]セクションの表示アニメーション ---
-    [playDataSection, weakKeysSection, chartSection, historySection].forEach(
+    [playDataSection, weakKeysSection, chartSection, historySection, back].forEach(
       (section) => {
         gsap.fromTo(
           section,
@@ -1377,6 +1386,10 @@ watch(progressCircleDashoffset, (newValue) => {
   @include pagination-style;
   &__pagination-container {
     margin-top: 2rem;
+  }
+
+  &__back {
+    visibility: hidden; // GSAPアニメーション用
   }
 }
 </style>
