@@ -446,16 +446,13 @@ onUnmounted(() => {
     @include fluid-style(padding-block, 17, 22);
     @include fluid-text(14, 18);
 
-    &--menu {
+    &--menu,
+    &--guest {
       @include button-style-fill($green);
     }
 
-    &--guest {
-      @include button-style-fill($blue);
-    }
-
     &--small {
-      @include button-style-border($green);
+      @include button-style-border($blue);
       @include fluid-style(width, 130, 200);
       @include fluid-style(padding-block, 16, 20);
       @include fluid-text(12, 16);

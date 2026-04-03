@@ -388,20 +388,20 @@
     @include fluid-style(gap, 8, 16);
     width: 50%;
     @include fluid-style(padding, 16, 24);
-    color: $green;
-    border: 1px solid $green;
+    color: $blue;
+    border: 1px solid $blue;
     border-radius: $radius-md $radius-md 0 0;
     transition: background-color $transition-base;
 
     &--active {
       @include hover {
-        background-color: $light-green;
+        background-color: $light-blue;
       }
     }
 
     &--disable {
       color: $white;
-      background-color: $green;
+      background-color: $blue;
     }
 
     @include pc {
@@ -460,7 +460,7 @@
   }
 
   &__button {
-    @include button-style-fill($blue);
+    @include button-style-fill($green);
     @include fluid-style(width, 240, 350);
     @include fluid-style(padding-block, 17, 22);
     @include fluid-style(margin-top, 8, 16);

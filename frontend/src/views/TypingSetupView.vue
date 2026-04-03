@@ -315,7 +315,7 @@ const handleStart = () => {
     gap: 1.6rem;
     @include fluid-style(padding, 16, 24);
     border-radius: $radius-md $radius-md 0 0;
-    background-color: $green;
+    background-color: $blue;
 
     @include pc {
       flex-direction: row;
@@ -482,7 +482,7 @@ const handleStart = () => {
   }
 
   &__start-button {
-    @include button-style-fill($blue);
+    @include button-style-fill($green);
     @include fluid-style(width, 240, 350);
     @include fluid-style(padding-block, 17, 22);
     margin-inline: auto;
@@ -490,7 +490,7 @@ const handleStart = () => {
   }
 
   &__back-button {
-    @include button-style-border($green);
+    @include button-style-border($blue);
     @include fluid-style(width, 240, 350);
     @include fluid-style(padding-block, 17, 22);
     margin-inline: auto;

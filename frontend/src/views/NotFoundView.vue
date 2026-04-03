@@ -85,7 +85,7 @@ import ArrowIcon from "@/components/icons/ArrowIcon.vue";
     }
 
     &--top {
-      @include button-style-fill($blue);
+      @include button-style-border($blue);
     }
   }
 

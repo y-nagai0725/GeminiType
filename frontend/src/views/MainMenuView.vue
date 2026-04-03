@@ -297,7 +297,7 @@ const handleStartDbMode = (genreId, genreName) => {
   }
 
   &__button {
-    @include button-style-fill($blue);
+    @include button-style-fill($green);
     width: 100%;
     margin-inline: auto;
     @include fluid-style(padding-block, 17, 22);

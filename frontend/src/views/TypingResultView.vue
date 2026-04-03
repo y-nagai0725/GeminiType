@@ -823,11 +823,11 @@ watch(progressCircleDashoffset, (newValue) => {
     @include fluid-text(14, 18);
 
     &--retry {
-      @include button-style-fill($blue);
+      @include button-style-fill($green);
     }
 
     &--menu {
-      @include button-style-border($green);
+      @include button-style-border($blue);
     }
 
     @include pc {
