@@ -52,7 +52,7 @@
               <img
                 class="top-view__image"
                 src="@/assets/images/top/feature-1.webp"
-                alt=""
+                alt="AI問題生成"
               />
             </div>
             <div v-else class="top-view__feature-content">
@@ -86,8 +86,8 @@
               <p class="top-view__catchcopy">昨日の自分より、ちょっと速く。</p>
               <img
                 class="top-view__image"
-                src="@/assets/images/top/test.png"
-                alt=""
+                src="@/assets/images/top/feature-2.webp"
+                alt="成長記録"
               />
             </div>
             <div v-else class="top-view__feature-content">
@@ -122,8 +122,8 @@
               </p>
               <img
                 class="top-view__image"
-                src="@/assets/images/top/test.png"
-                alt=""
+                src="@/assets/images/top/feature-3.webp"
+                alt="ストレスフリーな入力判定"
               />
             </div>
             <div v-else class="top-view__feature-content">
@@ -562,7 +562,7 @@ onUnmounted(() => {
     bottom: 1.2rem;
     right: 1.2rem;
     display: block;
-    width: 4.8rem;
+    width: 4rem;
     aspect-ratio: 1;
     border-radius: 100vmax;
     background-color: $green;
