@@ -179,7 +179,7 @@
         @click.self="closeTryModal"
       >
         <div
-          class="session-detail__modal-content session-detail__modal-content--typing-test"
+          class="session-detail__modal-content"
         >
           <button @click="closeTryModal" class="session-detail__modal-close">
             <PlusIcon class="session-detail__modal-close-icon" />
@@ -734,11 +734,6 @@ onUnmounted(() => {
       font-family: $roboto-mono;
       color: $red;
     }
-
-    &--action {
-      display: flex;
-      justify-content: center;
-    }
   }
 
   &__back {
@@ -758,8 +753,9 @@ onUnmounted(() => {
   }
 
   &__button {
+    width: 4rem;
+    aspect-ratio: 1;
     @include fluid-text(11, 13);
-    padding: 1em;
 
     &--try {
       @include button-style-fill($blue, $hover-action: "none");
@@ -789,18 +785,11 @@ onUnmounted(() => {
 
   &__modal-content {
     position: relative;
-    width: 100%;
-    max-width: 500px;
-    margin-inline: 2rem;
+    width: 90rem;
     @include fluid-style(padding, 16, 24);
     border-radius: $radius-md;
     background-color: $white;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
-
-    &--typing-test {
-      width: 900px;
-      max-width: none;
-    }
   }
 
   &__modal-close {
