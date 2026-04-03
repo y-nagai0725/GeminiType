@@ -1,22 +1,57 @@
+// =========================================================================
+// パッケージ・モジュールの読み込み
+// =========================================================================
+
+// --- Webサーバー・ミドルウェア ---
 const express = require('express');
 const cors = require('cors');
-const romaMapData = require('./romanTypingParseDictionary.json');
+const rateLimit = require('express-rate-limit');
+
+// --- データベース ---
 const { PrismaClient } = require('@prisma/client');
+
+// --- 認証・セキュリティ ---
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+
+// --- 外部API通信 (Yahoo API, Gemini API) ---
 const axios = require('axios');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const rateLimit = require('express-rate-limit');
+
+// --- 環境変数・ローカルデータ ---
 require('dotenv').config();
+const romaMapData = require('./romanTypingParseDictionary.json');
 
-const prisma = new PrismaClient();
-const app = express();
-
-app.use(cors());
-app.use(express.json());
+// =========================================================================
+// アプリケーションの初期設定
+// =========================================================================
 
 /**
- * APIアクセス制限のルール
+ * データベース操作用クライアント
+ */
+const prisma = new PrismaClient();
+
+/**
+ * Expressアプリケーション本体
+ */
+const app = express();
+
+/**
+ * ミドルウェア設定: CORSの許可 (別ドメインからのAPI呼び出しを許可)
+ */
+app.use(cors());
+
+/**
+ * ミドルウェア設定: JSON形式のリクエストボディを解析する
+ */
+app.use(express.json());
+
+// =========================================================================
+// APIアクセス制限 (Rate Limit)
+// =========================================================================
+
+/**
+ * APIアクセス制限のルール（全体用）
  */
 const apiLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1分間
@@ -35,6 +70,10 @@ const geminiLimiter = rateLimit({
 });
 app.use('/api/typing/gemini', geminiLimiter);
 app.use('/api/typing/ai-comment', geminiLimiter);
+
+// =========================================================================
+// Gemini関連設定
+// =========================================================================
 
 /**
  * Gemini用ジェネレーター
@@ -58,10 +97,9 @@ const geminiModel = genAI.getGenerativeModel({
   }
 });
 
-/**
- * 問題登録のひらがなで許可する文字
- */
-const allowedChars = new Set(romaMapData.map(item => item.Pattern));
+// =========================================================================
+// 各種定数設定
+// =========================================================================
 
 /**
  * Gemini APIのタイムアウト時間（ミリ秒）
@@ -123,6 +161,15 @@ const PORT = process.env.PORT || 3002;
  */
 const SERVER_ERROR_MESSAGE_500 = 'サーバーにてエラーが発生しています。時間を空けてもう一度試してください。';
 
+// =========================================================================
+// 共通データ・ユーティリティ関数
+// =========================================================================
+
+/**
+ * 問題登録のひらがなで許可する文字
+ */
+const allowedChars = new Set(romaMapData.map(item => item.Pattern));
+
 /**
  * 入力された文字列が、辞書にある文字だけで構成されているかチェックする関数
  * @param {String} text チェック対象の文字列
@@ -176,6 +223,64 @@ const replaceKanjiNumbers = (text) => {
     return kanjiMap[match];
   });
 };
+
+/**
+ * 「日本語の文字列」を受け取って、「ひらがなの文字列」を返す
+ * @param {String} japaneseText 日本語の文字列
+ * @returns {String} ひらがなの文字列
+ */
+const getRubyFromYahoo = async (japaneseText) => {
+  // .envからClientIdを読み込む
+  const YAHOO_ID = process.env.YAHOO_CLIENT_ID;
+
+  // .envにClientIdがなかったら、エラーとする
+  if (!YAHOO_ID) {
+    throw new Error('Yahoo! クライアントIDが設定されていません。');
+  }
+
+  try {
+    // Yahoo! APIに送信
+    const response = await axios.post(
+      YAHOO_API_URL,
+      {
+        id: '1234-1',
+        jsonrpc: '2.0',
+        method: 'jlp.furiganaservice.furigana',
+        params: {
+          q: japaneseText, // 日本語の文字列
+        },
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': `Yahoo AppID: ${YAHOO_ID}`,
+        },
+        timeout: YAHOO_TIMEOUT_MS
+      }
+    );
+
+    // Yahoo! API から「エラー」が返ってきた場合
+    if (response.data.error) {
+      throw new Error(`Yahoo! API エラー: ${response.data.error.message}`);
+    }
+
+    // ひらがなの単語の配列を取得
+    const hiraganaWords = response.data.result.word.map(word => word.furigana || word.surface);
+
+    // 結合した文字列に対して、漢数字の置換を行う
+    const rawHiragana = hiraganaWords.join('');
+    return replaceKanjiNumbers(rawHiragana);
+  } catch (error) {
+    // axios の通信エラーやYahoo! API のエラー
+    console.error('Yahoo! API との通信に失敗しました。', error);
+    // このエラーを「呼び出し元（/api/get-hiragana）」に伝える
+    throw new Error('Yahoo! API との通信に失敗しました。');
+  }
+};
+
+// =========================================================================
+// カスタムミドルウェア (認証・権限チェック)
+// =========================================================================
 
 /**
  * JWT認証 (ミドルウェア)
@@ -234,6 +339,10 @@ const checkAdminAccess = (req, res, next) => {
   return res.status(403).json({ message: '管理者権限がありません。' });
 };
 
+// =========================================================================
+// API ルーティング
+// =========================================================================
+
 /**
  * [public] ユーザー登録 (POST /api/register)
  */
@@ -287,7 +396,6 @@ app.post('/api/register', async (req, res) => {
     console.error('API Error (POST /api/register):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -342,7 +450,6 @@ app.post('/api/login', async (req, res) => {
     console.error('API Error (POST /api/login):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -377,7 +484,6 @@ app.get('/api/admin/genres', authenticateToken, checkAdminAccess, async (req, re
     console.error('API Error (GET /api/admin/genres):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -419,7 +525,6 @@ app.post('/api/admin/genres', authenticateToken, checkAdminAccess, async (req, r
     console.error('API Error (POST /api/admin/genres):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -474,7 +579,6 @@ app.put('/api/admin/genres/:id', authenticateToken, checkAdminAccess, async (req
     console.error('API Error (PUT /api/admin/genres/:id):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -515,7 +619,6 @@ app.delete('/api/admin/genres/:id', authenticateToken, checkAdminAccess, async (
     console.error('API Error (DELETE /api/admin/genres/:id):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -588,7 +691,6 @@ app.get('/api/admin/problems', authenticateToken, checkAdminAccess, async (req, 
     console.error('API Error (GET /api/admin/problems):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -655,7 +757,6 @@ app.post('/api/admin/problems', authenticateToken, checkAdminAccess, async (req,
     console.error('API Error (POST /api/admin/problems):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -737,7 +838,6 @@ app.put('/api/admin/problems/:id', authenticateToken, checkAdminAccess, async (r
     console.error('API Error (PUT /api/admin/problems/:id):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -773,64 +873,9 @@ app.delete('/api/admin/problems/:id', authenticateToken, checkAdminAccess, async
     console.error('API Error (DELETE /api/admin/problems/:id):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
-
-/**
- * 「日本語の文字列」を受け取って、「ひらがなの文字列」を返す
- * @param {String} japaneseText 日本語の文字列
- * @returns {String} ひらがなの文字列
- */
-const getRubyFromYahoo = async (japaneseText) => {
-  // .envからClientIdを読み込む
-  const YAHOO_ID = process.env.YAHOO_CLIENT_ID;
-
-  // .envにClientIdがなかったら、エラーとする
-  if (!YAHOO_ID) {
-    throw new Error('Yahoo! クライアントIDが設定されていません。');
-  }
-
-  try {
-    // Yahoo! APIに送信
-    const response = await axios.post(
-      YAHOO_API_URL,
-      {
-        id: '1234-1',
-        jsonrpc: '2.0',
-        method: 'jlp.furiganaservice.furigana',
-        params: {
-          q: japaneseText, // 日本語の文字列
-        },
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': `Yahoo AppID: ${YAHOO_ID}`,
-        },
-        timeout: YAHOO_TIMEOUT_MS
-      }
-    );
-
-    // Yahoo! API から「エラー」が返ってきた場合
-    if (response.data.error) {
-      throw new Error(`Yahoo! API エラー: ${response.data.error.message}`);
-    }
-
-    // ひらがなの単語の配列を取得
-    const hiraganaWords = response.data.result.word.map(word => word.furigana || word.surface);
-
-    // 結合した文字列に対して、漢数字の置換を行う
-    const rawHiragana = hiraganaWords.join('');
-    return replaceKanjiNumbers(rawHiragana);
-  } catch (error) {
-    // axios の通信エラーやYahoo! API のエラー
-    console.error('Yahoo! API との通信に失敗しました。', error);
-    // このエラーを「呼び出し元（/api/get-hiragana）」に伝える
-    throw new Error('Yahoo! API との通信に失敗しました。');
-  }
-};
 
 /**
  * [public] Yahoo! ルビ振り API (POST /api/get-hiragana)
@@ -857,7 +902,6 @@ app.post('/api/get-hiragana', async (req, res) => {
     console.error('API Error (POST /api/get-hiragana):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -875,7 +919,6 @@ app.get('/api/genres', async (req, res) => {
     console.error('API Error (GET /api/genres):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -936,7 +979,6 @@ app.get('/api/typing/db', async (req, res) => {
     console.error('API Error (GET /api/typing/db):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -999,7 +1041,6 @@ app.get('/api/typing/gemini', async (req, res) => {
     console.error('API Error (GET /api/typing/gemini):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -1095,7 +1136,6 @@ app.post('/api/typing/ai-comment', async (req, res) => {
     console.error('API Error (POST /api/typing/ai-comment):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message //TODO 本番環境では消す
     });
   }
 });
@@ -1243,7 +1283,6 @@ app.post('/api/typing/result', authenticateToken, async (req, res) => {
     console.error('API Error (POST /api/typing/result):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -1317,7 +1356,6 @@ app.get('/api/mypage/stats', authenticateToken, async (req, res) => {
     console.error('API Error (GET /api/mypage/stats):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -1365,7 +1403,6 @@ app.get('/api/mypage/sessions', authenticateToken, async (req, res) => {
     console.error('API Error (GET /api/mypage/sessions):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
@@ -1407,7 +1444,6 @@ app.get('/api/mypage/sessions/:id', authenticateToken, async (req, res) => {
     console.error('API Error (GET /api/mypage/sessions/:id):', error);
     res.status(500).json({
       message: SERVER_ERROR_MESSAGE_500,
-      error: error.message // TODO 本番環境では消す
     });
   }
 });
