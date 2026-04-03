@@ -16,12 +16,12 @@
       <p class="typing-core__completed-title">Finish!</p>
       <p class="typing-core__completed-message">お疲れ様でした！</p>
       <Loading
-        v-if="!showDebug"
+        v-if="!isTryMode"
         :text="'結果集計中…'"
         :bgColor="'white'"
         :lineColor="'blue'"
       />
-      <div v-if="showDebug" class="typing-core__stats">
+      <div v-if="isTryMode" class="typing-core__stats">
         <span class="typing-core__stat-label">Stats</span>
         <span class="typing-core__stat-label"
           >KPM:
@@ -477,6 +477,8 @@ const props = defineProps({
   missLimit: { type: Number, default: 0 },
   // ローマ字ガイド表示
   showRomaji: { type: Boolean, default: true },
+  // 試し打ち
+  isTryMode: { type: Boolean, default: false}
 });
 
 /**
@@ -1640,7 +1642,7 @@ onUnmounted(() => {
     gap: 0.8rem;
     width: 100%;
     padding: 2.4rem;
-    margin-top: 3.2rem;
+    margin-top: 2.4rem;
     background-color: $light-blue;
     border-radius: $radius-lg;
   }
@@ -1713,8 +1715,7 @@ onUnmounted(() => {
     display: flex;
     justify-content: center;
     gap: 8rem;
-    margin-top: -2rem;
-    padding-bottom: 2rem;
+    margin-top: -3rem;
   }
 
   &__hand {

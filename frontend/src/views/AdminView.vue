@@ -478,6 +478,7 @@
             v-if="problemToTry"
             :problems="[problemToTry]"
             :showDebug="true"
+            :isTryMode="true"
           />
         </div>
       </div>
