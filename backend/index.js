@@ -59,6 +59,11 @@ const geminiModel = genAI.getGenerativeModel({
 });
 
 /**
+ * 問題登録のひらがなで許可する文字
+ */
+const allowedChars = new Set(romaMapData.map(item => item.Pattern));
+
+/**
  * Gemini APIのタイムアウト時間（ミリ秒）
  */
 const GEMINI_TIMEOUT_MS = 10000;
@@ -119,11 +124,6 @@ const PORT = process.env.PORT || 3002;
 const SERVER_ERROR_MESSAGE_500 = 'サーバーにてエラーが発生しています。時間を空けてもう一度試してください。';
 
 /**
- * 問題登録のひらがなで許可する文字
- */
-const allowedChars = new Set(romaMapData.map(item => item.Pattern));
-
-/**
  * 入力された文字列が、辞書にある文字だけで構成されているかチェックする関数
  * @param {String} text チェック対象の文字列
  * @returns {Boolean} OKならtrue
@@ -138,8 +138,10 @@ const isValidReading = (text) => {
 };
 
 /**
- * 漢数字・大字などをひらがなに一括置換する関数
+ * 漢数字・大字（だいじ）などをひらがなに一括置換する関数
  * (Yahoo! APIが苦手な単独の漢数字などを補完)
+ * @param {String} text 一括置換したいテキスト
+ * @returns {String} ひらがなに置換したテキスト
  */
 const replaceKanjiNumbers = (text) => {
   // 置換したい漢字と読みの対応表
