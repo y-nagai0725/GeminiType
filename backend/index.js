@@ -15,32 +15,40 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// アクセス制限のルールを作成
-// 全体用：1分間に60回
+/**
+ * APIアクセス制限のルール
+ */
 const apiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000,
-  max: 60,
+  windowMs: 1 * 60 * 1000, // 1分間
+  max: 60, // 60回
   message: { message: 'アクセスが集中しています。少し時間をおいてから再度お試しください。' },
 });
 app.use('/api/', apiLimiter); // 全APIに適用
 
-// Gemini専用：1分間に10回
+/**
+ * Gemini専用APIアクセス制限のルール
+ */
 const geminiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000,
-  max: 10,
+  windowMs: 1 * 60 * 1000,// 1分間
+  max: 10,// 10回
   message: { message: 'AIの呼び出し回数が上限に達しました。1分ほど待ってからお試しください。' },
 });
 app.use('/api/typing/gemini', geminiLimiter);
 app.use('/api/typing/ai-comment', geminiLimiter);
 
-// Gemini API用
+/**
+ * Gemini用ジェネレーター
+ */
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+/**
+ * geminiのモデル名
+ */
 const modelName = process.env.GEMINI_MODEL_NAME || "gemini-3.1-flash-lite-preview";
 
-// Gemini APIのタイムアウト時間（ミリ秒）
-const GEMINI_TIMEOUT_MS = 10000;
-
-// アプリ起動時に1回だけ「モデル」を作って使い回す
+/**
+ * geminiモデル：アプリ起動時に1回だけ作って使い回す
+ */
 const geminiModel = genAI.getGenerativeModel({
   model: modelName,
   generationConfig: {
@@ -49,6 +57,31 @@ const geminiModel = genAI.getGenerativeModel({
     },
   }
 });
+
+/**
+ * Gemini APIのタイムアウト時間（ミリ秒）
+ */
+const GEMINI_TIMEOUT_MS = 10000;
+
+/**
+ * Yahoo APIのタイムアウト時間（ミリ秒）
+ */
+const YAHOO_TIMEOUT_MS = 10000;
+
+/**
+ * ページネーションの1ページあたりの表示件数
+ */
+const PAGE_SIZE = 10;
+
+/**
+ * 問題生成のデフォルト数
+ */
+const DEFAULT_PROBLEM_COUNT = 5;
+
+/**
+ * 問題生成の最大数
+ */
+const MAX_PROBLEM_COUNT = 30;
 
 /**
  * Yahoo web APIのURL
@@ -464,8 +497,8 @@ app.get('/api/admin/problems', authenticateToken, checkAdminAccess, async (req, 
     const { genreId: genreIdQuery, search } = req.query;
     const pageQuery = req.query.page;
 
-    // 1ページに表示する個数
-    const pageSize = 10;
+    // 1ページ当たりの件数
+    const pageSize = PAGE_SIZE;
 
     // 取得ページ
     let page = parseInt(pageQuery, 10);
@@ -724,6 +757,7 @@ const getRubyFromYahoo = async (japaneseText) => {
           'Content-Type': 'application/json',
           'User-Agent': `Yahoo AppID: ${YAHOO_ID}`,
         },
+        timeout: YAHOO_TIMEOUT_MS
       }
     );
 
@@ -804,8 +838,8 @@ app.get('/api/typing/db', async (req, res) => {
 
     // バリデーション (count)
     let limit = parseInt(count, 10);
-    if (isNaN(limit) || limit < 1) limit = 5; // デフォルト5問
-    if (limit > 30) limit = 30; // 最大30問
+    if (isNaN(limit) || limit < 1) limit = DEFAULT_PROBLEM_COUNT;
+    if (limit > MAX_PROBLEM_COUNT) limit = MAX_PROBLEM_COUNT;
 
     // 検索条件 (where)
     const where = {};
@@ -869,8 +903,8 @@ app.get('/api/typing/gemini', async (req, res) => {
 
     // 問題数
     let limit = parseInt(count, 10);
-    if (isNaN(limit) || limit < 1) limit = 5; // デフォルト5問
-    if (limit > 30) limit = 30; // 最大30問
+    if (isNaN(limit) || limit < 1) limit = DEFAULT_PROBLEM_COUNT;
+    if (limit > MAX_PROBLEM_COUNT) limit = MAX_PROBLEM_COUNT;
 
     // プロンプト作成
     const promptText = `
@@ -1219,7 +1253,8 @@ app.get('/api/mypage/sessions', authenticateToken, async (req, res) => {
     const userId = req.user.userId;
     const { page = 1 } = req.query;
 
-    const pageSize = 10; // 1ページ10件
+    // 1ページ当たりの件数
+    const pageSize = PAGE_SIZE;
 
     // ページ番号のバリデーション
     let pageNum = parseInt(page, 10);
