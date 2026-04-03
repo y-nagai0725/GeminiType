@@ -99,6 +99,11 @@ const MAX_PROBLEM_TEXT_LENGTH = 25;
 const MAX_PROBLEM_HIRAGANA_LENGTH = 50;
 
 /**
+ * geminiの問題生成のプロンプトの最大文字数
+ */
+const MAX_GEMINI_PROMPT_LENGTH = 20;
+
+/**
  * Yahoo web APIのURL
  */
 const YAHOO_API_URL = 'https://jlp.yahooapis.jp/FuriganaService/V2/furigana';
@@ -946,6 +951,11 @@ app.get('/api/typing/gemini', async (req, res) => {
       return res.status(400).json({ message: 'どんな問題を作ってほしいか（お題）を入力して下さい。' });
     }
 
+    // お題の文字数チェック
+    if (prompt.length > MAX_GEMINI_PROMPT_LENGTH) {
+      return res.status(400).json({ message: `お題は${MAX_GEMINI_PROMPT_LENGTH}文字以内にして下さい。` });
+    }
+
     // 問題数
     let limit = parseInt(count, 10);
     if (isNaN(limit) || limit < 1) limit = DEFAULT_PROBLEM_COUNT;
@@ -999,7 +1009,27 @@ app.post('/api/typing/ai-comment', async (req, res) => {
   try {
     const { kpm, accuracy, missedKeys, specialModeInfo } = req.body;
 
-    // 苦手キーの情報を整理（Top 3くらいを教える）
+    // kpm のチェック (0〜2000くらいの常識的な範囲にする)
+    if (typeof kpm !== 'number' || isNaN(kpm) || kpm < 0 || kpm > 2000) {
+      return res.status(400).json({ message: 'KPMの値が不正です。' });
+    }
+
+    // accuracy のチェック (0〜100の間)
+    if (typeof accuracy !== 'number' || isNaN(accuracy) || accuracy < 0 || accuracy > 100) {
+      return res.status(400).json({ message: '正確率の値が不正です。' });
+    }
+
+    // missedKeys のチェック (オブジェクトであること)
+    if (typeof missedKeys !== 'object' || missedKeys === null || Array.isArray(missedKeys)) {
+      return res.status(400).json({ message: 'missedKeysの形式が不正です。' });
+    }
+
+    // missedKeysの中身が異常に多くないかチェック（50個以上のキーデータは弾く）
+    if (Object.keys(missedKeys).length > 50) {
+      return res.status(400).json({ message: 'ミスしたキーのデータが多すぎます。' });
+    }
+
+    // 苦手キーの情報を整理（Top 3を教える）
     // missedKeys は { "a": 2, "k": 1 } みたいなオブジェクト
     const missedKeyText = Object.entries(missedKeys || {})
       .sort((a, b) => b[1] - a[1]) // 回数多い順

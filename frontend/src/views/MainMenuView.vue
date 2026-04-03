@@ -25,6 +25,7 @@
             placeholder="例: 料理、動物、元気が出る言葉..."
             class="main-menu__input"
             id="ai-prompt"
+            :maxlength="MAX_GEMINI_PROMPT_LENGTH"
             required
           />
           <button type="submit" class="main-menu__button">
@@ -105,6 +106,11 @@ const NO_GENRES_MESSAGE = "ジャンルデータがありません。";
 const MIN_LOADING_MS = 300;
 
 /**
+ * geminiの問題生成のプロンプトの最大文字数
+ */
+const MAX_GEMINI_PROMPT_LENGTH = 20;
+
+/**
  * ジャンル一覧のローディング状態
  */
 const isGenreLoading = ref(false);
@@ -157,6 +163,15 @@ const handleStartAiMode = () => {
   // バリデーション: 空チェック
   if (aiPrompt.value === "") {
     notificationStore.addNotification("お題を入力して下さい。", "error");
+    return;
+  }
+
+  // お題の文字数チェック
+  if (aiPrompt.value.length > MAX_GEMINI_PROMPT_LENGTH) {
+    notificationStore.addNotification(
+      `お題は${MAX_GEMINI_PROMPT_LENGTH}文字以内にして下さい。`,
+      "error"
+    );
     return;
   }
 
