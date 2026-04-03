@@ -271,6 +271,8 @@ import ScrollTrigger from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// TODO .top-view__galleryのgallery-1の画像のみ仮です
+
 /**
  * 認証store
  */
