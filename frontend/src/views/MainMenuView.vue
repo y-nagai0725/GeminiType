@@ -398,7 +398,7 @@ const handleStartDbMode = (genreId, genreName) => {
 
     @include hover {
       color: $orange;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+      box-shadow: $hovered-box-shadow;
       transform: translateY(-2px);
 
       &::after {

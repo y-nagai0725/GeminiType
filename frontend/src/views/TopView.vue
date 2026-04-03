@@ -1,5 +1,5 @@
 <template>
-  <div class="top-view">
+  <div class="top-view" ref="topWrapper">
     <section class="top-view__hero">
       <h1 class="top-view__title">GeminiType</h1>
       <p class="top-view__subtitle">
@@ -230,7 +230,7 @@
       </div>
     </section>
 
-    <div class="top-view__actions">
+    <div class="top-view__actions top-view__actions--last">
       <template v-if="authStore.isLoggedIn">
         <RouterLink to="/menu" class="top-view__button top-view__button--menu">
           メインメニューへ進む
@@ -271,8 +271,6 @@ import ScrollTrigger from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// TODO 特長の3つの画像は仮です
-
 /**
  * 認証store
  */
@@ -294,6 +292,11 @@ const isProgressDetail = ref(false);
 const isStressFreeDetail = ref(false);
 
 /**
+ * 全体ラッパー要素参照
+ */
+const topWrapper = ref(null);
+
+/**
  * 横スクロール要素
  */
 const horizontalScrollWrapper = ref(null);
@@ -309,10 +312,57 @@ const slideWrapper = ref(null);
 let gsapContext;
 
 /**
- * gsap横スクロールアニメーション設定
+ * gsapアニメーション設定
  */
-const setHorizontalScrollAnimation = () => {
+const setAnimation = () => {
+  // アニメーション共通設定：開始状態
+  const fromAnimationSettings = {
+    autoAlpha: 0,
+    y: 20,
+  };
+
+  // アニメーション共通設定：終了状態
+  const toAnimationSettings = {
+    autoAlpha: 1,
+    y: 0,
+    duration: 0.8, // 0.8秒かけて表示
+    ease: "power2.out",
+  };
+
   gsapContext = gsap.context(() => {
+    // 特長セクション
+    const featuresSection = ".top-view__features";
+
+    // 特長セクションの表示アニメーション
+    gsap.fromTo(
+      featuresSection,
+      {
+        ...fromAnimationSettings,
+      },
+      {
+        ...toAnimationSettings,
+        scrollTrigger: {
+          trigger: featuresSection,
+          start: "top center",
+        },
+      }
+    );
+
+    // galleyセクションの表示アニメーション
+    gsap.fromTo(
+      horizontalScrollWrapper.value,
+      {
+        ...fromAnimationSettings,
+      },
+      {
+        ...toAnimationSettings,
+        scrollTrigger: {
+          trigger: horizontalScrollWrapper.value,
+          start: "top center",
+        },
+      }
+    );
+
     // スライド
     const slides = gsap.utils.toArray(".top-view__slide");
 
@@ -325,6 +375,7 @@ const setHorizontalScrollAnimation = () => {
         trigger: horizontalScrollWrapper.value,
         pin: true,
         scrub: 1,
+        anticipatePin: 1,
         invalidateOnRefresh: true,
         end: () => "+=" + slideWrapper.value.offsetWidth,
       },
@@ -353,14 +404,32 @@ const setHorizontalScrollAnimation = () => {
       },
       0
     );
-  }, horizontalScrollWrapper.value);
+
+    // ページ下部アクションボタン
+    const back = ".top-view__actions--last";
+
+    // ページ下部アクションボタン表示アニメーション
+    gsap.fromTo(
+      back,
+      {
+        ...fromAnimationSettings,
+      },
+      {
+        ...toAnimationSettings,
+        scrollTrigger: {
+          trigger: back,
+          start: "top center",
+        },
+      }
+    );
+  }, topWrapper.value);
 };
 
 /**
  * マウント時処理
  */
 onMounted(() => {
-  setHorizontalScrollAnimation();
+  setAnimation();
 });
 
 /**
@@ -432,6 +501,10 @@ onUnmounted(() => {
     flex-direction: column;
     align-items: center;
     @include fluid-style(gap, 24, 48);
+
+    &--last {
+      visibility: hidden; // GSAPアニメーション用
+    }
   }
 
   &__welcome {
@@ -475,6 +548,7 @@ onUnmounted(() => {
     flex-direction: column;
     align-items: center;
     @include fluid-style(gap, 32, 48);
+    visibility: hidden; // GSAPアニメーション用
   }
 
   &__features-title {
@@ -507,6 +581,12 @@ onUnmounted(() => {
     padding: 2.4rem;
     border-radius: $radius-lg;
     background-color: $gray;
+    transition: box-shadow $transition-base, transform $transition-base;
+
+    @include hover {
+      box-shadow: $hovered-box-shadow;
+      transform: translateY(-2px);
+    }
   }
 
   &__feature-subtitle {
@@ -549,12 +629,6 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     cursor: pointer;
-
-    @include hover {
-      #{$parent}__circle {
-        transform: scale(1.08);
-      }
-    }
   }
 
   &__circle {
@@ -610,6 +684,7 @@ onUnmounted(() => {
     position: relative;
     @include full-width-style;
     overflow: hidden;
+    visibility: hidden; // GSAPアニメーション用
   }
 
   &__slide-wrapper {
