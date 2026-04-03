@@ -71,6 +71,7 @@
                 class="admin-view__input"
                 placeholder="追加するジャンル名を入力…"
                 v-model="newGenreName"
+                :maxlength="MAX_GENRE_NAME_LENGTH"
                 required
               />
               <button type="submit" class="admin-view__input-button">
@@ -197,6 +198,7 @@
                 class="admin-view__input"
                 placeholder="新しい問題文"
                 v-model="newProblemText"
+                :maxlength="MAX_PROBLEM_TEXT_LENGTH"
                 required
               />
               <input
@@ -204,6 +206,7 @@
                 class="admin-view__input"
                 placeholder="ひらがな"
                 v-model="newProblemHiragana"
+                :maxlength="MAX_PROBLEM_HIRAGANA_LENGTH"
                 required
               />
               <button type="submit" class="admin-view__input-button">
@@ -515,6 +518,7 @@
                 id="edit-genre-name"
                 type="text"
                 v-model="editForm.name"
+                :maxlength="MAX_GENRE_NAME_LENGTH"
                 required
               />
             </div>
@@ -550,6 +554,7 @@
                   id="edit-problem-text"
                   type="text"
                   v-model="editForm.problem_text"
+                  :maxlength="MAX_PROBLEM_TEXT_LENGTH"
                   required
                 />
               </div>
@@ -564,6 +569,7 @@
                   id="edit-problem-hiragana"
                   type="text"
                   v-model="editForm.problem_hiragana"
+                  :maxlength="MAX_PROBLEM_HIRAGANA_LENGTH"
                   required
                 />
               </div>
@@ -672,6 +678,21 @@ const isTableLoading = ref(false);
  * ローディングの最低表示時間 (ミリ秒)
  */
 const MIN_LOADING_MS = 300;
+
+/**
+ * ジャンル名の最大文字数
+ */
+const MAX_GENRE_NAME_LENGTH = 15;
+
+/**
+ * 問題の最大文字数
+ */
+const MAX_PROBLEM_TEXT_LENGTH = 25;
+
+/**
+ * （問題の）ひらがなの最大文字数
+ */
+const MAX_PROBLEM_HIRAGANA_LENGTH = 50;
 
 /**
  * (登録用)新しいジャンル名
@@ -890,6 +911,15 @@ const handleAddGenre = async () => {
     return;
   }
 
+  // ジャンル名の文字数チェック
+  if (newGenreName.value.length > MAX_GENRE_NAME_LENGTH) {
+    notificationStore.addNotification(
+      `ジャンル名は${MAX_GENRE_NAME_LENGTH}文字以内にして下さい。`,
+      "error"
+    );
+    return;
+  }
+
   // ローディング表示
   isTableLoading.value = true;
 
@@ -937,6 +967,24 @@ const handleAddProblem = async () => {
   ) {
     notificationStore.addNotification(
       "ジャンル、問題文、ひらがなを全て入力して下さい。",
+      "error"
+    );
+    return;
+  }
+
+  // 問題文の文字数チェック
+  if (newProblemText.value.length > MAX_PROBLEM_TEXT_LENGTH) {
+    notificationStore.addNotification(
+      `問題文は${MAX_PROBLEM_TEXT_LENGTH}文字以内にして下さい。`,
+      "error"
+    );
+    return;
+  }
+
+  // ひらがなの文字数チェック
+  if (newProblemHiragana.value.length > MAX_PROBLEM_HIRAGANA_LENGTH) {
+    notificationStore.addNotification(
+      `ひらがなは${MAX_PROBLEM_HIRAGANA_LENGTH}文字以内にして下さい。`,
       "error"
     );
     return;
@@ -1213,6 +1261,15 @@ const handleUpdateItem = async () => {
         return;
       }
 
+      // ジャンル名の文字数チェック
+      if (editForm.name.length > MAX_GENRE_NAME_LENGTH) {
+        notificationStore.addNotification(
+          `ジャンル名は${MAX_GENRE_NAME_LENGTH}文字以内にして下さい。`,
+          "error"
+        );
+        return;
+      }
+
       // ジャンル更新、最低限の待ち時間を入れる（ローディング表示用）
       await Promise.all([
         adminStore.updateGenre(editForm.id, editForm.name),
@@ -1233,6 +1290,24 @@ const handleUpdateItem = async () => {
       ) {
         notificationStore.addNotification(
           "ジャンル、問題文、ひらがなを全て入力して下さい。",
+          "error"
+        );
+        return;
+      }
+
+      // 問題文の文字数チェック
+      if (editForm.problem_text.length > MAX_PROBLEM_TEXT_LENGTH) {
+        notificationStore.addNotification(
+          `問題文は${MAX_PROBLEM_TEXT_LENGTH}文字以内にして下さい。`,
+          "error"
+        );
+        return;
+      }
+
+      // ひらがなの文字数チェック
+      if (editForm.problem_hiragana.length > MAX_PROBLEM_HIRAGANA_LENGTH) {
+        notificationStore.addNotification(
+          `ひらがなは${MAX_PROBLEM_HIRAGANA_LENGTH}文字以内にして下さい。`,
           "error"
         );
         return;

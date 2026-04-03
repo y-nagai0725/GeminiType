@@ -84,6 +84,21 @@ const DEFAULT_PROBLEM_COUNT = 5;
 const MAX_PROBLEM_COUNT = 30;
 
 /**
+ * ジャンル名の最大文字数
+ */
+const MAX_GENRE_NAME_LENGTH = 15;
+
+/**
+ * 問題の最大文字数
+ */
+const MAX_PROBLEM_TEXT_LENGTH = 25;
+
+/**
+ * （問題の）ひらがなの最大文字数
+ */
+const MAX_PROBLEM_HIRAGANA_LENGTH = 50;
+
+/**
  * Yahoo web APIのURL
  */
 const YAHOO_API_URL = 'https://jlp.yahooapis.jp/FuriganaService/V2/furigana';
@@ -373,6 +388,11 @@ app.post('/api/admin/genres', authenticateToken, checkAdminAccess, async (req, r
       return res.status(400).json({ message: 'ジャンル名を入力して下さい。' });
     }
 
+    // ジャンル名の文字数チェック
+    if (name.length > MAX_GENRE_NAME_LENGTH) {
+      return res.status(400).json({ message: `ジャンル名は${MAX_GENRE_NAME_LENGTH}文字以内にして下さい。` });
+    }
+
     // 登録
     const newGenre = await prisma.genre.create({
       data: {
@@ -417,6 +437,11 @@ app.put('/api/admin/genres/:id', authenticateToken, checkAdminAccess, async (req
     // バリデーション
     if (!name || name.trim() === '') {
       return res.status(400).json({ message: 'ジャンル名を入力して下さい。' });
+    }
+
+    // ジャンル名の文字数チェック
+    if (name.length > MAX_GENRE_NAME_LENGTH) {
+      return res.status(400).json({ message: `ジャンル名は${MAX_GENRE_NAME_LENGTH}文字以内にして下さい。` });
     }
 
     // 更新
@@ -580,6 +605,16 @@ app.post('/api/admin/problems', authenticateToken, checkAdminAccess, async (req,
       return res.status(400).json({ message: 'ジャンルIDに、不正な値が設定されています。' });
     }
 
+    // 問題文の文字数チェック
+    if (problem_text.length > MAX_PROBLEM_TEXT_LENGTH) {
+      return res.status(400).json({ message: `問題文は${MAX_PROBLEM_TEXT_LENGTH}文字以内にして下さい。` });
+    }
+
+    // ひらがなの文字数チェック
+    if (problem_hiragana.length > MAX_PROBLEM_HIRAGANA_LENGTH) {
+      return res.status(400).json({ message: `ひらがなは${MAX_PROBLEM_HIRAGANA_LENGTH}文字以内にして下さい。` });
+    }
+
     // ひらがなチェック
     if (!isValidReading(problem_hiragana)) {
       return res.status(400).json({
@@ -644,6 +679,16 @@ app.put('/api/admin/problems/:id', authenticateToken, checkAdminAccess, async (r
     const genreIdNum = parseInt(genre_id, 10);
     if (isNaN(genreIdNum)) {
       return res.status(400).json({ message: 'ジャンルIDが、不正な値です。' });
+    }
+
+    // 問題文の文字数チェック
+    if (problem_text.length > MAX_PROBLEM_TEXT_LENGTH) {
+      return res.status(400).json({ message: `問題文は${MAX_PROBLEM_TEXT_LENGTH}文字以内にして下さい。` });
+    }
+
+    // ひらがなの文字数チェック
+    if (problem_hiragana.length > MAX_PROBLEM_HIRAGANA_LENGTH) {
+      return res.status(400).json({ message: `ひらがなは${MAX_PROBLEM_HIRAGANA_LENGTH}文字以内にして下さい。` });
     }
 
     // ひらがなチェック
