@@ -159,12 +159,12 @@ const checkAdminAccess = (req, res, next) => {
   // トークンから復元したユーザーの権限を取得
   const userRole = req.user && req.user.role;
 
-  // 1. フル権限の管理者（ADMIN）はすべての操作(GET, POST, PUT, DELETE)が可能
+  // フル権限の管理者（ADMIN）はすべての操作(GET, POST, PUT, DELETE)が可能
   if (userRole === 'ADMIN') {
     return next();
   }
 
-  // 2. ゲスト管理者（GUEST_ADMIN）はデータの「閲覧(GET)」のみ可能
+  // ゲスト管理者（GUEST_ADMIN）はデータの「閲覧(GET)」のみ可能
   if (userRole === 'GUEST_ADMIN') {
     if (req.method === 'GET') {
       // GETリクエストなら通す
@@ -175,7 +175,7 @@ const checkAdminAccess = (req, res, next) => {
     }
   }
 
-  // 3. 一般ユーザー(USER)や権限不明の場合は一律で弾く
+  // 一般ユーザー(USER)や権限不明の場合は一律で弾く
   return res.status(403).json({ message: '管理者権限がありません。' });
 };
 
