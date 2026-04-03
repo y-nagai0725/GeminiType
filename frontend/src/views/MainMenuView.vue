@@ -4,7 +4,6 @@
       <span class="en">MAIN MENU</span>
       <span class="ja">メインメニュー</span>
     </h1>
-
     <div class="main-menu__contents-wrapper">
       <section class="main-menu__section main-menu__section--ai">
         <h2 class="main-menu__subtitle">AI問題生成モード</h2>
@@ -66,7 +65,6 @@
                   @click="handleStartDbMode(genre.id, genre.name)"
                 >
                   {{ genre.name }}
-                  <ArrowIcon class="main-menu__arrow-icon" />
                 </button>
               </div>
             </template>
@@ -226,7 +224,6 @@ const handleStartDbMode = (genreId, genreName) => {
   &__section {
     display: flex;
     flex-direction: column;
-    align-items: center;
     @include fluid-style(gap, 24, 32);
     min-width: 0;
     @include fluid-style(padding, 24, 40);
@@ -248,9 +245,7 @@ const handleStartDbMode = (genreId, genreName) => {
   }
 
   &__text {
-    text-align: center;
-    @include fluid-text(14, 18);
-    font-weight: $bold;
+    @include fluid-text(12, 16);
     letter-spacing: 0.1em;
     line-height: 1.8;
 
@@ -272,7 +267,7 @@ const handleStartDbMode = (genreId, genreName) => {
   &__label {
     display: block;
     @include fluid-style(margin-bottom, 8, 16);
-    @include fluid-text(14, 18);
+    @include fluid-text(12, 16);
     font-weight: $bold;
     letter-spacing: 0.1em;
   }
@@ -329,8 +324,8 @@ const handleStartDbMode = (genreId, genreName) => {
       // スクロールバー色
       background-color: $green;
 
-      // スクロールバー不透明度（デフォルト0.5）
-      opacity: 1;
+      // スクロールバー不透明度
+      opacity: 0.75;
     }
 
     &::v-deep(.simplebar-track.simplebar-vertical) {
@@ -369,16 +364,48 @@ const handleStartDbMode = (genreId, genreName) => {
 
   &__genre-list {
     display: flex;
-    flex-wrap: wrap;
-    @include fluid-style(gap, 16, 24);
+    flex-direction: column;
+    @include fluid-style(gap, 12, 16);
+
+    @include pc {
+      padding-top: 2px;
+    }
   }
 
   &__genre-button {
-    @include button-style-border($green);
-    @include fluid-style(padding-block, 12, 20);
-    @include fluid-style(padding-inline, 16, 24);
+    position: relative;
+    padding: 1em;
+    font-weight: $bold;
     @include fluid-text(12, 16);
     background-color: $white;
+    border-radius: $radius-md;
+    cursor: pointer;
+    transition: color $transition-base, box-shadow $transition-base,
+      transform $transition-base;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: 1em;
+      transform: translateY(-50%);
+      width: 0.8em;
+      aspect-ratio: 1;
+      background-color: rgba($black, 0.25);
+      clip-path: polygon(0 0, 0% 100%, 100% 50%);
+      transition: background-color $transition-base, transform $transition-base;
+    }
+
+    @include hover {
+      color: $orange;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+      transform: translateY(-2px);
+
+      &::after {
+        background-color: $orange;
+        transform: translate(4px, -50%);
+      }
+    }
   }
 }
 </style>
