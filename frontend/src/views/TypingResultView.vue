@@ -96,7 +96,7 @@
         </div>
         <div class="result-view__ai-area">
           <div class="result-view__ai-image-wrapper">
-            <AiIcon class="result-view__ai-icon" />
+            <img class="result-view__ai-image" src="@/assets/images/typing-result/ai-icon.webp" alt="AI画像">
           </div>
           <div class="result-view__ai-comment-wrapper">
             <p v-if="isCommentLoading" class="result-view__ai-comment">
@@ -755,17 +755,17 @@ watch(progressCircleDashoffset, (newValue) => {
 
   &__ai-image-wrapper {
     flex-shrink: 0;
-    display: grid;
-    place-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 8rem;
     aspect-ratio: 1;
     border-radius: 100vmax;
     background-color: $gray;
   }
 
-  &__ai-icon {
-    width: 6.4rem;
-    aspect-ratio: 1;
+  &__ai-image {
+    width: 80%;
   }
 
   &__ai-comment-wrapper {
