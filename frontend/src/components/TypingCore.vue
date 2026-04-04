@@ -264,7 +264,7 @@
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import api from "../services/api";
-import romaMapData from "@/data/romanTypingParseDictionary.json";
+import romajiMapData from "@/data/romajiDictionary.json";
 import { useNotificationStore } from "../stores/notificationStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import TimerIcon from "@/components/icons/TimerIcon.vue";
@@ -442,8 +442,8 @@ const keyToFingerMap = {
 /**
  * ローマ字マップ(検索用にMapオブジェクトにしておく)
  */
-const romaMap = new Map(
-  romaMapData.map((item) => [item.Pattern, item.TypePattern])
+const romajiMap = new Map(
+  romajiMapData.map((item) => [item.Pattern, item.TypePattern])
 );
 
 /**
@@ -478,7 +478,7 @@ const props = defineProps({
   // ローマ字ガイド表示
   showRomaji: { type: Boolean, default: true },
   // 試し打ち
-  isTryMode: { type: Boolean, default: false}
+  isTryMode: { type: Boolean, default: false },
 });
 
 /**
@@ -902,8 +902,8 @@ const parseHiragana = (hiragana) => {
     // 3文字、2文字、1文字といった順番で検索していく
     for (let len = 3; len >= 1; len--) {
       const chunk = hiragana.substring(cursor, cursor + len);
-      if (romaMap.has(chunk)) {
-        const patterns = romaMap.get(chunk);
+      if (romajiMap.has(chunk)) {
+        const patterns = romajiMap.get(chunk);
         units.push({ hiragana: chunk, patterns: patterns });
         defaultPatterns.push(patterns[0]);
         cursor += len;

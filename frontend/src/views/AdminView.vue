@@ -607,7 +607,7 @@ import { useNotificationStore } from "../stores/notificationStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import TypingCore from "../components/TypingCore.vue";
 import ConfirmModal from "../components/ConfirmModal.vue";
-import romaMapData from "@/data/romanTypingParseDictionary.json";
+import romajiMapData from "@/data/romajiDictionary.json";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import SearchIcon from "@/components/icons/SearchIcon.vue";
 import PlusIcon from "@/components/icons/PlusIcon.vue";
@@ -641,6 +641,11 @@ const settingsStore = useSettingsStore();
  * router
  */
 const router = useRouter();
+
+/**
+ * 問題登録のひらがなで許可する文字
+ */
+const allowedChars = new Set(romajiMapData.map((item) => item.Pattern));
 
 /**
  * ページ全体のローディング状態
@@ -887,9 +892,6 @@ const isGuestRestricted = () => {
  * @returns {Boolean} OKならtrue
  */
 const isValidReading = (text) => {
-  // 辞書にある「Pattern（文字）」をSetにして検索を爆速にする
-  const allowedChars = new Set(romaMapData.map((item) => item.Pattern));
-
   // 1文字ずつチェックして、辞書にない文字があれば false
   for (const char of text) {
     if (!allowedChars.has(char)) {
