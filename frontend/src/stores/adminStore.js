@@ -71,7 +71,7 @@ export const useAdminStore = defineStore('admin', () => {
       // --- 検索用クエリ作成 ---
       const params = new URLSearchParams();
 
-      // 「page」のバリデーション
+      // 「page」をAPI送信用にサニタイズ（不正な値なら安全な「1」に整形）
       const pageNum = parseInt(currentPage.value, 10);
       if (!isNaN(pageNum) && pageNum > 0) {
         params.append('page', pageNum);
@@ -79,13 +79,13 @@ export const useAdminStore = defineStore('admin', () => {
         params.append('page', 1);
       }
 
-      // 「genreId」のバリデーション
+      // 「genreId」をAPI送信用にサニタイズ
       const genreIdNum = parseInt(filterGenreId.value, 10);
       if (!isNaN(genreIdNum) && genreIdNum > 0) {
         params.append('genreId', genreIdNum);
       }
 
-      // 「search」のバリデーション
+      // 「search」をサニタイズ（前後の空白を除去、空の送信を防ぐ）
       if (filterSearchText.value && filterSearchText.value.trim() !== '') {
         params.append('search', filterSearchText.value.trim());
       }
