@@ -1,7 +1,11 @@
+// =========================================================================
+// 汎用フォーマット関数群
+// =========================================================================
+
 /**
  * 日付を「YYYY/MM/DD HH:mm」形式に変換する
- * @param {string | Date} dateInput
- * @returns {string}
+ * @param {string | Date} dateInput 日付データ
+ * @returns {string} 「YYYY/MM/DD HH:mm」形式の文字列
  */
 export const formatDate = (dateInput) => {
   if (!dateInput) return "-";
@@ -19,7 +23,7 @@ export const formatDate = (dateInput) => {
  * 長いテキストを「...」で省略する
  * @param {string} text 対象のテキスト
  * @param {number} maxLength 表示する最大文字数 (デフォルト10)
- * @returns {string}
+ * @returns {string} 最大文字数を超過した部分を省略したテキスト
  */
 export const truncateText = (text, maxLength = 10) => {
   if (!text) return "-";
@@ -28,8 +32,8 @@ export const truncateText = (text, maxLength = 10) => {
 
 /**
  * ミスキー情報（JSON文字列 or オブジェクト）を「k(2), a(1)」形式にする
- * @param {string | object} missedKeysInput
- * @returns {string}
+ * @param {string | object} missedKeysInput ミスキー情報（JSON文字列 or オブジェクト）
+ * @returns {string} 「k(2), a(1)」形式の文字列
  */
 export const formatMissedKeys = (missedKeysInput) => {
   if (!missedKeysInput) return "-";
