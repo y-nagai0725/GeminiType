@@ -86,7 +86,7 @@ const router = createRouter({
     },
     {
       // セッション詳細ページ
-      path: '/mypage/session/:id',
+      path: '/mypage/session/:id(\\d+)', // :idには半角数字のみ許可
       name: 'session-detail',
       component: SessionDetailView,
       meta: { requiresAuth: true }, // 要ログイン
