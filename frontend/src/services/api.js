@@ -1,11 +1,21 @@
+// =========================================================================
+// パッケージの読み込み・APIクライアントの作成
+// =========================================================================
+
 import axios from 'axios';
 
+/**
+ * Axiosのカスタムインスタンス
+ * .env.localからベースURLを読み込んで設定する
+ */
 const api = axios.create({
-  // .env.localからベースURLを読み込む
   baseURL: import.meta.env.VITE_API_BASE_URL
 });
 
-// リクエストインターセプター
+// =========================================================================
+// リクエストインターセプター (送信前の処理)
+// =========================================================================
+
 api.interceptors.request.use(
   (config) => {
     // ローカルストレージからトークンを取得
@@ -22,7 +32,10 @@ api.interceptors.request.use(
   }
 );
 
-// レスポンスインターセプター
+// =========================================================================
+// レスポンスインターセプター (受信後の処理)
+// =========================================================================
+
 api.interceptors.response.use(
   (response) => {
     // 「成功」レスポンスは、そのまま通す
@@ -33,9 +46,11 @@ api.interceptors.response.use(
     const originalRequestUrl = error.config.url;
     const status = error.response ? error.response.status : null;
 
-    // 「401エラー（トークン切れ）」且つ「ログインAPI」ではない場合
+    // 「401エラー（トークン切れ・未認証）」且つ「ログインAPI」ではない場合
+    // ※ログイン時のパスワード間違い等(401)で強制ログアウト処理が走るのを防ぐため
     if (status === 401 && originalRequestUrl !== '/api/login') {
-      // 認証storeとお知らせstoreを用意
+
+      // 認証storeとお知らせstoreを動的インポート (循環参照を防ぐため)
       const { useAuthStore } = await import('../stores/authStore');
       const { useNotificationStore } = await import('../stores/notificationStore');
       const authStore = useAuthStore();
