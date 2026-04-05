@@ -98,37 +98,6 @@ const router = createRouter({
       component: NotFoundView
     }
   ],
-
-  // =========================================================================
-  // スクロール制御
-  // =========================================================================
-
-  /**
-   * 画面遷移時のスクロール位置を制御する
-   * @param {*} to 行き先のルート
-   * @param {*} from 来た元のルート
-   * @param {*} savedPosition 覚えておいたスクロール位置
-   * @returns スクロール位置
-   */
-  scrollBehavior(to, from, savedPosition) {
-    // 戻る/進むボタンの時は、元の位置を記憶していればそこに戻す
-    if (savedPosition) {
-      return new Promise((resolve) => {
-        // setTimeoutでスクロールを待機させる
-        setTimeout(() => {
-          resolve(savedPosition);
-        }, 300); // フェードアウトの時間
-      });
-    }
-
-    // 通常のページ遷移の時は、一番上に戻す
-    return new Promise((resolve) => {
-      // setTimeoutでスクロールを待機させる
-      setTimeout(() => {
-        resolve({ top: 0 });
-      }, 300); // フェードアウトの時間
-    });
-  },
 });
 
 // =========================================================================

@@ -331,7 +331,11 @@ const setAnimation = () => {
     ease: "power2.out",
   };
 
+  // GSAPアニメーション設定
   gsapContext = gsap.context(() => {
+    // スコープ外の「Simplebarのスクロール要素」を直接取得
+    const scrollContainer = document.querySelector("#app-main-scroll .simplebar-content-wrapper");
+
     // 特長セクション
     const featuresSection = ".top-view__features";
 
@@ -345,6 +349,7 @@ const setAnimation = () => {
         ...toAnimationSettings,
         scrollTrigger: {
           trigger: featuresSection,
+          scroller: scrollContainer,
           start: "top center",
         },
       }
@@ -360,6 +365,7 @@ const setAnimation = () => {
         ...toAnimationSettings,
         scrollTrigger: {
           trigger: horizontalScrollWrapper.value,
+          scroller: scrollContainer,
           start: "top center",
         },
       }
@@ -375,6 +381,7 @@ const setAnimation = () => {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: horizontalScrollWrapper.value,
+        scroller: scrollContainer,
         pin: true,
         scrub: 1,
         anticipatePin: 1,
@@ -420,6 +427,7 @@ const setAnimation = () => {
         ...toAnimationSettings,
         scrollTrigger: {
           trigger: back,
+          scroller: scrollContainer,
           start: "top center",
         },
       }

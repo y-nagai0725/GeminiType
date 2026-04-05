@@ -335,21 +335,21 @@ const handleStartDbMode = (genreId, genreName) => {
   &__genre-list-wrapper {
     @include fluid-style(height, 150, 240);
 
-    &::v-deep(.simplebar-scrollbar::before) {
-      // スクロールバー色
-      background-color: $green;
-
-      // スクロールバー不透明度
-      opacity: 0.75;
-    }
-
     &::v-deep(.simplebar-track.simplebar-vertical) {
       // スクロールバー幅
       @include fluid-style(width, 9, 11);
 
       // スクロールバー位置
-      @include fluid-style(--scrollbar-position-right, 12, 20);
+      @include fluid-style(--scrollbar-position-right, 14, 22);
       right: calc(var(--scrollbar-position-right) * -1);
+
+      .simplebar-scrollbar::before {
+        // スクロールバー色
+        background-color: $green;
+
+        // スクロールバー不透明度
+        opacity: 1;
+      }
     }
   }
 

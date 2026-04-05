@@ -763,6 +763,9 @@ const setAnimation = () => {
 
   // アニメーション設定
   gsapContext = gsap.context(() => {
+    // スコープ外の「Simplebarのスクロール要素」を直接取得
+    const scrollContainer = document.querySelector("#app-main-scroll .simplebar-content-wrapper");
+
     // プロフィールセクション
     const profileSection = ".mypage-view__section--profile";
 
@@ -793,6 +796,7 @@ const setAnimation = () => {
             ...toAnimationSettings,
             scrollTrigger: {
               trigger: section,
+              scroller: scrollContainer,
               start: "top center+=20%",
             },
           }
@@ -804,6 +808,7 @@ const setAnimation = () => {
     const timelineProfileSection = gsap.timeline({
       scrollTrigger: {
         trigger: profileSection,
+        scroller: scrollContainer,
         start: "top center+=20%",
       },
     });
