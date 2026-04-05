@@ -334,7 +334,9 @@ const setAnimation = () => {
   // GSAPアニメーション設定
   gsapContext = gsap.context(() => {
     // スコープ外の「Simplebarのスクロール要素」を直接取得
-    const scrollContainer = document.querySelector("#app-main-scroll .simplebar-content-wrapper");
+    const scrollContainer = document.querySelector(
+      "#app-main-scroll .simplebar-content-wrapper"
+    );
 
     // 特長セクション
     const featuresSection = ".top-view__features";
@@ -356,13 +358,16 @@ const setAnimation = () => {
     );
 
     // galleyセクションの表示アニメーション
+    // この要素は後でピン留め(pin)されるため、fromAnimationSettings は使わずに、autoAlpha のみで表示させる
     gsap.fromTo(
       horizontalScrollWrapper.value,
       {
-        ...fromAnimationSettings,
+        autoAlpha: 0,
       },
       {
-        ...toAnimationSettings,
+        autoAlpha: 1,
+        duration: 0.8,
+        ease: "power2.out",
         scrollTrigger: {
           trigger: horizontalScrollWrapper.value,
           scroller: scrollContainer,
@@ -383,6 +388,7 @@ const setAnimation = () => {
         trigger: horizontalScrollWrapper.value,
         scroller: scrollContainer,
         pin: true,
+        pinType: "fixed",
         scrub: 1,
         anticipatePin: 1,
         invalidateOnRefresh: true,
@@ -695,6 +701,7 @@ onUnmounted(() => {
     @include full-width-style;
     overflow: hidden;
     visibility: hidden; // GSAPアニメーション用
+    pointer-events: none; // pin留めした際にスワイプ（スクロール）できるように
   }
 
   &__slide-wrapper {
