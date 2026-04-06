@@ -32,8 +32,8 @@
         <button
           class="header__hamburger-button"
           :class="{ 'is-active': isMenuOpen }"
+          :aria-expanded="isMenuOpen"
           @click="toggleMenu"
-          aria-label="メニューを開く"
         >
           <span class="header__line-wrapper">
             <span class="header__line header__line--top"></span>
@@ -117,12 +117,19 @@
 </template>
 
 <script setup>
+// =========================================================================
+// パッケージ・モジュールの読み込み
+// =========================================================================
 import { ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import SiteLogoIcon from "@/components/icons/SiteLogoIcon.vue";
 import UserIcon from "@/components/icons/UserIcon.vue";
+
+// =========================================================================
+// State (状態管理)
+// =========================================================================
 
 /**
  * 認証store
@@ -143,6 +150,10 @@ const router = useRouter();
  * メニューの開閉状態
  */
 const isMenuOpen = ref(false);
+
+// =========================================================================
+// Actions (処理)
+// =========================================================================
 
 /**
  * メニューの切り替え
@@ -176,14 +187,18 @@ const handleLogout = () => {
 <style lang="scss" scoped>
 .header {
   $parent: &;
+
   position: fixed;
-  z-index: $z-header;
   top: 0;
   left: 0;
+
+  /* メインコンテンツやストーカー要素との重なり順を制御するため */
+  z-index: $z-header;
   width: 100%;
   height: $header-height-sp;
   background-color: $green;
 
+  /* デバイスごとのヘッダー高さを変数で管理して一括適用 */
   @include tab {
     height: $header-height-tab;
   }
@@ -193,18 +208,22 @@ const handleLogout = () => {
   }
 
   &__inner {
+    @include contents-width;
+
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    position: relative;
-    @include contents-width;
     height: 100%;
   }
 
   &__logo-link {
+    @include fluid-style(gap, 8, 16);
+
     display: flex;
     align-items: center;
-    @include fluid-style(gap, 8, 16);
+
+    /* スマホなどでタップしやすいように上下に判定領域を広げる */
     padding: 1rem 0;
     color: $white;
     transition: color $transition-base;
@@ -216,13 +235,15 @@ const handleLogout = () => {
 
   &__logo-icon {
     @include fluid-style(width, 26, 40);
-    stroke: currentColor;
-    fill: currentColor;
+
+    fill: currentcolor;
+    stroke: currentcolor;
     transition: fill $transition-base, stroke $transition-base;
   }
 
   &__title {
     @include fluid-text(20, 30);
+
     font-family: $roboto-mono;
     font-weight: $bold;
     letter-spacing: 0.05em;
@@ -230,8 +251,8 @@ const handleLogout = () => {
 
   &__right {
     display: flex;
-    align-items: center;
     gap: 2.4rem;
+    align-items: center;
   }
 
   &__pc-actions {
@@ -239,13 +260,14 @@ const handleLogout = () => {
 
     @include pc {
       display: flex;
-      align-items: center;
       gap: 2.4rem;
+      align-items: center;
     }
   }
 
   &__button {
     @include button-style-border($white, $green);
+
     padding: 1.6rem 3.2rem;
     font-size: 1.4rem;
     line-height: 1;
@@ -254,8 +276,8 @@ const handleLogout = () => {
   &__user-name,
   &__menu-user-name {
     display: flex;
-    align-items: center;
     gap: 0.8rem;
+    align-items: center;
     font-size: 1.4rem;
     color: $white;
   }
@@ -274,24 +296,30 @@ const handleLogout = () => {
   }
 
   &__hamburger-button {
+    @include fluid-style(width, 40, 48);
+
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-around;
-    position: relative;
-    @include fluid-style(width, 40, 48);
     aspect-ratio: 1;
     cursor: pointer;
 
     &.is-active {
+      /* ハンバーガーの上の線を45度傾けてバツ印（×）の片方を作る */
       #{$parent}__line--top {
         top: 50%;
         transform: translateY(-50%) rotate(45deg);
       }
+
+      /* 真ん中の線は右にスライドさせながら透明にして見えなくする */
       #{$parent}__line--middle {
-        transform: translate(7px, -50%);
         opacity: 0;
+        transform: translate(7px, -50%);
       }
+
+      /* 下の線を-45度傾けてバツ印（×）を完成させる */
       #{$parent}__line--bottom {
         bottom: 50%;
         transform: translateY(50%) rotate(-45deg);
@@ -310,8 +338,8 @@ const handleLogout = () => {
   }
 
   &__line-wrapper {
-    display: block;
     position: relative;
+    display: block;
     width: 50%;
     aspect-ratio: 5 / 4;
   }
@@ -322,7 +350,7 @@ const handleLogout = () => {
     width: 100%;
     height: 2px;
     background-color: $white;
-    border-radius: 2px;
+    border-radius: $radius-sm;
     transition: top $transition-base, bottom $transition-base,
       opacity $transition-base, transform $transition-base,
       background-color $transition-base;
@@ -342,22 +370,25 @@ const handleLogout = () => {
   }
 
   &__hamburger-button-text {
-    font-family: $roboto-mono;
     @include fluid-text(10, 11);
+
+    font-family: $roboto-mono;
     color: $white;
     transition: color $transition-base;
   }
 
   &__fullscreen-menu {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 5.6rem;
     position: fixed;
     top: $header-height-sp;
     left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5.6rem;
+    align-items: center;
+    justify-content: center;
     width: 100%;
+
+    /* ヘッダーのすぐ下から画面の底までをぴったり覆うための高さ計算 */
     height: calc(100svh - $header-height-sp);
     background-color: $green;
 
@@ -379,19 +410,21 @@ const handleLogout = () => {
   }
 
   &__menu-list {
+    @include fluid-style(gap, 12, 28);
+
     display: flex;
     flex-direction: column;
     align-items: center;
-    @include fluid-style(gap, 12, 28);
   }
 
   &__menu-link {
-    display: block;
-    padding: 1rem 0;
     @include fluid-text(18, 24);
+
+    display: block;
+    padding: 1rem 0; /* タップ領域の拡大 */
     font-weight: $bold;
-    letter-spacing: 0.1em;
     color: $white;
+    letter-spacing: 0.1em;
     transition: color $transition-base;
 
     @include hover {
