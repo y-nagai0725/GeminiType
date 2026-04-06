@@ -94,14 +94,14 @@ onUnmounted(() => {
   z-index: $z-mouse-stalker;
   width: 2rem;
   height: 2rem;
-  border-radius: 50%;
-  background-color: $green;
-  opacity: 0.6;
-  pointer-events: none; // ストーカー自身がクリックを邪魔しないように透過する
 
   /* 中心をマウス座標に合わせるための調整 */
   margin-top: -1rem;
   margin-left: -1rem;
+  pointer-events: none; // ストーカー自身がクリックを邪魔しないように透過する
+  background-color: $green;
+  border-radius: 50%;
+  opacity: 0.6;
 
   /* アニメーション設定 */
   transition: transform 0.1s ease-out, width $transition-base,
