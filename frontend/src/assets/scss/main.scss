@@ -1,6 +1,6 @@
 @use "./_mixins.scss" as *;
 @use "./_variables.scss" as *;
-@import "./reset.scss";
+@use "./_reset.scss";
 
 html {
   font-size: 62.5%;
