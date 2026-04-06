@@ -16,6 +16,7 @@
     </Simplebar>
 
     <NotificationDisplay />
+    <MouseStalker />
   </div>
 </template>
 
@@ -29,6 +30,7 @@ import AppHeader from "@/components/AppHeader.vue";
 import AppFooter from "@/components/AppFooter.vue";
 import Submenu from "@/components/Submenu.vue";
 import NotificationDisplay from "@/components/NotificationDisplay.vue";
+import MouseStalker from "@/components/MouseStalker.vue";
 
 /**
  * 現在のルート情報
