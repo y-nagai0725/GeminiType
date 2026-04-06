@@ -92,11 +92,23 @@
 </template>
 
 <script setup>
+// =========================================================================
+// パッケージ・モジュールの読み込み
+// =========================================================================
 import { RouterLink, useRouter } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import SiteLogoIcon from "@/components/icons/SiteLogoIcon.vue";
 import ExternalLinkIcon from "@/components/icons/ExternalLinkIcon.vue";
+
+// =========================================================================
+// State (状態管理)
+// =========================================================================
+
+/**
+ * router
+ */
+const router = useRouter();
 
 /**
  * 認証store
@@ -108,75 +120,84 @@ const authStore = useAuthStore();
  */
 const notificationStore = useNotificationStore();
 
-/**
- * router
- */
-const router = useRouter();
+// =========================================================================
+// Actions (処理)
+// =========================================================================
 
 /**
  * ログアウト処理
  */
 const handleLogout = () => {
-  // ログアウト
   authStore.logout();
-
-  // ログアウト通知
   notificationStore.addNotification("ログアウトしました", "success");
+
+  // Note: 実際の画面遷移は、authStore.logout() 内、またはそこからトリガーされる
+  // router側のフック（ナビゲーションガード）等で行われる想定です。
 };
 </script>
 
 <style lang="scss" scoped>
 .footer {
-  $parent: &;
   @include fluid-style(padding-block, 48, 100);
+
+  $parent: &;
+
+  /* コンテンツが少なくても常に画面最下部に配置するための設定 */
   margin-top: auto;
   background-color: $green;
 
   &__inner {
+    @include contents-width;
+
+    /* セクション間の余白をカスタムプロパティで管理し、区切り線の計算にも流用する */
     @include fluid-style(--box-gap-size, 64, 128);
 
     display: flex;
     flex-direction: column;
     gap: var(--box-gap-size);
-    @include contents-width;
   }
 
   &__top-box {
     position: relative;
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 3.2rem;
+    align-items: center;
 
+    /* セクション間の区切り線 */
     &::after {
-      content: "";
       position: absolute;
-      left: 0;
+
+      /* --box-gap-size の半分の位置に線を引くことで、常に中央に配置 */
       bottom: calc(var(--box-gap-size) / -2);
-      transform: translateY(50%);
+      left: 0;
       width: 100%;
       height: 1px;
+      content: "";
       background-color: $white;
+      transform: translateY(50%);
     }
 
     @include pc {
       flex-direction: row;
-      align-items: flex-start;
       gap: 0;
+      align-items: flex-start;
     }
   }
 
   &__logo-box {
     @include pc {
+      /* ナビゲーションとのバランスを取るための幅調整 */
       width: calc(100% / 3 * 2);
     }
   }
 
   &__logo-link {
+    @include fluid-style(gap, 8, 24);
+
     display: inline-flex;
     align-items: center;
-    @include fluid-style(gap, 8, 24);
-    padding: 1rem 0;
+    padding: 1rem 0; /* クリック判定領域を広げるための余白 */
     color: $white;
     transition: color $transition-base;
 
@@ -187,23 +208,26 @@ const handleLogout = () => {
 
   &__logo-icon {
     @include fluid-style(width, 32, 52);
-    stroke: currentColor;
-    fill: currentColor;
+
+    fill: currentcolor;
+    stroke: currentcolor;
     transition: fill $transition-base, stroke $transition-base;
   }
 
   &__title {
     @include fluid-text(24, 40);
+
     font-family: $roboto-mono;
     font-weight: $bold;
     letter-spacing: 0.05em;
   }
 
   &__list {
+    @include fluid-style(gap, 0, 4);
+
     display: flex;
     flex-direction: column;
     align-items: center;
-    @include fluid-style(gap, 0, 4);
 
     @include pc {
       align-items: flex-start;
@@ -211,12 +235,13 @@ const handleLogout = () => {
   }
 
   &__link {
-    display: block;
-    padding: 1rem 0;
     @include fluid-text(14, 18);
+
+    display: block;
+    padding: 1rem 0; /* クリック判定領域を広げるための余白 */
     font-weight: $bold;
-    letter-spacing: 0.1em;
     color: $white;
+    letter-spacing: 0.1em;
     transition: color $transition-base;
 
     &--roboto {
@@ -230,20 +255,22 @@ const handleLogout = () => {
   }
 
   &__bottom-box {
+    @include fluid-style(gap, 32, 64);
+
     display: flex;
     flex-direction: column;
     align-items: center;
-    @include fluid-style(gap, 32, 64);
 
     @include pc {
       flex-direction: row;
-      justify-content: space-between;
-      align-items: flex-end;
       gap: 0;
+      align-items: flex-end;
+      justify-content: space-between;
     }
   }
 
   &__external-link-list {
+    /* リンク間の余白をカスタムプロパティで管理し、区切り線の計算にも流用する */
     @include fluid-style(--external-link-gap-size, 22, 28);
 
     display: flex;
@@ -253,24 +280,26 @@ const handleLogout = () => {
   &__external-link-item {
     position: relative;
 
+    /* 最後のアイテム以外に縦の区切り線を引く */
     &:not(:last-of-type)::after {
-      content: "";
       position: absolute;
       top: 0;
       right: calc(var(--external-link-gap-size) / -2);
-      transform: translateX(50%);
       width: 1px;
       height: 100%;
+      content: "";
       background-color: $white;
+      transform: translateX(50%);
     }
   }
 
   &__external-link {
-    display: flex;
     @include fluid-style(gap, 6, 8);
     @include fluid-text(11, 14);
-    letter-spacing: 0.1em;
+
+    display: flex;
     color: $white;
+    letter-spacing: 0.1em;
     transition: color $transition-base;
 
     &--roboto {
@@ -281,6 +310,7 @@ const handleLogout = () => {
     @include hover {
       color: $yellow;
 
+      /* 親要素ホバー時に子要素(アイコン)も同時に色・位置を変更する */
       #{$parent}__external-link-icon {
         fill: $yellow;
         transform: translateY(-4px);
@@ -290,14 +320,16 @@ const handleLogout = () => {
 
   &__external-link-icon {
     @include fluid-style(width, 11, 14);
+
     aspect-ratio: 1;
     fill: $white;
     transition: fill $transition-base, transform $transition-base;
   }
 
   &__copyright {
-    font-family: $roboto-mono;
     @include fluid-text(10, 12);
+
+    font-family: $roboto-mono;
     color: $white;
   }
 }
