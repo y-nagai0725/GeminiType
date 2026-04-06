@@ -1,14 +1,31 @@
+// =========================================================================
+// CSS・SCSSの読み込み
+// =========================================================================
+
+// Simplebar（カスタムスクロールバー）の基本スタイル
 import 'simplebar-vue/dist/simplebar.min.css';
-import './assets/main.css'
+// アプリ全体のグローバルスタイル
+import './assets/scss/main.scss';
 
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import App from './App.vue'
-import router from './router'
+// =========================================================================
+// Vue と プラグインの読み込み
+// =========================================================================
 
-const app = createApp(App)
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+import App from './App.vue';
+import router from './router';
 
-app.use(createPinia())
-app.use(router)
+// =========================================================================
+// アプリケーションの初期化とマウント
+// =========================================================================
 
-app.mount('#app')
+// Vueアプリケーションのインスタンスを作成
+const app = createApp(App);
+
+// プラグイン（Piniaによる状態管理と、Vue Routerによる画面遷移）をアプリに登録
+app.use(createPinia());
+app.use(router);
+
+// 'index.html' の中にある <div id="app"> に、Vueアプリを描画（マウント）する
+app.mount('#app');
