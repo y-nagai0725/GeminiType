@@ -83,11 +83,13 @@ watch(
    * ======================================================= */
   &:deep(> .simplebar-track.simplebar-vertical) {
     @include fluid-style(width, 9, 11);
+
     top: $header-height-sp;
 
     @include tab {
       top: $header-height-tab;
     }
+
     @include pc {
       top: $header-height-pc;
     }
@@ -117,12 +119,14 @@ watch(
 /* メインコンテンツ部分 */
 .app-main {
   flex-grow: 1; /* コンテンツが少なくてもフッターを下に固定する */
+
   /* ヘッダーの高さ分の余白を開ける */
   padding-top: $header-height-sp;
 
   @include tab {
     padding-top: $header-height-tab;
   }
+
   @include pc {
     padding-top: $header-height-pc;
   }
