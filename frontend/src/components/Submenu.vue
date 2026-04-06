@@ -38,13 +38,13 @@
               </RouterLink>
             </li>
             <li class="submenu__item">
-              <button class="submenu__link" @click="handleLogout">
+              <a href="#" class="submenu__link" @click.prevent="handleLogout">
                 <span class="submenu__link-title-wrapper">
                   <span class="submenu__link-title-en">LOGOUT</span>
                   <span class="submenu__link-title-jp">ログアウト</span>
                 </span>
                 <LogoutIcon class="submenu__link-icon" />
-              </button>
+              </a>
             </li>
           </template>
           <li class="submenu__item">
@@ -72,7 +72,11 @@
     </div>
   </Transition>
 </template>
+
 <script setup>
+// =========================================================================
+// パッケージ・モジュールの読み込み
+// =========================================================================
 import { computed } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
@@ -83,6 +87,10 @@ import MainMenuIcon from "@/components/icons/MainMenuIcon.vue";
 import MyPageIcon from "@/components/icons/MyPageIcon.vue";
 import RegisterIcon from "@/components/icons/RegisterIcon.vue";
 import AdminIcon from "@/components/icons/AdminIcon.vue";
+
+// =========================================================================
+// State (状態管理)
+// =========================================================================
 
 /**
  * 認証store
@@ -100,7 +108,8 @@ const notificationStore = useNotificationStore();
 const route = useRoute();
 
 /**
- * サブメニューを表示するルート名
+ * サブメニューを表示するルート名（画面一覧）
+ * ※全画面で表示するわけではなく、特定の機能画面のフッター手前でのみ表示させるため
  */
 const allowedRoutes = [
   "menu",
@@ -113,13 +122,22 @@ const allowedRoutes = [
   "not-found",
 ];
 
+// =========================================================================
+// Getters (算出状態)
+// =========================================================================
+
 /**
- * サブメニューの表示・非表示
+ * サブメニューの表示・非表示判定
+ * 現在開いている画面のルート名が allowedRoutes に含まれているかチェックします
  */
 const isVisible = computed(() => {
   const routeName = route.name;
   return allowedRoutes.includes(routeName);
 });
+
+// =========================================================================
+// Actions (処理)
+// =========================================================================
 
 /**
  * ログアウト処理
@@ -132,30 +150,35 @@ const handleLogout = () => {
   notificationStore.addNotification("ログアウトしました", "success");
 };
 </script>
+
 <style lang="scss" scoped>
 .submenu {
   @include fluid-style(padding-block, 40, 80);
+
   background-color: $gray;
 
   &__inner {
-    display: grid;
-    align-items: center;
-    grid-template-columns: 1fr;
-    @include fluid-style(gap, 32, 48);
     @include contents-width;
+    @include fluid-style(gap, 32, 48);
 
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: center;
+
+    /* PC版ではタイトルとリンク一覧を左右に並べるために2カラムにする */
     @include pc {
-      align-items: flex-start;
       grid-template-columns: 1fr 1fr;
       gap: 0;
+      align-items: flex-start;
     }
   }
 
   &__title-wrapper {
+    @include fluid-style(gap, 16, 24);
+
     display: flex;
     flex-direction: column;
     align-items: center;
-    @include fluid-style(gap, 16, 24);
 
     @include pc {
       align-items: flex-start;
@@ -163,40 +186,46 @@ const handleLogout = () => {
   }
 
   &__title-en {
-    font-family: $roboto-mono;
     @include fluid-text(24, 48);
+
+    font-family: $roboto-mono;
     font-weight: $bold;
-    letter-spacing: 0.05em;
     line-height: 1;
+    letter-spacing: 0.05em;
   }
 
   &__title-jp {
     @include fluid-text(14, 18);
+
     font-weight: $bold;
-    letter-spacing: 0.1em;
     line-height: 1;
     color: $green;
+    letter-spacing: 0.1em;
   }
 
   &__list {
+    @include fluid-style(gap, 24, 40, $max-vw: 1920);
+
     display: flex;
     flex-direction: column;
     align-items: center;
-    @include fluid-style(gap, 24, 40, $max-vw: 1920);
 
+    /* PC版ではリンクボタンを横並びにして、はみ出したら折り返すようにする */
     @include pc {
-      flex-wrap: wrap;
-      flex-direction: row;
+      flex-flow: row wrap;
       justify-content: space-between;
     }
   }
 
   &__link {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     @include fluid-style(width, 240, 280, $max-vw: 1920);
     @include fluid-style(padding, 20, 24);
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    /* 全体がクリック可能であることをユーザーに直感的に伝える */
     cursor: pointer;
     background-color: $white;
     border: 2px solid $green;
@@ -209,45 +238,56 @@ const handleLogout = () => {
   }
 
   &__link-title-wrapper {
+    @include fluid-style(gap, 12, 16);
+
     display: flex;
     flex-direction: column;
-    @include fluid-style(gap, 12, 16);
   }
 
   &__link-title-en {
-    font-family: $roboto-mono;
     @include fluid-text(12, 16);
+
+    font-family: $roboto-mono;
     font-weight: $bold;
-    letter-spacing: 0.05em;
     line-height: 1;
     color: $green;
+    letter-spacing: 0.05em;
   }
 
   &__link-title-jp {
     @include fluid-text(16, 20);
+
     font-weight: $bold;
-    letter-spacing: 0.1em;
     line-height: 1;
+    letter-spacing: 0.1em;
   }
 
   &__link-icon {
     @include fluid-style(width, 30, 40);
+
+    /* アイコンが潰れてしまわないように、確実に完全な正方形を保つ */
     aspect-ratio: 1;
     fill: $green;
   }
 }
 
+/* =======================================================================
+ * トランジション（アニメーション）の設定
+ * ======================================================================= */
+
 // 現れるとき
 .submenu-fade-enter-active {
   transition: opacity $transition-base;
-  transition-delay: 0.3s; // メイン部分のフェードアウト時間分遅らせる
+
+  /* メイン部分のフェードアウトアニメーション（0.3秒）が終わるのを待ってから
+     サブメニューをフワッと表示させるための遅延 */
+  transition-delay: 0.3s;
 }
 
 // 消える時
 .submenu-fade-leave-active {
   transition: opacity $transition-base;
 }
-
 
 .submenu-fade-enter-from,
 .submenu-fade-leave-to {
