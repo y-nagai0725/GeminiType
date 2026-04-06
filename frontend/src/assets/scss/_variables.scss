@@ -55,3 +55,14 @@ $text-box-shadow: 0 0 7px $blue;
 $key-shadow: 0 4px 0 #dbe4eb;
 $hovered-box-shadow: 0 4px 10px rgb(0 0 0 / 3%);
 $modal-box-shadow: 0 5px 15px rgb(0 0 0 / 25%);
+
+// =================================
+// CSS変数 (JSと連携するため)
+// =================================
+:root {
+  --color-black: #{$black};
+  --color-blue: #{$blue};
+  --color-green: #{$green};
+  --font-noto: #{$noto-sans};
+  --font-roboto: #{$roboto-mono};
+}
