@@ -23,6 +23,7 @@ $light-orange: rgba($orange, 0.1);
 $blue: #3490d1;
 $light-blue: rgba($blue, 0.1);
 $red: #f44336;
+$modal-overlay-color: rgb(0 0 0 / 33%);
 
 // =================================
 // Size / Layout
@@ -53,3 +54,4 @@ $z-mouse-stalker: 9999;
 $text-box-shadow: 0 0 7px $blue;
 $key-shadow: 0 4px 0 #dbe4eb;
 $hovered-box-shadow: 0 4px 10px rgb(0 0 0 / 3%);
+$modal-box-shadow: 0 5px 15px rgb(0 0 0 / 25%);
