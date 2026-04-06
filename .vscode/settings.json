@@ -6,4 +6,8 @@
       "savePath": "/frontend/src/assets"
     }
   ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.stylelint": "explicit"
+  },
+  "stylelint.validate": ["css", "scss", "vue"],
 }
