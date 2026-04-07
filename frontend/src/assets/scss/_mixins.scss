@@ -1,44 +1,53 @@
-@use "./_variables.scss" as *;
+@use "./variables" as *;
 @use "sass:math";
 @use "sass:meta";
 
-// ==========================================
-//  1. 数値から単位を取り除く関数
-// ==========================================
+/* =========================================================================
+ * 1. Functions (数値計算などの裏方処理)
+ * ========================================================================= */
+
+/**
+ * 数値から単位 (px, remなど) を取り除く関数
+ * 計算式の中で単位同士が衝突してエラーになるのを防ぐための安全装置
+ */
 @function strip-unit($number) {
   @if meta.type-of($number) == "number" and not math.is-unitless($number) {
     @return math.div($number, ($number * 0 + 1));
   }
+
   @return $number;
 }
 
-// ==========================================
-//  2. pxをremに変換する関数
-//     html { font-size: 62.5%; } 前提なので、10で割る
-// ==========================================
+/**
+ * pxをremに変換する関数
+ * html { font-size: 62.5%; } (1rem = 10px) の設定が前提の計算式
+ */
 @function px-to-rem($px) {
   $val: strip-unit($px);
+
   @return math.div($val, 10) * 1rem;
 }
 
-// ==========================================
-//  3. clamp() をremで自動生成するmixin
-// ==========================================
+/* =========================================================================
+ * 2. Fluid Typography & Spacing (可変サイズ生成)
+ * ========================================================================= */
+
+/**
+ * 画面幅に合わせて文字サイズを滑らかに拡大縮小させる (clamp生成)
+ * ブラウザのフォントサイズ変更設定にも対応できるよう、最終出力はremで行う
+ */
 @mixin fluid-text($min-font-size, $max-font-size, $min-viewport: 375, $max-viewport: 1280) {
-  // 単位除去
   $min-size: strip-unit($min-font-size);
   $max-size: strip-unit($max-font-size);
   $min-vw: strip-unit($min-viewport);
   $max-vw: strip-unit($max-viewport);
 
-  // 傾き計算
+  // 1次関数の計算 (y = ax + b の a(傾き) と b(切片) を求める)
   $size-diff: $max-size - $min-size;
   $vw-diff: $max-vw - $min-vw;
-
   $slope: math.div($size-diff, $vw-diff);
   $y-intercept: $min-size - ($slope * $min-vw);
 
-  // 出力
   font-size: clamp(
     #{px-to-rem($min-size)},
     calc(#{px-to-rem($y-intercept)} + #{$slope * 100}vw),
@@ -46,25 +55,20 @@
   );
 }
 
-// ==========================================
-//  4. 汎用版：プロパティを指定して可変にするMixin
-//     使い方: @include fluid-style(padding-bottom, 20, 60);
-// ==========================================
+/**
+ * フォントサイズ以外のプロパティ (padding, gap, width等) を可変にする汎用版
+ * 使い方: @include fluid-style(padding-bottom, 20, 60);
+ */
 @mixin fluid-style($property, $min-value, $max-value, $min-vw: 375, $max-vw: 1280) {
-  // 単位除去
   $min-val: strip-unit($min-value);
   $max-val: strip-unit($max-value);
   $min-vw: strip-unit($min-vw);
   $max-vw: strip-unit($max-vw);
-
-  // 傾き計算
   $val-diff: $max-val - $min-val;
   $vw-diff: $max-vw - $min-vw;
-
   $slope: math.div($val-diff, $vw-diff);
   $y-intercept: $min-val - ($slope * $min-vw);
 
-  // 指定されたプロパティに対して出力
   #{$property}: clamp(
     #{px-to-rem($min-val)},
     calc(#{px-to-rem($y-intercept)} + #{$slope * 100}vw),
@@ -72,21 +76,31 @@
   );
 }
 
-//タブレット用メディアクエリ
+/* =========================================================================
+ * 3. Media Queries & State (メディアクエリ・状態)
+ * ========================================================================= */
+
+/**
+ * タブレット用メディアクエリ
+ */
 @mixin tab {
-  @media screen and (min-width: 768px) {
+  @media screen and (width >= 768px) {
     @content;
   }
 }
 
-//PC用メディアクエリ
+/**
+ * PC用メディアクエリ
+ */
 @mixin pc {
-  @media screen and (min-width: 1280px) {
+  @media screen and (width >= 1280px) {
     @content;
   }
 }
 
-//pc用hover
+/**
+ * ホバー判定 (スマホなどホバー非対応デバイスで、タップ時にホバー状態が残り続けることを防ぐ)
+ */
 @mixin hover {
   @media (any-hover: hover) {
     &:hover {
@@ -95,7 +109,13 @@
   }
 }
 
-//コンテンツ幅
+/* =========================================================================
+ * 4. Layout Utilities (レイアウト用共通設定)
+ * ========================================================================= */
+
+/**
+ * コンテンツの最大幅と中央揃え (画面端にテキストがくっつかないようにpaddingも設定)
+ */
 @mixin contents-width {
   padding: 0 2rem;
 
@@ -104,22 +124,47 @@
   }
 
   @include pc {
+    width: 90%;
+    max-width: 120rem;
     padding: 0;
     margin-inline: auto;
-    width: 90%;
-    max-width: 1200px;
   }
 }
 
+/**
+ * 親要素の幅を無視して、画面いっぱいに広げる
+ */
+@mixin full-width-style {
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
+
+/**
+ * ページコンテンツの上下共通余白
+ */
+@mixin contents-padding {
+  @include fluid-style(padding-top, 32, 48);
+  @include fluid-style(padding-bottom, 80, 160);
+}
+
+/* =========================================================================
+ * 5. UI Components (汎用UIパーツ群)
+ * ========================================================================= */
+
+// --- Buttons ---
+
+/**
+ * ボタンのベーススタイル (ホバー時のアイコンアニメーションなど)
+ */
 @mixin button-style($hover-action) {
-  cursor: pointer;
   display: flex;
-  justify-content: center;
-  align-items: center;
   gap: 0.8rem;
+  align-items: center;
+  justify-content: center;
   font-weight: $bold;
   line-height: 1;
   letter-spacing: 0.1em;
+  cursor: pointer;
   border-radius: 100vmax;
   transition:
     color $transition-base,
@@ -134,11 +179,15 @@
   }
 }
 
+/**
+ * 枠線ボタン
+ */
 @mixin button-style-border($font-color, $hovered-font-color: $white, $hover-action: "move") {
   @include button-style($hover-action);
+
   color: $font-color;
-  border: 1px solid $font-color;
   background-color: transparent;
+  border: 1px solid $font-color;
 
   @include hover {
     color: $hovered-font-color;
@@ -146,11 +195,15 @@
   }
 }
 
+/**
+ * 塗りつぶしボタン
+ */
 @mixin button-style-fill($fill-color, $font-color: $white, $hover-action: "move") {
   @include button-style($hover-action);
+
   color: $font-color;
-  border: 1px solid $fill-color;
   background-color: $fill-color;
+  border: 1px solid $fill-color;
 
   @include hover {
     color: $fill-color;
@@ -158,28 +211,31 @@
   }
 }
 
+// --- Icons ---
 @mixin button-arrow-icon-style {
   width: 0.8em;
-  fill: currentColor;
+  fill: currentcolor;
   transition: transform $transition-base;
 }
 
 @mixin button-icon-style {
   width: 1em;
-  fill: currentColor;
+  fill: currentcolor;
 }
 
+// --- Forms ---
 @mixin input-style {
-  padding: 1em;
   @include fluid-text(14, 16);
+
+  padding: 1em;
   font-weight: $bold;
   line-height: 1;
-  border-radius: $radius-md;
   background-color: $light-green;
+  border-radius: $radius-md;
   transition: box-shadow $transition-base;
 
   &:focus {
-    box-shadow: 0 0 7px $blue;
+    box-shadow: $text-box-shadow;
   }
 
   &::placeholder {
@@ -188,40 +244,40 @@
 }
 
 @mixin select-wrapper-style {
-  position: relative;
-  min-width: 100px;
   @include fluid-text(14, 16);
 
+  position: relative;
+  min-width: 10rem;
+
   &::after {
-    content: "";
     position: absolute;
     top: 50%;
     right: 1em;
     width: 0.5em;
     aspect-ratio: 1;
-    border-left: 2px solid $black;
-    border-bottom: 2px solid $black;
-    transform: translateY(-50%) rotate(-45deg);
     pointer-events: none;
+    content: "";
+    border-bottom: 2px solid $black;
+    border-left: 2px solid $black;
+    transform: translateY(-50%) rotate(-45deg);
   }
 }
 
 @mixin select-style {
   width: 100%;
   padding: 1em 2em 1em 1em;
-  border-radius: $radius-md;
-  background-color: $gray;
   cursor: pointer;
+  background-color: $gray;
+  border-radius: $radius-md;
 }
 
-@mixin full-width-style {
-  width: 100vw;
-  margin-inline: calc(50% - 50vw);
-}
+/* =========================================================================
+ * 6. Page Specific (ページ固有のスタイルまとめ)
+ * ========================================================================= */
 
-// ==========================================
-//  ページネーション用Mixin
-// ==========================================
+/**
+ * ページネーションスタイル
+ */
 @mixin pagination-style {
   &__pagination-container {
     display: flex;
@@ -229,19 +285,21 @@
   }
 
   &__pagination {
+    @include fluid-style(gap, 10, 16);
+
     display: flex;
     align-items: center;
-    @include fluid-style(gap, 10, 16);
   }
 
   &__page-button {
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
     @include fluid-style(width, 32, 40);
     @include fluid-style(height, 32, 40);
+
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
     border: 1px solid $light-black;
     border-radius: $radius-sm;
     transition:
@@ -250,20 +308,21 @@
       border-color $transition-base;
 
     &--number {
-      font-family: $roboto-mono;
       @include fluid-text(12, 14);
+
+      font-family: $roboto-mono;
     }
 
     &--prev::before,
     &--next::before {
-      content: "";
       position: absolute;
       top: 50%;
       left: 50%;
       width: 20%;
       height: 20%;
-      border-top: 2px solid currentColor;
-      border-right: 2px solid currentColor;
+      content: "";
+      border-top: 2px solid currentcolor;
+      border-right: 2px solid currentcolor;
     }
 
     &--prev::before {
@@ -280,89 +339,83 @@
 
     &.is-active {
       color: $white;
+      pointer-events: none;
+      cursor: default;
       background-color: $green;
       border-color: $green;
-      cursor: default;
-      pointer-events: none;
     }
 
     &.is-disabled {
       color: $light-black;
+      cursor: not-allowed;
       background-color: $gray;
       border-color: $gray;
-      cursor: not-allowed;
     }
   }
 
   &__page-dots {
-    font-family: $roboto-mono;
     @include fluid-text(12, 14);
+
+    font-family: $roboto-mono;
     color: $light-black;
   }
 }
 
-// ==========================================
-//  ページタイトル用Mixin
-// ==========================================
+/**
+ * ページタイトルスタイル (背景グレー帯付き)
+ */
 @mixin page-title {
+  @include fluid-style(gap, 16, 24);
+  @include fluid-style(padding-block, 32, 48);
+
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
 
-  @include fluid-style(gap, 16, 24);
-  @include fluid-style(padding-block, 32, 48);
-
   // 背景のグレーの帯
   &::after {
-    content: "";
     position: absolute;
-    z-index: -1;
     top: 0;
     left: 50%;
+    z-index: $z-back;
     width: 100vw;
     height: 100%;
-    transform: translateX(-50%);
+    content: "";
     background-color: $gray;
+    transform: translateX(-50%);
   }
 
-  // 英語部分 (.en)
   .en {
-    font-family: $roboto-mono;
     @include fluid-text(30, 56);
+
+    font-family: $roboto-mono;
     font-weight: $bold;
-    letter-spacing: 0.05em;
     line-height: 1;
+    letter-spacing: 0.05em;
   }
 
-  // 日本語部分 (.ja)
   .ja {
     @include fluid-text(14, 20);
+
     font-weight: $bold;
-    letter-spacing: 0.1em;
     line-height: 1;
     color: $green;
+    letter-spacing: 0.1em;
   }
 }
 
-// ==========================================
-//  コンテンツ余白用Mixin
-// ==========================================
-@mixin contents-padding {
-  @include fluid-style(padding-top, 32, 48);
-  @include fluid-style(padding-bottom, 80, 160);
-}
-
-// ==========================================
-//  認証ページ（ログイン・ユーザー登録）Mixin
-// ==========================================
+/**
+ * 認証ページ（ログイン・ユーザー登録）スタイル
+ */
 @mixin auth-style {
   @include contents-width;
-  max-width: 600px;
+
+  max-width: 60rem;
   margin-inline: auto;
 
   @include pc {
-    max-width: 1000px;
+    max-width: 100rem;
   }
 
   &__title {
@@ -370,24 +423,27 @@
   }
 
   &__contents-wrapper {
-    display: flex;
-    flex-direction: column;
     @include fluid-style(gap, 32, 48);
     @include contents-padding;
+
+    display: flex;
+    flex-direction: column;
   }
 
   &__link-wrapper {
+    @include fluid-style(gap, 16, 24);
+
     display: flex;
     justify-content: space-between;
-    @include fluid-style(gap, 16, 24);
   }
 
   &__link {
+    @include fluid-style(gap, 8, 16);
+    @include fluid-style(padding, 16, 24);
+
     display: flex;
     flex-direction: column;
-    @include fluid-style(gap, 8, 16);
     width: 50%;
-    @include fluid-style(padding, 16, 24);
     color: $blue;
     border: 1px solid $blue;
     border-radius: $radius-md $radius-md 0 0;
@@ -412,40 +468,45 @@
 
   &__link-text {
     font-weight: $bold;
-    color: currentColor;
+    color: currentcolor;
 
     &--jp {
       @include fluid-text(14, 16);
+
       letter-spacing: 0.1em;
     }
 
     &--en {
-      font-family: $roboto-mono;
       @include fluid-text(12, 14);
+
+      font-family: $roboto-mono;
       letter-spacing: 0.05em;
     }
   }
 
   &__form {
+    @include fluid-style(gap, 24, 32);
+
     display: flex;
     flex-direction: column;
-    @include fluid-style(gap, 24, 32);
   }
 
   &__group {
-    display: grid;
-    grid-template-columns: 1fr;
     @include fluid-style(gap, 16, 24);
 
+    display: grid;
+    grid-template-columns: 1fr;
+
     @include pc {
-      align-items: center;
       grid-template-columns: 1fr 3fr;
       gap: 0;
+      align-items: center;
     }
   }
 
   &__label {
     @include fluid-text(14, 16);
+
     font-weight: $bold;
     letter-spacing: 0.1em;
   }
@@ -464,8 +525,9 @@
     @include fluid-style(width, 240, 350);
     @include fluid-style(padding-block, 17, 22);
     @include fluid-style(margin-top, 8, 16);
-    margin-inline: auto;
     @include fluid-text(14, 18);
+
+    margin-inline: auto;
   }
 
   &__arrow-icon {
