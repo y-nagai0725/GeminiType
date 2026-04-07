@@ -15,60 +15,67 @@
     <div v-else-if="isCompleted" class="typing-core__completed">
       <p class="typing-core__completed-title">Finish!</p>
       <p class="typing-core__completed-message">お疲れ様でした！</p>
+
       <Loading
         v-if="!isTryMode"
         :text="'結果集計中…'"
         :bgColor="'white'"
         :lineColor="'blue'"
       />
+
       <div v-if="isTryMode" class="typing-core__stats">
         <span class="typing-core__stat-label">Stats</span>
-        <span class="typing-core__stat-label"
-          >KPM:
-          <span class="typing-core__stat-value typing-core__stat-value--kpm">{{
-            sessionAverageKpm
-          }}</span></span
-        >
-        <span class="typing-core__stat-label"
-          >Acc:
-          <span class="typing-core__stat-value typing-core__stat-value--acc"
-            >{{ sessionAverageAccuracy }}%</span
-          ></span
-        >
-        <span class="typing-core__stat-label"
-          >Miss:
-          <span class="typing-core__stat-value typing-core__stat-value--miss">{{
-            totalMissCountSession
-          }}</span></span
-        >
+        <span class="typing-core__stat-label">
+          KPM:
+          <span class="typing-core__stat-value typing-core__stat-value--kpm">
+            {{ sessionAverageKpm }}
+          </span>
+        </span>
+        <span class="typing-core__stat-label">
+          Acc:
+          <span class="typing-core__stat-value typing-core__stat-value--acc">
+            {{
+              sessionAverageAccuracy === "-"
+                ? "-"
+                : sessionAverageAccuracy + "%"
+            }}
+          </span>
+        </span>
+        <span class="typing-core__stat-label">
+          Miss:
+          <span class="typing-core__stat-value typing-core__stat-value--miss">
+            {{ totalMissCountSession }}
+          </span>
+        </span>
       </div>
     </div>
 
     <div v-else-if="!isStarted" class="typing-core__ready">
       <div class="typing-core__mode-info" v-if="gameMode !== 'normal'">
         <template v-if="gameMode === 'time_limit'">
-          <span class="typing-core__mode-name"
-            ><TimerIcon class="typing-core__timer-icon" />時間制限モード</span
-          >
-          <span class="typing-core__mode-time-limit"
-            >制限時間:
-            <span class="typing-core__mode-count">{{ timeLimit }}秒</span></span
-          >
+          <span class="typing-core__mode-name">
+            <TimerIcon class="typing-core__timer-icon" />時間制限モード
+          </span>
+          <span class="typing-core__mode-time-limit">
+            制限時間:
+            <span class="typing-core__mode-count">{{ timeLimit }}秒</span>
+          </span>
         </template>
         <template v-if="gameMode === 'sudden_death'">
-          <span class="typing-core__mode-name"
-            ><SuddenDeathIcon
+          <span class="typing-core__mode-name">
+            <SuddenDeathIcon
               class="typing-core__sudden-death-icon"
-            />サドンデスモード</span
-          >
-          <span class="typing-core__mode-sudden-death"
-            >許容ミス数:
-            <span class="typing-core__mode-count">{{
-              missLimit === 0 ? "ミスったら即終了!" : missLimit + "回"
-            }}</span></span
-          >
+            />サドンデスモード
+          </span>
+          <span class="typing-core__mode-sudden-death">
+            許容ミス数:
+            <span class="typing-core__mode-count">
+              {{ missLimit === 0 ? "ミスったら即終了!" : missLimit + "回" }}
+            </span>
+          </span>
         </template>
       </div>
+
       <p class="typing-core__ready-title">Ready?</p>
       <p class="typing-core__ready-text">
         <span class="typing-core__ready-highlight">スペースキー</span
@@ -76,7 +83,11 @@
       </p>
     </div>
 
-    <div v-else class="typing-core__playing" :class="gameMode">
+    <div
+      v-else
+      class="typing-core__playing"
+      :class="gameMode.replace('_', '-')"
+    >
       <div class="typing-core__progress" v-if="!showDebug">
         {{ currentProblemIndex + 1 }} / {{ problems.length }}
       </div>
@@ -101,6 +112,7 @@
             ></div>
           </div>
         </div>
+
         <div
           v-if="gameMode === 'sudden_death'"
           class="typing-core__lives-container"
@@ -150,24 +162,28 @@
 
       <div class="typing-core__stats">
         <span class="typing-core__stat-label">Stats</span>
-        <span class="typing-core__stat-label"
-          >KPM:
-          <span class="typing-core__stat-value typing-core__stat-value--kpm">{{
-            sessionAverageKpm
-          }}</span></span
-        >
-        <span class="typing-core__stat-label"
-          >Acc:
-          <span class="typing-core__stat-value typing-core__stat-value--acc"
-            >{{ sessionAverageAccuracy }}%</span
-          ></span
-        >
-        <span class="typing-core__stat-label"
-          >Miss:
-          <span class="typing-core__stat-value typing-core__stat-value--miss">{{
-            totalMissCountSession
-          }}</span></span
-        >
+        <span class="typing-core__stat-label">
+          KPM:
+          <span class="typing-core__stat-value typing-core__stat-value--kpm">
+            {{ sessionAverageKpm }}
+          </span>
+        </span>
+        <span class="typing-core__stat-label">
+          Acc:
+          <span class="typing-core__stat-value typing-core__stat-value--acc">
+            {{
+              sessionAverageAccuracy === "-"
+                ? "-"
+                : sessionAverageAccuracy + "%"
+            }}
+          </span>
+        </span>
+        <span class="typing-core__stat-label">
+          Miss:
+          <span class="typing-core__stat-value typing-core__stat-value--miss">
+            {{ totalMissCountSession }}
+          </span>
+        </span>
       </div>
 
       <div class="typing-core__debug" v-if="showDebug && currentUnit">
@@ -261,6 +277,9 @@
 </template>
 
 <script setup>
+// =========================================================================
+// パッケージ・モジュールの読み込み
+// =========================================================================
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import api from "../services/api";
@@ -273,8 +292,13 @@ import HeartIcon from "@/components/icons/HeartIcon.vue";
 import Loading from "@/components/Loading.vue";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 
+// =========================================================================
+// 定数・マッピングデータ (変更されない静的なデータ)
+// =========================================================================
+
 /**
  * キーボードレイアウト配列
+ * 描画順（行ごと）にキーのラベルと判定用のキーコード、CSSクラスを定義
  */
 const keyboardLayout = [
   // 1行目
@@ -350,7 +374,8 @@ const keyboardLayout = [
 ];
 
 /**
- * 記号から、実際に押すべきキーへ変換するマップ
+ * 記号から「実際に押すべき物理キー」へ変換するマップ
+ * 例: "!" を打つためにはキーボードの "1" を光らせる必要があるため
  */
 const symbolToKeyMap = {
   "!": "1",
@@ -377,12 +402,13 @@ const symbolToKeyMap = {
 };
 
 /**
- * Shiftキーを押す必要がある文字のリスト
+ * Shiftキーを同時に押す必要がある文字のリスト（大文字以外）
  */
 const shiftRequiredSymbols = "!\"#$%&'()=~|`{+*}<>?_";
 
 /**
- * キー文字から指IDへのマッピング
+ * キー文字から「担当する指ID」へのマッピング
+ * キーボードガイドの手のグラフィックを光らせるために使用
  */
 const keyToFingerMap = {
   // --- 左手 ---
@@ -406,7 +432,7 @@ const keyToFingerMap = {
   T: "left-index",
   G: "left-index",
   B: "left-index",
-  " ": "left-thumb", //とりあえず左手親指に割り当て
+  " ": "left-thumb", // ベースポジションとして左手親指に割り当て
 
   // --- 右手 ---
   6: "right-index",
@@ -440,26 +466,21 @@ const keyToFingerMap = {
 };
 
 /**
- * ローマ字マップ(検索用にMapオブジェクトにしておく)
+ * ローマ字マップ（高速アクセスできるMapオブジェクトに変換）
  */
 const romajiMap = new Map(
   romajiMapData.map((item) => [item.Pattern, item.TypePattern])
 );
 
 /**
- * router
+ * ローディングの最低表示時間 (ミリ秒)
+ * 処理が速すぎた時に画面が一瞬だけチラつくのを防ぐためのバッファ時間
  */
-const router = useRouter();
+const MIN_LOADING_MS = 300;
 
-/**
- * お知らせstore
- */
-const notificationStore = useNotificationStore();
-
-/**
- * 設定store
- */
-const settingsStore = useSettingsStore();
+// =========================================================================
+// Props & Emits
+// =========================================================================
 
 /**
  * Props定義
@@ -477,21 +498,33 @@ const props = defineProps({
   missLimit: { type: Number, default: 0 },
   // ローマ字ガイド表示
   showRomaji: { type: Boolean, default: true },
-  // 試し打ち
+  // 試し打ちモード
   isTryMode: { type: Boolean, default: false },
 });
 
 /**
- * emits
+ * Emits定義
  */
 const emit = defineEmits(["complete"]);
 
-/**
- * ローディングの最低表示時間
- */
-const MIN_LOADING_MS = 300;
+// =========================================================================
+// State (状態管理)
+// =========================================================================
 
-// --- 状態 (State) ---
+/**
+ * router
+ */
+const router = useRouter();
+
+/**
+ * お知らせstore
+ */
+const notificationStore = useNotificationStore();
+
+/**
+ * 設定store
+ */
+const settingsStore = useSettingsStore();
 
 /**
  * ロード中かどうか
@@ -533,10 +566,8 @@ const currentProblemIndex = ref(0);
  */
 const hasMissedInCurrentProblem = ref(false);
 
-// --- エンジン用状態 ---
-
 /**
- * ひらがなを分割した配列
+ * ひらがなを分割した配列 (現在の問題)
  */
 const parsedProblem = ref([]);
 
@@ -559,8 +590,6 @@ const activePatterns = ref([]);
  * タイプ済みの文字数 (色を変える長さ)
  */
 const typedRomajiLength = ref(0);
-
-// --- 計測用 ---
 
 /**
  * 問題開始時間 (UNIX timestamp)
@@ -602,7 +631,9 @@ const totalMissCountSession = ref(0);
  */
 let timerInterval = null;
 
-// --- Computed ---
+// =========================================================================
+// Getters (算出状態)
+// =========================================================================
 
 /**
  * 現在の問題オブジェクト
@@ -669,7 +700,9 @@ const currentAccuracy = computed(() => {
   return Math.round((correctKeyCount.value / total) * 100);
 });
 
-// 残りライフ (Sudden Death用)
+/**
+ * 残りライフ (Sudden Death用)
+ */
 const remainingLives = computed(() => {
   if (props.gameMode !== "sudden_death") return null;
   // ミス許容回数 - 現在のミス数 (0未満にはしない)
@@ -713,8 +746,8 @@ const sessionAverageKpm = computed(() => {
     totalTimeMs += Date.now() - problemStartTime.value; // 今の経過時間
   }
 
-  // 計算 (時間が0なら0を返す)
-  if (totalTimeMs === 0) return 0;
+  // 計算 (時間が0なら '-' を返す)
+  if (totalTimeMs === 0) return "-";
 
   const totalMin = totalTimeMs / 1000 / 60;
   return Math.round(totalCorrect / totalMin);
@@ -738,13 +771,15 @@ const sessionAverageAccuracy = computed(() => {
   totalMiss += missKeyCount.value;
 
   const total = totalCorrect + totalMiss;
-  if (total === 0) return 100;
+
+  // 1キーも打っていない場合は '-' を返す
+  if (total === 0) return "-";
 
   return Math.round((totalCorrect / total) * 100);
 });
 
 /**
- * ローマ字ガイドを表示すべきかどうか？
+ * ローマ字ガイドを表示すべきかどうか
  */
 const shouldShowRomaji = computed(() => {
   // 設定が「常に表示(true)」なら無条件で表示
@@ -774,7 +809,9 @@ const nextExpectedKey = computed(() => {
   return null;
 });
 
-// --- Methods ---
+// =========================================================================
+// Actions (処理)
+// =========================================================================
 
 /**
  * 表示用にスペースをオープンボックスに変換する
@@ -809,7 +846,7 @@ const playSound = (type) => {
 const startGame = () => {
   isStarted.value = true;
 
-  // 時間制限モードならタイマー始動！
+  // 時間制限モードならタイマー始動
   if (props.gameMode === "time_limit") {
     remainingTime.value = props.timeLimit;
     startTimer();
@@ -834,6 +871,7 @@ const startTimer = () => {
 /**
  * 完了通知を送るヘルパー関数
  * (成功・失敗に関わらず、共通の形式で親にデータを渡す)
+ * @param {String|null} reason 終了理由（成功時はnull）
  */
 const emitComplete = (reason = null) => {
   if (timerInterval) clearInterval(timerInterval);
@@ -855,7 +893,7 @@ const emitComplete = (reason = null) => {
       reason: reason,
       solvedCount: solvedCount,
       remainingTime: remainingTime.value, // 残り時間
-      remainingLives: remainingLives.value, // 残りライフ (computedの値)
+      remainingLives: remainingLives.value, // 残りライフ
     },
   };
 
@@ -864,6 +902,7 @@ const emitComplete = (reason = null) => {
 
 /**
  * 強制終了処理 (ゲームオーバー時)
+ * @param {String} reason 終了理由
  */
 const forceFinishGame = (reason) => {
   if (timerInterval) clearInterval(timerInterval);
@@ -873,7 +912,7 @@ const forceFinishGame = (reason) => {
     sessionResults.value.push({
       problem_text: targetProblem.value.problem_text + ` (${reason})`,
       problem_hiragana: targetHiragana.value,
-      kpm: 0,
+      kpm: 0, // 途中終了なので0とする
       accuracy: currentAccuracy.value,
       missed_keys: { ...currentMissedKeys.value },
       miss_count: missKeyCount.value,
@@ -891,6 +930,7 @@ const forceFinishGame = (reason) => {
 /**
  * 問題文のひらがなを分割する
  * @param {String} hiragana 問題文のひらがな
+ * @returns {Object} パースされたユニット配列とデフォルトの入力パターン配列
  */
 const parseHiragana = (hiragana) => {
   const units = [];
@@ -924,7 +964,7 @@ const parseHiragana = (hiragana) => {
 };
 
 /**
- * キー判定処理
+ * キー判定処理（メインロジック）
  * @param {KeyboardEvent} e キーボードイベントオブジェクト
  */
 const handleKeydown = (e) => {
@@ -933,7 +973,7 @@ const handleKeydown = (e) => {
 
   // まだスタートしてない時
   if (!isStarted.value) {
-    // スペースキーが押されたらスタート！
+    // スペースキーが押されたらスタート
     if (e.code === "Space") {
       e.preventDefault(); // スクロール防止
       startGame();
@@ -941,7 +981,7 @@ const handleKeydown = (e) => {
     return; // 他のキーは無視、タイピング判定もしない
   }
 
-  // --- ここから下はプレイ中の判定 ---
+  // --- ここからはタイピングプレイ中の判定 ---
 
   // 制御キーは無視
   if (e.ctrlKey || e.altKey || e.metaKey) return;
@@ -950,7 +990,7 @@ const handleKeydown = (e) => {
     return;
   }
 
-  // 1文字キー以外は無視
+  // 1文字キー以外は無視（F1キーなども弾く）
   if (e.key.length !== 1) return;
 
   e.preventDefault();
@@ -960,11 +1000,13 @@ const handleKeydown = (e) => {
     problemStartTime.value = Date.now();
   }
 
+  // 判定中の問題がない場合は何もしない
   if (!currentUnit.value) return;
 
-  const newBuffer = inputBuffer.value + e.key; // 大文字小文字は区別
+  // 入力判定バッファにキーを加える
+  const newBuffer = inputBuffer.value + e.key;
 
-  // 1. 完全一致
+  // 完全一致
   const perfectMatch = currentPatterns.value.find(
     (pattern) => pattern === newBuffer
   );
@@ -975,7 +1017,7 @@ const handleKeydown = (e) => {
     return;
   }
 
-  // 2. 前方一致
+  // 前方一致
   const partialMatch = currentPatterns.value.find((pattern) =>
     pattern.startsWith(newBuffer)
   );
@@ -1119,17 +1161,21 @@ const setupCurrentProblem = () => {
   // 事前に用意したリストから取得
   const currentParsedData = parsedProblemsList.value[currentProblemIndex.value];
   parsedProblem.value = currentParsedData.parsedUnits;
+
   // activePatternsはユーザーのタイピングによって動的に変化するので新たに配列を生成して代入
   activePatterns.value = [...currentParsedData.defaultActivePatterns];
 };
 
 /**
- * タイピング対象キーであるか
+ * タイピング対象キーであるか（キーボードのハイライト判定）
+ * @param {Object} keyObj キーボードレイアウトのキーオブジェクト
+ * @returns {Boolean} 光らせるべきならtrue
  */
 const isKeyActive = (keyObj) => {
   const target = nextExpectedKey.value; // 次に打つべき文字
   const keyChar = keyObj.key; // キーボード上の文字 ('a', '1', 'Shift' など)
 
+  // スタート前はスペースキーだけ光らせる
   if (!isStarted.value && keyChar === " ") {
     return true;
   } else if (!isStarted.value) {
@@ -1138,6 +1184,7 @@ const isKeyActive = (keyObj) => {
 
   if (!target) return false;
 
+  // ローマ字ガイドが非表示の時はキーボードも光らせない
   if (!shouldShowRomaji.value) {
     return false;
   }
@@ -1148,7 +1195,6 @@ const isKeyActive = (keyObj) => {
     let targetBaseKey = target; // 判定に使う「キーの文字」
 
     // 記号の場合、Shift不要な「元のキー文字」に変換 (例: '!' -> '1')
-    // ※ symbolToKeyMap は「!」:「1」のようなマップ
     if (symbolToKeyMap[target]) {
       targetBaseKey = symbolToKeyMap[target];
     }
@@ -1163,7 +1209,6 @@ const isKeyActive = (keyObj) => {
     }
 
     // 3. 文字を打つ「指」を取得して、「手」を判別
-    // 大文字小文字を吸収してマップ検索
     const fingerId = keyToFingerMap[targetBaseKey.toUpperCase()];
 
     // 指情報がない（万が一の未定義キー）場合は光らせない
@@ -1172,7 +1217,7 @@ const isKeyActive = (keyObj) => {
     // 'left-pinky' -> 'left', 'right-index' -> 'right' を取り出す
     const hand = fingerId.split("-")[0];
 
-    // 4. クロス・シフト判定！ (手と逆のShiftなら正解)
+    // 4. クロスハンドの原則：手と逆のShiftキーを光らせる
     if (hand === "left" && keyChar === "ShiftRight") {
       return true; // 文字が左手 → 右Shiftを光らせる
     }
@@ -1199,7 +1244,9 @@ const isKeyActive = (keyObj) => {
 };
 
 /**
- * タイピング対象キーの対応している指であるか
+ * タイピング対象キーの対応している指であるか（ガイドハンドのハイライト判定）
+ * @param {String} fingerId 指のID (例: 'left-index')
+ * @returns {Boolean} 光らせるべきならtrue
  */
 const isFingerActive = (fingerId) => {
   // 設定で非表示なら光らせない
@@ -1211,7 +1258,6 @@ const isFingerActive = (fingerId) => {
   if (!target) return false;
 
   // ターゲット文字の「元のキー」を特定
-  // (例: '!' -> '1', 'A' -> 'A')
   let targetBaseKey = target;
   if (symbolToKeyMap[target]) {
     targetBaseKey = symbolToKeyMap[target];
@@ -1237,7 +1283,7 @@ const isFingerActive = (fingerId) => {
     if (!charFingerId) return false;
     const charHand = charFingerId.split("-")[0];
 
-    // クロス・シフト判定！
+    // 小指判定 (クロスハンドの原則)
     // 文字が「左手」なら → 「右手の小指」を光らせる
     if (charHand === "left" && fingerId === "right-pinky") {
       return true;
@@ -1250,6 +1296,10 @@ const isFingerActive = (fingerId) => {
 
   return false;
 };
+
+// =========================================================================
+// ライフサイクル
+// =========================================================================
 
 /**
  * マウント時処理
@@ -1320,14 +1370,22 @@ onUnmounted(() => {
   if (timerInterval) clearInterval(timerInterval);
 });
 </script>
-
 <style lang="scss" scoped>
+/* =========================================================================
+ * パッケージ・変数の読み込み
+ * ========================================================================= */
 @use "sass:color";
+
+/* =========================================================================
+ * メインスタイル
+ * ========================================================================= */
 .typing-core {
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-width: 800px;
+
+  /* 画面が縮んでも、キーボードのレイアウトが崩れないように最低幅を保証する */
+  min-width: 80rem;
 
   &__loading,
   &__error,
@@ -1335,12 +1393,14 @@ onUnmounted(() => {
   &__ready {
     display: flex;
     flex-direction: column;
+    gap: 2.4rem;
     align-items: center;
     justify-content: center;
-    gap: 2.4rem;
+
+    /* 中身の量が違っても、画面がガタガタ動かないように最低高さを確保 */
     min-height: 25rem;
-    border-radius: $radius-lg;
     background-color: $gray;
+    border-radius: $radius-lg;
   }
 
   &__completed-title,
@@ -1370,9 +1430,9 @@ onUnmounted(() => {
   }
 
   &__back-button {
-    @include button-style-fill($green);
     @include fluid-style(width, 240, 350);
     @include fluid-style(padding-block, 17, 22);
+    @include button-style-fill($green);
     @include fluid-text(14, 18);
   }
 
@@ -1386,8 +1446,8 @@ onUnmounted(() => {
 
   &__mode-info {
     display: flex;
-    align-items: center;
     gap: 1.6rem;
+    align-items: center;
     font-size: 1.8rem;
     font-weight: $bold;
   }
@@ -1401,7 +1461,7 @@ onUnmounted(() => {
   &__sudden-death-icon {
     height: 1em;
     margin-right: 0.5em;
-    fill: currentColor;
+    fill: currentcolor;
   }
 
   &__mode-count {
@@ -1411,36 +1471,36 @@ onUnmounted(() => {
   &__playing {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     gap: 1.6rem;
+    justify-content: space-between;
+    min-height: 25rem;
     padding: 1.6rem 3.2rem;
-    border-radius: $radius-lg;
     background-color: $gray;
+    border-radius: $radius-lg;
 
-    &.normal {
-      min-height: 25rem;
-    }
-
-    &.time_limit,
-    &.sudden_death {
+    /* 特殊モード時はUI（ゲージ等）が増えるため、
+       少しだけ高さを広げてあげることでレイアウトの窮屈さを防ぐ */
+    &.time-limit,
+    &.sudden-death {
       min-height: 30rem;
     }
   }
 
   &__progress {
-    text-align: center;
     font-family: $roboto-mono;
-    font-weight: $bold;
     font-size: 1.6rem;
+    font-weight: $bold;
     line-height: 1;
     color: $light-black;
+    text-align: center;
   }
 
+  /* --- HUD (ヘッドアップディスプレイ) 関連 --- */
   &__hud {
     display: flex;
     justify-content: center;
     width: 100%;
-    max-width: 600px;
+    max-width: 60rem;
     margin-inline: auto;
   }
 
@@ -1453,13 +1513,15 @@ onUnmounted(() => {
 
   &__timer-text {
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     font-size: 1.4rem;
     color: $light-black;
 
     &.danger {
       color: $red;
+
+      /* 残り時間が少ない時に、ドキドキ感を煽るための鼓動アニメーション */
       animation: pulse 1s infinite;
     }
   }
@@ -1468,16 +1530,20 @@ onUnmounted(() => {
     display: flex;
     align-items: center;
     width: 100%;
-    height: 16px;
-    padding: 0 4px;
-    border-radius: 100vmax;
-    border: 2px solid $light-black;
+    height: 1.6rem;
+    padding: 0 0.4rem;
+
+    /* 中のゲージが角丸を突き抜けないように隠す */
     overflow: hidden;
+    border: 2px solid $light-black;
+    border-radius: 100vmax;
   }
 
   &__progress-bar-fill {
     height: 50%;
     border-radius: 100vmax;
+
+    /* ゲージが減る時（width）に1秒かけて滑らかに動かすことで、1秒ごとのカクつきを消す */
     transition: width 1s linear, background-color $transition-base;
 
     &.bar-green {
@@ -1498,20 +1564,21 @@ onUnmounted(() => {
     display: flex;
     gap: 0.8rem;
 
+    /* 「残りライフ:」という文字を疑似要素で追加する */
     &::before {
-      content: "残りライフ: ";
       position: absolute;
-      left: 0;
       top: 50%;
+      left: 0;
       font-size: 1.6rem;
       line-height: 1;
       color: $light-black;
+      content: "残りライフ: ";
       transform: translate(calc(-100% - 8px), -50%);
     }
   }
 
   &__heart-icon {
-    width: 20px;
+    width: 2rem;
     aspect-ratio: 1;
     fill: transparent;
     stroke: $red;
@@ -1523,24 +1590,25 @@ onUnmounted(() => {
     }
   }
 
+  /* --- メインテキスト（問題・ふりがな・ローマ字）関連 --- */
   &__main-text-wrapper {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     gap: 1.6rem;
+    justify-content: center;
   }
 
   &__problem {
-    font-weight: $bold;
     font-size: 3rem;
+    font-weight: $bold;
     line-height: 1.4;
   }
 
   &__hiragana {
-    font-weight: $bold;
     font-size: 2rem;
-    color: $light-black;
+    font-weight: $bold;
     line-height: 1.4;
+    color: $light-black;
 
     .hiragana-char {
       display: inline-block;
@@ -1552,18 +1620,20 @@ onUnmounted(() => {
   }
 
   &__romaji {
+    /* visibility と opacity を組み合わせることで、
+       「見えないけどそこに存在している（高さが保たれる）」状態を作り、画面のガタつきを防ぐ */
+    visibility: visible;
     min-height: 3rem;
     font-family: $roboto-mono;
-    font-weight: $bold;
     font-size: 2.6rem;
-    letter-spacing: 0.05em;
+    font-weight: $bold;
     line-height: 1.4;
+    letter-spacing: 0.05em;
     opacity: 1;
-    visibility: visible;
 
     &.romaji-hidden {
-      opacity: 0;
       visibility: hidden;
+      opacity: 0;
     }
 
     &--typed {
@@ -1592,13 +1662,14 @@ onUnmounted(() => {
     position: relative;
     display: inline-block;
 
+    /* 「Stats」という最初のラベルの右側にだけ、区切りの縦線を引く */
     &:first-of-type::after {
-      content: "";
       position: absolute;
       top: 50%;
-      right: 14px;
+      right: 1.4rem;
       width: 1px;
-      height: 20px;
+      height: 2rem;
+      content: "";
       background-color: $light-black;
       transform: translateY(-50%);
     }
@@ -1624,8 +1695,8 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     padding: 1.2rem;
-    border-radius: $radius-md;
     background-color: $white;
+    border-radius: $radius-md;
   }
 
   &__debug-text {
@@ -1636,6 +1707,7 @@ onUnmounted(() => {
     }
   }
 
+  /* --- キーボード関連 --- */
   &__keyboard-container {
     display: flex;
     flex-direction: column;
@@ -1649,8 +1721,8 @@ onUnmounted(() => {
 
   &__keyboard-row {
     display: flex;
-    justify-content: center;
     gap: 0.8rem;
+    justify-content: center;
   }
 
   &__key {
@@ -1662,23 +1734,25 @@ onUnmounted(() => {
     font-family: $roboto-mono;
     font-size: 1.8rem;
     font-weight: $bold;
+
+    /* キーを連続でクリックしても文字が青く選択されないようにする */
+    user-select: none;
     background-color: $white;
     border-radius: $radius-md;
     box-shadow: $key-shadow;
-    user-select: none;
 
     &.key-backspace {
       visibility: hidden;
     }
 
     &.key-tab {
-      width: 7.7rem;
       visibility: hidden;
+      width: 7.7rem;
     }
 
     &.key-caps {
-      width: 8.5rem;
       visibility: hidden;
+      width: 8.5rem;
     }
 
     &.key-shift {
@@ -1694,34 +1768,37 @@ onUnmounted(() => {
     }
 
     &.key-spacer-2 {
-      width: 6.6rem;
       visibility: hidden;
+      width: 6.6rem;
     }
 
     &.key-spacer-3 {
-      width: 5.8rem;
       visibility: hidden;
+      width: 5.8rem;
     }
 
     &.active {
-      background-color: $orange;
       color: $white;
+      background-color: $orange;
       box-shadow: 0 4px 0 color.adjust($orange, $lightness: -10%);
       transform: translateY(2px);
     }
   }
 
+  /* --- ガイドハンド（指）関連 --- */
   &__hands-container {
     display: flex;
-    justify-content: center;
     gap: 8rem;
+    justify-content: center;
+
+    /* キーボードの下に少し入り込むようにマイナスマージンで調整 */
     margin-top: -3rem;
   }
 
   &__hand {
     display: flex;
-    align-items: flex-end;
     gap: 0.8rem;
+    align-items: flex-end;
   }
 
   &__finger {
@@ -1748,13 +1825,18 @@ onUnmounted(() => {
   }
 }
 
+/* =========================================================================
+ * @keyframes (アニメーションの定義)
+ * ========================================================================= */
 @keyframes pulse {
   0% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.07);
   }
+
   100% {
     transform: scale(1);
   }
