@@ -1,17 +1,17 @@
-@use "./_mixins.scss" as *;
-@use "./_variables.scss" as *;
-@use "./_reset.scss";
+@use "./mixins" as *;
+@use "./variables" as *;
+@use "./reset";
 
 html {
   font-size: 62.5%;
 }
 
 body {
-  background-color: $white;
   font-family: $noto-sans;
   font-weight: $medium;
   line-height: 1.5;
   color: $black;
+  background-color: $white;
 }
 
 a,
