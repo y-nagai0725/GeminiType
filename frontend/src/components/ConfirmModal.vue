@@ -3,8 +3,12 @@
     <Transition name="modal-fade">
       <div v-if="show" class="confirm-modal-overlay" @click.self="handleCancel">
         <div class="confirm-modal">
-          <button @click="handleCancel" class="confirm-modal__close">
-            <PlusIcon class="confirm-modal__close-icon" />
+          <button
+            @click="handleCancel"
+            class="confirm-modal__close"
+            aria-label="確認画面を閉じる"
+          >
+            <PlusIcon class="confirm-modal__close-icon" aria-hidden="true" />
           </button>
           <p class="confirm-modal__title">{{ title }}</p>
 
