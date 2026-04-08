@@ -47,12 +47,12 @@
           <Transition name="fade" mode="out-in">
             <div v-if="!isAiModeDetail" class="top-view__feature-content">
               <p class="top-view__catchcopy">
-                無限に広がる、あなただけの練習問題。
+                無限に広がる、あなただけの練習問題
               </p>
               <img
                 class="top-view__image"
                 src="@/assets/images/top/feature-1.webp"
-                alt="AI問題生成"
+                alt="AI問題生成のイメージ"
               />
             </div>
             <div v-else class="top-view__feature-content">
@@ -71,6 +71,8 @@
           <button
             class="top-view__circle-button"
             @click="isAiModeDetail = !isAiModeDetail"
+            :aria-expanded="isAiModeDetail"
+            aria-label="機能の詳細を切り替える"
           >
             <span
               class="top-view__circle"
@@ -79,15 +81,16 @@
             ></span>
           </button>
         </div>
+
         <div class="top-view__feature">
           <h3 class="top-view__feature-subtitle">成長記録</h3>
           <Transition name="fade" mode="out-in">
             <div v-if="!isProgressDetail" class="top-view__feature-content">
-              <p class="top-view__catchcopy">昨日の自分より、ちょっと速く。</p>
+              <p class="top-view__catchcopy">昨日の自分より、ちょっと速く</p>
               <img
                 class="top-view__image"
                 src="@/assets/images/top/feature-2.webp"
-                alt="成長記録"
+                alt="成長記録のイメージ"
               />
             </div>
             <div v-else class="top-view__feature-content">
@@ -105,6 +108,8 @@
           <button
             class="top-view__circle-button"
             @click="isProgressDetail = !isProgressDetail"
+            :aria-expanded="isProgressDetail"
+            aria-label="機能の詳細を切り替える"
           >
             <span
               class="top-view__circle"
@@ -113,17 +118,18 @@
             ></span>
           </button>
         </div>
+
         <div class="top-view__feature">
           <h3 class="top-view__feature-subtitle">ストレスフリーな入力判定</h3>
           <Transition name="fade" mode="out-in">
             <div v-if="!isStressFreeDetail" class="top-view__feature-content">
               <p class="top-view__catchcopy">
-                ルールに縛られない、快適な打ち心地。
+                ルールに縛られない、快適な打ち心地
               </p>
               <img
                 class="top-view__image"
                 src="@/assets/images/top/feature-3.webp"
-                alt="ストレスフリーな入力判定"
+                alt="ストレスフリーな入力判定のイメージ"
               />
             </div>
             <div v-else class="top-view__feature-content">
@@ -143,6 +149,8 @@
           <button
             class="top-view__circle-button"
             @click="isStressFreeDetail = !isStressFreeDetail"
+            :aria-expanded="isStressFreeDetail"
+            aria-label="機能の詳細を切り替える"
           >
             <span
               class="top-view__circle"
@@ -168,7 +176,7 @@
                 alt="タイピング画面"
                 class="top-view__slide-image"
               />
-              <p class="top-view__slide-desc">
+              <p class="top-view__slide-description">
                 「通常モード」に加え、白熱の「時間制限」「サドンデス」モードを搭載！<br />
                 画面上のキーボードと運指ガイドが、正しい指の配置をしっかりサポートします。
               </p>
@@ -185,7 +193,7 @@
                 alt="タイピング結果画面"
                 class="top-view__slide-image"
               />
-              <p class="top-view__slide-desc">
+              <p class="top-view__slide-description">
                 プレイ後はスコアやランクと一緒に、AIからのパーソナルなアドバイスがもらえます。<br />
                 あなたの頑張りをしっかり分析して、可愛く応援してくれます！
               </p>
@@ -200,7 +208,7 @@
                 alt="マイページの成長グラフ"
                 class="top-view__slide-image"
               />
-              <p class="top-view__slide-desc">
+              <p class="top-view__slide-description">
                 毎日のプレイ記録は自動で保存され、「成長グラフ」として可視化されます。<br />
                 KPMや正確率の推移がひと目で分かるので、成長する実感が湧いてモチベーションUP！
               </p>
@@ -215,9 +223,9 @@
                 alt="苦手キーと詳細履歴"
                 class="top-view__slide-image"
               />
-              <p class="top-view__slide-desc">
+              <p class="top-view__slide-description">
                 過去のデータから「苦手なキー」を自動で集計＆ランキング化。<br />
-                問題ごとの詳細データも振り返れるので、弱点をピンポイントで克服する練習が可能です。
+                問題ごとの詳細データの振り返り、「試し打ち」機能で弱点のピンポイント練習が可能です。
               </p>
             </div>
           </div>
@@ -231,6 +239,12 @@
     </section>
 
     <div class="top-view__actions top-view__actions--last">
+      <p class="top-view__subtitle">
+        <span class="top-view__highlight">GeminiType</span>で、<br
+          class="top-view__br"
+        />タイピング練習！
+      </p>
+
       <template v-if="authStore.isLoggedIn">
         <RouterLink to="/menu" class="top-view__button top-view__button--menu">
           メインメニューへ進む
@@ -260,8 +274,10 @@
     </div>
   </div>
 </template>
-
 <script setup>
+// =========================================================================
+// パッケージ・モジュールの読み込み
+// =========================================================================
 import { ref, onMounted, onUnmounted } from "vue";
 import { RouterLink } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
@@ -269,9 +285,16 @@ import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 
+// =========================================================================
+// プラグイン登録・初期設定
+// =========================================================================
 gsap.registerPlugin(ScrollTrigger);
 
-// TODO .top-view__galleryのgallery-1の画像のみ仮です
+// TODO: .top-view__galleryのgallery-1の画像のみ仮です
+
+// =========================================================================
+// State (状態管理)
+// =========================================================================
 
 /**
  * 認証store
@@ -293,77 +316,77 @@ const isProgressDetail = ref(false);
  */
 const isStressFreeDetail = ref(false);
 
+// --- GSAPアニメーション用 DOM参照 (Refs) ---
+
 /**
  * 全体ラッパー要素参照
  */
 const topWrapper = ref(null);
 
 /**
- * 横スクロール要素
+ * 横スクロール要素参照
  */
 const horizontalScrollWrapper = ref(null);
 
 /**
- * スライドラッパー
+ * スライドラッパー参照
  */
 const slideWrapper = ref(null);
 
 /**
- * GSAPコンテキスト
+ * GSAPコンテキスト (アンマウント時のクリーンアップ用)
  */
 let gsapContext;
 
+// =========================================================================
+// Actions (処理)
+// =========================================================================
+
 /**
- * gsapアニメーション設定
+ * GSAPアニメーションのセットアップ処理
  */
 const setAnimation = () => {
-  // アニメーション共通設定：開始状態
+  // アニメーション共通設定：開始状態 (下からフワッと現れる準備)
   const fromAnimationSettings = {
     autoAlpha: 0,
     y: 20,
   };
 
-  // アニメーション共通設定：終了状態
+  // アニメーション共通設定：終了状態 (元の位置に戻って不透明になる)
   const toAnimationSettings = {
     autoAlpha: 1,
     y: 0,
-    duration: 0.8, // 0.8秒かけて表示
+    duration: 0.8,
     ease: "power2.out",
   };
 
-  // GSAPアニメーション設定
+  // GSAPアニメーションをContextで囲む（Vueのコンポーネント破棄時に一括解除するため）
   gsapContext = gsap.context(() => {
-    // スコープ外の「Simplebarのスクロール要素」を直接取得
+    // App.vue側にある「Simplebarのスクロール要素」を直接取得して、ScrollTriggerの基準にする
     const scrollContainer = document.querySelector(
       "#app-main-scroll .simplebar-content-wrapper"
     );
 
-    // 特長セクション
+    // --- 特長セクションの表示アニメーション ---
     const featuresSection = ".top-view__features";
-
-    // 特長セクションの表示アニメーション
     gsap.fromTo(
       featuresSection,
-      {
-        ...fromAnimationSettings,
-      },
+      { ...fromAnimationSettings },
       {
         ...toAnimationSettings,
         scrollTrigger: {
           trigger: featuresSection,
           scroller: scrollContainer,
-          start: "top center",
+          start: "top center", // 画面の中央に要素のトップが来たら発火
         },
       }
     );
 
-    // galleyセクションの表示アニメーション
-    // この要素は後でピン留め(pin)されるため、fromAnimationSettings は使わずに、autoAlpha のみで表示させる
+    // --- ギャラリーセクションの表示アニメーション ---
+    // この要素は後でピン留め(pin)されるため、位置(y)は動かさず autoAlpha(透明度) のみで表示させる
     gsap.fromTo(
       horizontalScrollWrapper.value,
-      {
-        autoAlpha: 0,
-      },
+      { autoAlpha: 0 },
       {
         autoAlpha: 1,
         duration: 0.8,
@@ -376,27 +399,26 @@ const setAnimation = () => {
       }
     );
 
-    // スライド
+    // --- 横スクロールアニメーション ---
     const slides = gsap.utils.toArray(".top-view__slide");
-
-    // プログレスバー
     const fills = gsap.utils.toArray(".top-view__progress-fill");
 
-    // timelineを作成
+    // ScrollTriggerと連動するタイムラインを作成
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: horizontalScrollWrapper.value,
         scroller: scrollContainer,
-        pin: true,
+        pin: true, // 画面に固定（ピン留め）
         pinType: "fixed",
-        scrub: 1,
+        scrub: 1, // スクロール量に合わせて滑らかに動かす
         anticipatePin: 1,
         invalidateOnRefresh: true,
+        // スライドの合計幅だけスクロールしたらピン留めを解除する
         end: () => "+=" + slideWrapper.value.offsetWidth,
       },
     });
 
-    // 横スクロールのアニメーション
+    // スライドを横に動かすアニメーション
     tl.to(
       slides,
       {
@@ -407,7 +429,7 @@ const setAnimation = () => {
       0
     );
 
-    // プログレスバーのアニメーション
+    // 進行度を示すプログレスバーのアニメーション
     const fillDuration = (slides.length - 1) / fills.length;
     tl.to(
       fills,
@@ -420,15 +442,11 @@ const setAnimation = () => {
       0
     );
 
-    // ページ下部アクションボタン
+    // --- ページ下部アクションボタンの表示アニメーション ---
     const back = ".top-view__actions--last";
-
-    // ページ下部アクションボタン表示アニメーション
     gsap.fromTo(
       back,
-      {
-        ...fromAnimationSettings,
-      },
+      { ...fromAnimationSettings },
       {
         ...toAnimationSettings,
         scrollTrigger: {
@@ -441,6 +459,10 @@ const setAnimation = () => {
   }, topWrapper.value);
 };
 
+// =========================================================================
+// ライフサイクル
+// =========================================================================
+
 /**
  * マウント時処理
  */
@@ -452,7 +474,7 @@ onMounted(() => {
  * アンマウント時処理
  */
 onUnmounted(() => {
-  // コンポーネントが破棄される時にアニメーションをリセットする
+  // コンポーネントが破棄される時にGSAPのアニメーションをリセットし、メモリリークを防ぐ
   if (gsapContext) {
     gsapContext.revert();
   }
@@ -461,21 +483,29 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .top-view {
-  $parent: &;
-  display: flex;
-  flex-direction: column;
-  @include fluid-style(gap, 40, 120);
   @include contents-width;
+  @include fluid-style(gap, 40, 120);
   @include fluid-style(padding-bottom, 64, 120);
 
+  $parent: &;
+
+  display: flex;
+  flex-direction: column;
+
+  /* =======================================================================
+   * Hero セクション
+   * ======================================================================= */
   &__hero {
+    @include full-width-style;
+    @include fluid-style(gap, 32, 48);
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    @include fluid-style(gap, 32, 48);
-    @include full-width-style;
     height: 100svh;
+
+    /* ヘッダーの高さ分だけ上に引き上げて、画面のど真ん中に配置する */
     margin-top: -$header-height-sp;
 
     @include tab {
@@ -488,18 +518,20 @@ onUnmounted(() => {
   }
 
   &__title {
-    font-family: $roboto-mono;
     @include fluid-text(40, 64);
+
+    font-family: $roboto-mono;
     font-weight: $bold;
     letter-spacing: 0.05em;
   }
 
   &__subtitle {
     @include fluid-text(20, 32);
+
     font-weight: $bold;
     line-height: 1.8;
-    letter-spacing: 0.05em;
     text-align: center;
+    letter-spacing: 0.05em;
   }
 
   &__highlight {
@@ -513,21 +545,23 @@ onUnmounted(() => {
   }
 
   &__actions {
+    @include fluid-style(gap, 24, 48);
+
     display: flex;
     flex-direction: column;
     align-items: center;
-    @include fluid-style(gap, 24, 48);
 
     &--last {
-      visibility: hidden; // GSAPアニメーション用
+      visibility: hidden; // GSAPの初期状態アニメーション用
     }
   }
 
   &__welcome {
     @include fluid-text(14, 18);
+
     font-weight: $bold;
-    letter-spacing: 0.1em;
     color: $blue;
+    letter-spacing: 0.1em;
   }
 
   &__button {
@@ -553,25 +587,31 @@ onUnmounted(() => {
   }
 
   &__sub-actions {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     @include fluid-style(gap, 16, 32);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
+  /* =======================================================================
+   * Features セクション
+   * ======================================================================= */
   &__features {
+    @include fluid-style(gap, 32, 48);
+
     display: flex;
+    visibility: hidden; // GSAP用
     flex-direction: column;
     align-items: center;
-    @include fluid-style(gap, 32, 48);
-    visibility: hidden; // GSAPアニメーション用
   }
 
   &__features-title {
     @include fluid-text(24, 32);
+
     font-weight: $bold;
-    letter-spacing: 0.1em;
     text-align: center;
+    letter-spacing: 0.1em;
   }
 
   &__features-grid {
@@ -579,7 +619,7 @@ onUnmounted(() => {
     grid-template-columns: 1fr;
     gap: 2.4rem;
     width: 100%;
-    max-width: 380px;
+    max-width: 38rem;
 
     @include pc {
       grid-template-columns: repeat(3, 1fr);
@@ -589,40 +629,44 @@ onUnmounted(() => {
   }
 
   &__feature {
+    @include fluid-style(gap, 24, 28);
+
     position: relative;
     display: flex;
     flex-direction: column;
-    @include fluid-style(gap, 24, 28);
     aspect-ratio: 335 / 472;
     padding: 2.4rem;
-    border-radius: $radius-lg;
     background-color: $gray;
+    border-radius: $radius-lg;
     transition: box-shadow $transition-base, transform $transition-base;
 
-    @include hover {
-      box-shadow: $hovered-box-shadow;
-      transform: translateY(-2px);
+    @media (any-hover: hover) {
+      &:has(#{$parent}__circle-button:hover) {
+        box-shadow: $hovered-box-shadow;
+        transform: translateY(-2px);
+      }
     }
   }
 
   &__feature-subtitle {
     font-size: 2rem;
     font-weight: $bold;
-    letter-spacing: 0.1em;
     text-align: center;
+    letter-spacing: 0.1em;
   }
 
   &__feature-content {
+    @include fluid-style(gap, 16, 20);
+
     display: flex;
     flex-direction: column;
-    @include fluid-style(gap, 16, 20);
   }
 
   &__catchcopy {
     font-size: 1.4rem;
     font-weight: $bold;
-    letter-spacing: 0.1em;
     text-align: center;
+    letter-spacing: 0.1em;
   }
 
   &__image {
@@ -645,27 +689,30 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     cursor: pointer;
+
+    /* button自体のデフォルトの枠線を消す（Safari対策） */
+    outline: none;
   }
 
   &__circle {
     position: absolute;
-    bottom: 1.2rem;
     right: 1.2rem;
+    bottom: 1.2rem;
     display: block;
     width: 4rem;
     aspect-ratio: 1;
-    border-radius: 100vmax;
     background-color: $green;
+    border-radius: 100vmax;
     transition: background-color $transition-base, transform $transition-base;
 
     &::before,
     &::after {
-      content: "";
       position: absolute;
       top: 50%;
       left: 50%;
       width: 1.4rem;
       height: 2px;
+      content: "";
       background-color: $white;
       transition: transform $transition-base, background-color $transition-base;
     }
@@ -696,11 +743,15 @@ onUnmounted(() => {
     }
   }
 
+  /* =======================================================================
+   * Gallery セクション (横スクロール)
+   * ======================================================================= */
   &__horizontal-scroll-wrapper {
-    position: relative;
     @include full-width-style;
-    overflow: hidden;
+
+    position: relative;
     visibility: hidden; // GSAPアニメーション用
+    overflow: hidden;
     pointer-events: none; // pin留めした際にスワイプ（スクロール）できるように
   }
 
@@ -709,12 +760,12 @@ onUnmounted(() => {
   }
 
   &__slide {
-    flex-shrink: 0;
-    width: 100vw;
-    height: 100vh;
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
+    width: 100vw;
+    height: 100vh;
 
     &--orange {
       background-color: $light-orange;
@@ -734,63 +785,70 @@ onUnmounted(() => {
   }
 
   &__slide-inner {
+    @include contents-width;
+    @include fluid-style(gap, 16, 24);
+
     display: flex;
     flex-direction: column;
     align-items: center;
-    @include fluid-style(gap, 16, 24);
-    @include contents-width;
   }
 
   &__slide-title {
-    font-weight: $bold;
     @include fluid-text(18, 26);
-    letter-spacing: 0.1em;
-    text-align: center;
+
+    font-weight: $bold;
     color: $black;
+    text-align: center;
+    letter-spacing: 0.1em;
   }
 
   &__slide-image {
     width: 100%;
-    max-width: 900px;
+    max-width: 90rem;
     height: auto;
     border-radius: $radius-md;
   }
 
-  &__slide-desc {
-    font-weight: $bold;
+  &__slide-description {
     @include fluid-text(14, 18);
+
+    font-weight: $bold;
     text-align: center;
   }
 
   &__progress-bar-wrapper {
-    display: flex;
-    gap: 1rem;
+    @include contents-width;
+
     position: absolute;
     bottom: 6rem;
     left: 50%;
-    transform: translateX(-50%);
     z-index: 10;
+    display: flex;
+    gap: 1rem;
     width: 100%;
-    @include contents-width;
+    transform: translateX(-50%);
   }
 
   &__progress-segment {
     flex: 1;
     height: 2px;
-    border-radius: $radius-sm;
-    background-color: $light-black;
     overflow: hidden;
+    background-color: $light-black;
+    border-radius: $radius-sm;
   }
 
   &__progress-fill {
     width: 100%;
     height: 100%;
     background-color: $white;
-    transform-origin: left;
     transform: scaleX(0);
+    transform-origin: left;
   }
 }
 
+/* =========================================================================
+ * @keyframes / Transitions
+ * ========================================================================= */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.15s ease-out;
