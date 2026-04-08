@@ -4,6 +4,7 @@
       <span class="en">REGISTER</span>
       <span class="ja">ユーザー登録</span>
     </h1>
+
     <div class="register-view__contents-wrapper">
       <div class="register-view__link-wrapper">
         <RouterLink
@@ -26,6 +27,7 @@
           >
         </div>
       </div>
+
       <form
         class="register-view__form"
         @submit.prevent="handleRegister"
@@ -42,6 +44,8 @@
             id="name"
             class="register-view__input"
             v-model.trim="name"
+            autocomplete="username"
+            maxlength="10"
             required
           />
         </div>
@@ -53,6 +57,7 @@
             id="email"
             class="register-view__input"
             v-model.trim="email"
+            autocomplete="email"
             required
           />
         </div>
@@ -68,6 +73,7 @@
             id="password"
             class="register-view__input"
             v-model="password"
+            autocomplete="new-password"
             required
           />
         </div>
@@ -81,6 +87,7 @@
             id="password-confirm"
             class="register-view__input"
             v-model="passwordConfirm"
+            autocomplete="new-password"
             required
           />
         </div>
@@ -94,12 +101,19 @@
 </template>
 
 <script setup>
+// =========================================================================
+// パッケージ・モジュールの読み込み
+// =========================================================================
 import { ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import api from "../services/api";
 import { useNotificationStore } from "../stores/notificationStore";
 import { useAuthStore } from "../stores/authStore";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
+
+// =========================================================================
+// State (状態管理)
+// =========================================================================
 
 /**
  * router
@@ -135,6 +149,10 @@ const password = ref("");
  * 確認用パスワード
  */
 const passwordConfirm = ref("");
+
+// =========================================================================
+// Actions (処理)
+// =========================================================================
 
 /**
  * ユーザー登録処理
@@ -199,14 +217,14 @@ const handleRegister = async () => {
   }
 
   try {
-    // ユーザー登録
+    // ユーザー登録 API 呼び出し
     await api.post("/api/register", {
       name: name.value,
       email: email.value,
       password: password.value,
     });
 
-    // 登録＆ログイン通知
+    // 登録成功通知
     notificationStore.addNotification(
       "登録完了しました。自動でログインします。",
       "success"
