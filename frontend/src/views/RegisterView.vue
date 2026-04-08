@@ -36,7 +36,7 @@
         <div class="register-view__group">
           <label for="name" class="register-view__label"
             >ユーザー名<span class="register-view__label-notice"
-              >※10文字以内</span
+              >※{{ MAX_NAME_LENGTH }}文字以内</span
             ></label
           >
           <input
@@ -45,7 +45,7 @@
             class="register-view__input"
             v-model.trim="name"
             autocomplete="username"
-            maxlength="10"
+            :maxlength="MAX_NAME_LENGTH"
             required
           />
         </div>
@@ -65,7 +65,7 @@
         <div class="register-view__group">
           <label for="password" class="register-view__label"
             >パスワード<span class="register-view__label-notice"
-              >※4文字以上</span
+              >※{{ MIN_PASSWORD_LENGTH }}文字以上</span
             ></label
           >
           <input
@@ -110,6 +110,20 @@ import api from "../services/api";
 import { useNotificationStore } from "../stores/notificationStore";
 import { useAuthStore } from "../stores/authStore";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
+
+// =========================================================================
+// 定数定義 (マジックナンバーの排除)
+// =========================================================================
+
+/**
+ * ユーザー名の最大文字数
+ */
+const MAX_NAME_LENGTH = 10;
+
+/**
+ * パスワードの最小文字数
+ */
+const MIN_PASSWORD_LENGTH = 4;
 
 // =========================================================================
 // State (状態管理)
@@ -164,10 +178,10 @@ const handleRegister = async () => {
     return;
   }
 
-  // ユーザー名チェック (10文字以内)
-  if (name.value.length > 10) {
+  // ユーザー名の文字数チェック
+  if (name.value.length > MAX_NAME_LENGTH) {
     notificationStore.addNotification(
-      "ユーザー名は10文字以内にして下さい。",
+      `ユーザー名は${MAX_NAME_LENGTH}文字以内にして下さい。`,
       "error"
     );
     return;
@@ -198,10 +212,10 @@ const handleRegister = async () => {
     return;
   }
 
-  // パスワードチェック (4文字以上)
-  if (password.value.length < 4) {
+  // パスワードの文字数チェック
+  if (password.value.length < MIN_PASSWORD_LENGTH) {
     notificationStore.addNotification(
-      "パスワードは4文字以上にして下さい。",
+      `パスワードは${MIN_PASSWORD_LENGTH}文字以上にして下さい。`,
       "error"
     );
     return;
