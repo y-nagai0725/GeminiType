@@ -4,6 +4,7 @@
       <span class="en">LOGIN</span>
       <span class="ja">ログイン</span>
     </h1>
+
     <div class="login-view__contents-wrapper">
       <div class="login-view__link-wrapper">
         <div class="login-view__link login-view__link--disable">
@@ -26,6 +27,7 @@
           >
         </RouterLink>
       </div>
+
       <form class="login-view__form" @submit.prevent="handleLogin" novalidate>
         <div class="login-view__group">
           <label for="email" class="login-view__label">メールアドレス</label>
@@ -34,6 +36,7 @@
             id="email"
             class="login-view__input"
             v-model.trim="email"
+            autocomplete="email"
             required
           />
         </div>
@@ -45,6 +48,7 @@
             id="password"
             class="login-view__input"
             v-model="password"
+            autocomplete="current-password"
             required
           />
         </div>
@@ -58,11 +62,18 @@
 </template>
 
 <script setup>
+// =========================================================================
+// パッケージ・モジュールの読み込み
+// =========================================================================
 import { ref } from "vue";
 import { RouterLink } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
+
+// =========================================================================
+// State (状態管理)
+// =========================================================================
 
 /**
  * 認証store
@@ -84,6 +95,10 @@ const email = ref("");
  */
 const password = ref("");
 
+// =========================================================================
+// Actions (処理)
+// =========================================================================
+
 /**
  * ログイン処理
  */
@@ -104,10 +119,10 @@ const handleLogin = async () => {
   }
 
   try {
-    // ログイン
+    // ログイン処理を実行
     await authStore.login(email.value, password.value);
 
-    // ログイン通知
+    // ログイン成功通知
     notificationStore.addNotification("ログインしました。", "success");
   } catch (error) {
     notificationStore.addNotification(
@@ -119,7 +134,11 @@ const handleLogin = async () => {
 </script>
 
 <style lang="scss" scoped>
+/* =========================================================================
+ * ログイン画面のスタイル
+ * ========================================================================= */
 .login-view {
+  /* mixins.scss で定義した認証画面共通のスタイル（auth-style）を呼び出す */
   @include auth-style;
 }
 </style>
