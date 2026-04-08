@@ -234,12 +234,42 @@
   border-radius: $radius-md;
   transition: box-shadow $transition-base;
 
-  &:focus {
+  &:focus,
+  &:active,
+  &:hover {
     box-shadow: $text-box-shadow;
   }
 
   &::placeholder {
     color: $light-black;
+  }
+
+  /* =========================================================
+   * 自動入力（オートフィル）時の強制的な背景色を上書き
+   * ========================================================= */
+  &:-webkit-autofill {
+    /* 影の重ね掛けで背景色上書き */
+    box-shadow:
+      0 0 0 0 transparent, /* 1枚目: 普段は見えない外側の影 */
+       0 0 0 1000px $light-green inset, /* 2枚目: 背景色の再現 */
+       0 0 0 1000px $white inset !important; /* 3枚目: 2枚目の色が半透明なので、従来の水色を遮断する白下地 */
+
+    // 文字色設定
+    -webkit-text-fill-color: $black !important;
+
+    /* オートフィル状態自体の背景色変化を遅らせる & 影のアニメーションを指定 */
+    transition:
+      background-color 5000s ease-in-out 0s,
+      box-shadow $transition-base;
+  }
+
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    box-shadow:
+      $text-box-shadow,
+      0 0 0 1000px $light-green inset,
+      0 0 0 1000px $white inset !important;
   }
 }
 
@@ -524,7 +554,6 @@
     @include button-style-fill($green);
     @include fluid-style(width, 240, 350);
     @include fluid-style(padding-block, 17, 22);
-    @include fluid-style(margin-top, 8, 16);
     @include fluid-text(14, 18);
 
     margin-inline: auto;
