@@ -9,11 +9,11 @@
       <div class="setup-view__info">
         <template v-if="mode === 'gemini'">
           <p class="setup-view__info-heading">AI問題生成モード</p>
-          <p class="setup-view__info-theme">お題: {{ prompt }}</p>
+          <p class="setup-view__info-theme">{{ prompt }}</p>
         </template>
         <template v-else-if="mode === 'db'">
           <p class="setup-view__info-heading">登録問題モード</p>
-          <p class="setup-view__info-theme">ジャンル名: {{ genreName }}</p>
+          <p class="setup-view__info-theme">{{ genreName }}</p>
         </template>
       </div>
 
@@ -22,7 +22,7 @@
           <p class="setup-view__heading">問題数</p>
           <div class="setup-view__radios">
             <label
-              v-for="count in problemCounts"
+              v-for="count in PROBLEM_COUNTS"
               :key="count"
               class="setup-view__radio-label"
             >
@@ -75,16 +75,22 @@
             v-if="settingsStore.gameMode === 'time_limit'"
             class="setup-view__sub-settings"
           >
-            <label class="setup-view__selectbox-label">制限時間:</label>
+            <label for="time-limit" class="setup-view__selectbox-label"
+              >制限時間:</label
+            >
             <div class="setup-view__selectbox-wrapper">
               <select
                 v-model.number="settingsStore.timeLimit"
                 class="setup-view__selectbox"
+                id="time-limit"
               >
-                <option :value="30">30秒</option>
-                <option :value="60">60秒</option>
-                <option :value="90">90秒</option>
-                <option :value="120">120秒</option>
+                <option
+                  v-for="time in TIME_LIMIT_OPTIONS"
+                  :key="time"
+                  :value="time"
+                >
+                  {{ time }}秒
+                </option>
               </select>
             </div>
           </div>
@@ -93,17 +99,22 @@
             v-if="settingsStore.gameMode === 'sudden_death'"
             class="setup-view__sub-settings"
           >
-            <label class="setup-view__selectbox-label">許容ミス数:</label>
+            <label for="sudden-death" class="setup-view__selectbox-label"
+              >許容ミス数:</label
+            >
             <div class="setup-view__selectbox-wrapper">
               <select
                 v-model.number="settingsStore.missLimit"
                 class="setup-view__selectbox"
+                id="sudden-death"
               >
-                <option :value="0">0回（即終了！）</option>
-                <option :value="1">1回</option>
-                <option :value="3">3回</option>
-                <option :value="5">5回</option>
-                <option :value="10">10回</option>
+                <option
+                  v-for="miss in MISS_LIMIT_OPTIONS"
+                  :key="miss"
+                  :value="miss"
+                >
+                  {{ miss === 0 ? "0回（即終了！）" : miss + "回" }}
+                </option>
               </select>
             </div>
           </div>
@@ -158,18 +169,23 @@
           </p>
         </div>
 
-        <button type="submit" class="setup-view__start-button">
-          タイピング開始！<ArrowIcon class="setup-view__arrow-icon" />
-        </button>
+        <div class="setup-view__button-wrapper">
+          <button type="submit" class="setup-view__start-button">
+            タイピング開始！<ArrowIcon class="setup-view__arrow-icon" />
+          </button>
+          <RouterLink to="/menu" class="setup-view__back-button">
+            メインメニューに戻る<ArrowIcon class="setup-view__arrow-icon" />
+          </RouterLink>
+        </div>
       </form>
-
-      <RouterLink to="/menu" class="setup-view__back-button"
-        >メインメニューに戻る<ArrowIcon class="setup-view__arrow-icon"
-      /></RouterLink>
     </div>
   </div>
 </template>
+
 <script setup>
+// =========================================================================
+// パッケージ・モジュールの読み込み
+// =========================================================================
 import { computed, onMounted } from "vue";
 import { useRoute, useRouter, RouterLink } from "vue-router";
 import { useSettingsStore } from "../stores/settingsStore";
@@ -177,6 +193,29 @@ import { useNotificationStore } from "../stores/notificationStore";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import TimerIcon from "@/components/icons/TimerIcon.vue";
 import SuddenDeathIcon from "@/components/icons/SuddenDeathIcon.vue";
+
+// =========================================================================
+// 定数定義
+// =========================================================================
+
+/**
+ * 選択可能な問題数リスト
+ */
+const PROBLEM_COUNTS = [5, 10, 20, 30];
+
+/**
+ * 選択可能な制限時間リスト (秒)
+ */
+const TIME_LIMIT_OPTIONS = [30, 60, 90, 120];
+
+/**
+ * 選択可能な許容ミス数リスト (回)
+ */
+const MISS_LIMIT_OPTIONS = [0, 1, 3, 5, 10];
+
+// =========================================================================
+// State (状態管理)
+// =========================================================================
 
 /**
  * route
@@ -198,10 +237,7 @@ const settingsStore = useSettingsStore();
  */
 const notificationStore = useNotificationStore();
 
-/**
- * 選択可能な問題数リスト
- */
-const problemCounts = [5, 10, 20, 30];
+// --- URLクエリからのデータ取得 (Computed) ---
 
 /**
  * URLクエリから取得: モード ('db' or 'gemini')
@@ -223,8 +259,34 @@ const genreId = computed(() => route.query.genreId);
  */
 const genreName = computed(() => route.query.genreName);
 
+// =========================================================================
+// Actions (処理)
+// =========================================================================
+
 /**
- * 画面表示時のチェック処理
+ * タイピング開始処理
+ */
+const handleStart = () => {
+  // 設定をlocalStorageに保存
+  settingsStore.saveSettings();
+
+  // タイピング実行画面へ遷移
+  router.push({
+    path: "/typing/play",
+    query: {
+      mode: mode.value,
+      prompt: prompt.value,
+      genreId: genreId.value,
+    },
+  });
+};
+
+// =========================================================================
+// ライフサイクル
+// =========================================================================
+
+/**
+ * 画面表示時のチェック処理 (不正アクセスのブロック)
  */
 onMounted(() => {
   // モードがない、または不正な場合
@@ -264,31 +326,17 @@ onMounted(() => {
     return;
   }
 });
-
-/**
- * タイピング開始処理
- */
-const handleStart = () => {
-  // 設定をlocalStorageに保存
-  settingsStore.saveSettings();
-
-  // タイピング実行画面へ遷移
-  router.push({
-    path: "/typing/play",
-    query: {
-      mode: mode.value,
-      prompt: prompt.value,
-      genreId: genreId.value,
-    },
-  });
-};
 </script>
+
 <style lang="scss" scoped>
+/* =========================================================================
+ * タイピング設定画面スタイル
+ * ========================================================================= */
 .setup-view {
   @include contents-width;
 
   @include pc {
-    max-width: 800px;
+    max-width: 80rem;
   }
 
   &__title {
@@ -296,55 +344,57 @@ const handleStart = () => {
   }
 
   &__contents-wrapper {
+    @include fluid-style(gap, 32, 48);
+    @include contents-padding;
+
     display: flex;
     flex-direction: column;
-    @include fluid-style(gap, 32, 48);
-    max-width: 500px;
+    max-width: 50rem;
     margin-inline: auto;
-    @include contents-padding;
 
     @include pc {
       max-width: none;
     }
   }
 
+  /* --- 選択されたモード情報の表示エリア --- */
   &__info {
+    @include fluid-style(gap, 10, 16);
+    @include fluid-style(padding, 10, 16);
+
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.6rem;
-    @include fluid-style(padding, 16, 24);
-    border-radius: $radius-md $radius-md 0 0;
     background-color: $blue;
-
-    @include pc {
-      flex-direction: row;
-      justify-content: center;
-    }
+    border-radius: $radius-md $radius-md 0 0;
   }
 
   &__info-heading,
   &__info-theme {
     @include fluid-text(14, 16);
+
     font-weight: $bold;
-    letter-spacing: 0.1em;
     color: $white;
+    letter-spacing: 0.1em;
   }
 
   &__info-theme {
     color: $yellow;
   }
 
+  /* --- 設定フォーム本体 --- */
   &__form {
+    @include fluid-style(gap, 24, 32);
+
     display: grid;
-    @include fluid-style(gap, 24, 40);
     width: 100%;
   }
 
   &__group {
+    @include fluid-style(gap, 16, 24);
+
     display: grid;
     grid-template-columns: 1fr;
-    @include fluid-style(gap, 24, 32);
 
     @include pc {
       grid-template-columns: 1fr 3fr;
@@ -354,21 +404,25 @@ const handleStart = () => {
 
   &__heading {
     @include fluid-text(14, 16);
+
     font-weight: $bold;
     letter-spacing: 0.1em;
   }
 
+  /* --- ラジオボタン & チェックボックス --- */
   &__radios,
   &__checkboxes {
-    display: flex;
     @include fluid-style(gap, 24, 40);
+
+    display: flex;
   }
 
   &__radio-label,
   &__checkbox-label {
+    @include fluid-text(14, 16);
+
     display: flex;
     align-items: center;
-    @include fluid-text(14, 16);
     line-height: 1;
     cursor: pointer;
   }
@@ -384,16 +438,16 @@ const handleStart = () => {
     border-radius: 100vmax;
 
     &::after {
-      content: "";
       position: absolute;
       top: 50%;
       left: 50%;
       width: 60%;
       aspect-ratio: 1;
+      content: "";
       background-color: $green;
       border-radius: 100vmax;
-      transform: translate(-50%, -50%);
       opacity: 0;
+      transform: translate(-50%, -50%);
       transition: opacity $transition-base;
     }
 
@@ -413,16 +467,16 @@ const handleStart = () => {
     border-radius: $radius-sm;
 
     &::after {
-      content: "";
       position: absolute;
       top: 50%;
       left: 50%;
       width: 80%;
       height: 40%;
-      border-left: 2px solid $green;
+      content: "";
       border-bottom: 2px solid $green;
-      transform: translate(-50%, calc(-50% - 1px)) rotate(-45deg);
+      border-left: 2px solid $green;
       opacity: 0;
+      transform: translate(-50%, calc(-50% - 1px)) rotate(-45deg);
       transition: opacity $transition-base;
     }
 
@@ -433,9 +487,11 @@ const handleStart = () => {
 
   &__credit {
     @include fluid-text(11, 12);
+
     color: $light-black;
   }
 
+  /* --- アイコン --- */
   &__timer-icon,
   &__sudden-death-icon {
     height: 1em;
@@ -443,32 +499,24 @@ const handleStart = () => {
     fill: $black;
   }
 
+  /* --- サブ設定 (セレクトボックス群) --- */
   &__sub-settings {
+    @include fluid-style(gap, 14, 16);
+
     display: flex;
     align-items: center;
-    @include fluid-style(gap, 14, 16);
-    animation: fadeIn $transition-base;
+    animation: fade-in $transition-base;
 
     @include pc {
       grid-column: 2;
-      margin-top: 4rem;
-    }
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-5px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+      margin-top: 3.2rem;
     }
   }
 
   &__selectbox-label {
-    display: block;
     @include fluid-text(14, 16);
+
+    display: block;
     line-height: 1;
   }
 
@@ -478,14 +526,29 @@ const handleStart = () => {
 
   &__selectbox {
     @include select-style;
+
     border: 1px solid $black;
+  }
+
+  /* --- アクションボタン --- */
+  &__button-wrapper {
+    @include fluid-style(gap, 24, 32);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    @include pc {
+      /* PCの時はメインの「開始」ボタンを右側に持ってくる */
+      flex-direction: row-reverse;
+    }
   }
 
   &__start-button {
     @include button-style-fill($green);
     @include fluid-style(width, 240, 350);
     @include fluid-style(padding-block, 17, 22);
-    margin-inline: auto;
     @include fluid-text(14, 18);
   }
 
@@ -493,12 +556,26 @@ const handleStart = () => {
     @include button-style-border($blue);
     @include fluid-style(width, 240, 350);
     @include fluid-style(padding-block, 17, 22);
-    margin-inline: auto;
     @include fluid-text(14, 18);
   }
 
   &__arrow-icon {
     @include button-arrow-icon-style;
+  }
+}
+
+/* =========================================================================
+ * Animations
+ * ========================================================================= */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>
