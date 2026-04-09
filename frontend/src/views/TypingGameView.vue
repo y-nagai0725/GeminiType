@@ -20,9 +20,9 @@
       <p class="game-view__sub-message game-view__sub-message--error">
         {{ errorMessage }}
       </p>
-      <RouterLink to="/menu" class="game-view__link-button"
-        >メインメニューに戻る<ArrowIcon class="game-view__arrow-icon"
-      /></RouterLink>
+      <RouterLink to="/menu" class="game-view__link-button">
+        メインメニューに戻る<ArrowIcon class="game-view__arrow-icon" />
+      </RouterLink>
     </div>
 
     <div v-else class="game-view__core">
@@ -39,6 +39,9 @@
 </template>
 
 <script setup>
+// =========================================================================
+// パッケージ・モジュールの読み込み
+// =========================================================================
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter, RouterLink } from "vue-router";
 import api from "../services/api";
@@ -49,13 +52,27 @@ import TypingCore from "../components/TypingCore.vue";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import Loading from "@/components/Loading.vue";
 
+// =========================================================================
+// 定数定義
+// =========================================================================
+
 /**
- * route
+ * ローディングの最低表示時間 (ミリ秒)
+ * 画面のチラつき(FOUC)防止用
+ */
+const MIN_LOADING_MS = 300;
+
+// =========================================================================
+// State (状態管理)
+// =========================================================================
+
+/**
+ * route (現在のURL情報)
  */
 const route = useRoute();
 
 /**
- * router
+ * router (ページ遷移用)
  */
 const router = useRouter();
 
@@ -75,17 +92,12 @@ const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
 
 /**
- * ローディングの最低表示時間 (ミリ秒)
- */
-const MIN_LOADING_MS = 300;
-
-/**
  * ローディング中かどうか
  */
 const isLoading = ref(false);
 
 /**
- * ローディングメッセージ
+ * ローディング中の詳細メッセージ
  */
 const loadingMessage = ref("");
 
@@ -95,9 +107,11 @@ const loadingMessage = ref("");
 const errorMessage = ref("");
 
 /**
- * 問題リスト
+ * 問題リストデータ
  */
 const problems = ref([]);
+
+// --- URLクエリからのデータ取得 (Computed) ---
 
 /**
  * モード ('db' or 'gemini')
@@ -114,21 +128,13 @@ const genreId = computed(() => route.query.genreId);
  */
 const prompt = computed(() => route.query.prompt);
 
-/**
- * 画面が表示されたら問題をロードする
- */
-onMounted(async () => {
-  // 不正なアクセスなら戻す
-  if (!validateQuery()) {
-    router.push("/menu");
-    return;
-  }
-
-  await loadProblems();
-});
+// =========================================================================
+// Actions (処理)
+// =========================================================================
 
 /**
  * クエリパラメータのバリデーション
+ * 不正なアクセスやパラメータ不足を防ぐ
  * @returns {boolean} 正しいアクセスなら true
  */
 const validateQuery = () => {
@@ -161,6 +167,7 @@ const validateQuery = () => {
 
 /**
  * APIから問題を取得する
+ * モードに応じてDBかGeminiか自動で切り替える
  */
 const loadProblems = async () => {
   isLoading.value = true;
@@ -169,7 +176,7 @@ const loadProblems = async () => {
   try {
     let response;
 
-    // DBモードの場合
+    // --- DBモードの場合 ---
     if (mode.value === "db") {
       loadingMessage.value = "データベースから問題を抽出中...";
 
@@ -178,12 +185,13 @@ const loadProblems = async () => {
       params.append("count", settingsStore.problemCount);
       if (genreId.value) params.append("genreId", genreId.value);
 
+      // API取得と最低待機時間を並行処理
       [response] = await Promise.all([
         api.get(`/api/typing/db?${params.toString()}`),
         new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
       ]);
     }
-    // Geminiモードの場合
+    // --- Geminiモードの場合 ---
     else if (mode.value === "gemini") {
       loadingMessage.value = "AIが問題を生成中です、少々お待ちください...";
 
@@ -197,15 +205,15 @@ const loadProblems = async () => {
       ]);
     }
 
-    // 取得したデータを problems に入れる
+    // 取得したデータを problems にセット
     problems.value = response.data;
 
-    // 問題が取れなかった場合
+    // 問題が0件の場合のエラーハンドリング
     if (problems.value.length === 0) {
       throw new Error("問題が見つかりませんでした。条件を変えて試して下さい。");
     }
   } catch (error) {
-    // エラー通知
+    // エラーハンドリング
     console.error("問題取得エラー:", error);
     errorMessage.value =
       error.response?.data?.message ||
@@ -217,15 +225,17 @@ const loadProblems = async () => {
 };
 
 /**
- * タイピング終了時（TypingCoreから呼ばれる）
+ * タイピング終了時（子コンポーネント: TypingCoreから発火）
+ * 結果を集計し、必要ならDBへ保存し、結果画面へ遷移する
  * @param {Object} data TypingCoreから渡されるデータ { results, info }
  */
 const handleComplete = async (data) => {
   // 結果配列
   const results = data.results;
-
   // 特殊モード情報など
   const info = data.info;
+
+  // --- スコアの集計計算 ---
 
   // 総タイプ数
   const totalTypes = results.reduce((sum, r) => {
@@ -251,18 +261,18 @@ const handleComplete = async (data) => {
     results.reduce((sum, r) => sum + r.kpm, 0) / totalProblems
   );
 
-  // 平均正確率（「合計正解キー数 ÷ 総タイプ数」で計算）
+  // 平均正確率（合計正解キー数 ÷ 総タイプ数）
   let avgAccuracy = 0;
   if (totalTypes > 0) {
     avgAccuracy = Math.round((totalCorrectKeys / totalTypes) * 100);
 
-    // 四捨五入後のavgAccuracyが100でも、ミスが1回でもある場合は99%にする
+    // 四捨五入後の正確率が100でも、ミスが1回でもある場合は99%にする
     if (totalMissCount > 0 && avgAccuracy === 100) {
       avgAccuracy = 99;
     }
   }
 
-  // ミスキー集計
+  // ミスキーの集計（最もミスしたキーを特定）
   const totalMissedKeys = {};
   results.forEach((result) => {
     const keys = result.missed_keys || {};
@@ -280,6 +290,7 @@ const handleComplete = async (data) => {
     }
   }
 
+  // --- 特殊モード用の結果情報まとめ ---
   const specialModeInfo = {
     config: {
       mode: settingsStore.gameMode,
@@ -296,10 +307,10 @@ const handleComplete = async (data) => {
     },
   };
 
+  // --- DB保存処理 ---
   // 「ログインしている」かつ「通常モード」の場合のみ保存
   const isNormalMode = settingsStore.gameMode === "normal";
 
-  // ログインしているなら、結果をDBに保存
   if (authStore.isLoggedIn && isNormalMode) {
     try {
       await api.post("/api/typing/result", {
@@ -315,26 +326,25 @@ const handleComplete = async (data) => {
       });
       notificationStore.addNotification("結果を保存しました！", "success");
     } catch (error) {
-      // 保存失敗は通知するけど、画面遷移は止めない
       console.error("保存エラー:", error);
-      // (401の時は、インターセプター が「セッション切れ」通知をしてくれる為)
+      // インターセプターが401エラー（セッション切れ）は処理するため、それ以外を通知
       if (!error.response || error.response.status !== 401) {
         notificationStore.addNotification("結果の保存に失敗しました", "error");
       }
     }
   } else if (!isNormalMode) {
-    // 特殊モードの場合の通知
     notificationStore.addNotification(
       "特殊モードのため、結果は保存されません（記録のみ表示します）",
       "success"
     );
   } else {
-    // ゲストユーザーへの通知
     notificationStore.addNotification(
-      "お疲れ様！ログインすると結果を保存できるよ!",
+      "お疲れ様！ユーザー登録すると結果を保存できるよ！",
       "success"
     );
   }
+
+  // --- ローカルストレージへの保存（結果画面表示用・リトライ用） ---
 
   // 次回の「もう一度やる！」のために設定を保存
   localStorage.setItem(
@@ -346,7 +356,7 @@ const handleComplete = async (data) => {
     })
   );
 
-  // 結果データを保存
+  // 今回のスコア詳細を結果画面用に保存
   localStorage.setItem(
     "last_session_result",
     JSON.stringify({
@@ -364,29 +374,52 @@ const handleComplete = async (data) => {
   // 結果画面へ遷移
   router.push("/typing/result");
 };
+
+// =========================================================================
+// ライフサイクル
+// =========================================================================
+
+/**
+ * マウント時処理 (画面が表示されたら問題をロードする)
+ */
+onMounted(async () => {
+  // 不正なアクセスなら処理を中断して戻す
+  if (!validateQuery()) {
+    router.push("/menu");
+    return;
+  }
+
+  // 問題データの取得を開始
+  await loadProblems();
+});
 </script>
 
 <style lang="scss" scoped>
+/* =========================================================================
+ * タイピングゲーム画面スタイル
+ * ========================================================================= */
 .game-view {
   /* PC画面想定なのでレスポンシブ対応はしない */
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   max-width: 90rem;
   min-height: 50vh;
   margin: 4.8rem auto 16rem;
 
+  /* --- ローディング・エラー画面共通 --- */
   &__loading,
   &__error {
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 2.4rem;
+    align-items: center;
   }
 
+  /* --- メッセージテキスト --- */
   &__message {
-    font-weight: $bold;
     font-size: 1.6rem;
+    font-weight: $bold;
 
     &--error {
       color: $red;
@@ -397,18 +430,21 @@ const handleComplete = async (data) => {
     font-size: 1.4rem;
   }
 
+  /* --- 戻るボタン --- */
   &__link-button {
     @include button-style-fill($green);
     @include fluid-style(width, 240, 350);
     @include fluid-style(padding-block, 17, 22);
-    margin-inline: auto;
     @include fluid-text(14, 18);
+
+    margin-inline: auto;
   }
 
   &__arrow-icon {
     @include button-arrow-icon-style;
   }
 
+  /* --- コアコンポーネントのラッパー --- */
   &__core {
     width: 100%;
   }
