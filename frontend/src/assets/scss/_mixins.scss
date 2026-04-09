@@ -224,13 +224,14 @@
 }
 
 // --- Forms ---
-@mixin input-style {
+@mixin input-style($background-color: $light-green) {
   @include fluid-text(14, 16);
 
+  width: 100%;
   padding: 1em;
   font-weight: $bold;
   line-height: 1;
-  background-color: $light-green;
+  background-color: $background-color;
   border-radius: $radius-md;
   transition: box-shadow $transition-base;
 
@@ -251,7 +252,7 @@
     /* 影の重ね掛けで背景色上書き */
     box-shadow:
       0 0 0 0 transparent, /* 1枚目: 普段は見えない外側の影 */
-       0 0 0 1000px $light-green inset, /* 2枚目: 背景色の再現 */
+       0 0 0 1000px $background-color inset, /* 2枚目: 背景色の再現 */
        0 0 0 1000px $white inset !important; /* 3枚目: 2枚目の色が半透明なので、従来の水色を遮断する白下地 */
 
     // 文字色設定
@@ -268,7 +269,7 @@
   &:-webkit-autofill:active {
     box-shadow:
       $text-box-shadow,
-      0 0 0 1000px $light-green inset,
+      0 0 0 1000px $background-color inset,
       0 0 0 1000px $white inset !important;
   }
 }
