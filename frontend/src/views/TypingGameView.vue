@@ -35,6 +35,42 @@
         @complete="handleComplete"
       />
     </div>
+
+    <Teleport to="body">
+      <Transition name="modal-fade">
+        <div v-if="showWarningModal" class="game-view__modal-overlay">
+          <div class="game-view__modal">
+            <p class="game-view__modal-title">プレイ環境について</p>
+            <div class="game-view__modal-message">
+              <p>
+                このゲームは<strong>物理キーボード</strong>でのプレイを想定しています。
+              </p>
+              <p>
+                また、スマートフォンなど画面の狭い端末では、表示が崩れる場合があります。
+              </p>
+              <p class="game-view__modal-highlight">
+                PC環境でのプレイを強く推奨します。
+              </p>
+            </div>
+
+            <div class="game-view__modal-actions">
+              <RouterLink
+                to="/menu"
+                class="game-view__modal-button game-view__modal-button--back"
+              >
+                メニューに戻る
+              </RouterLink>
+              <button
+                @click="showWarningModal = false"
+                class="game-view__modal-button game-view__modal-button--play"
+              >
+                そのままプレイ
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -110,6 +146,11 @@ const errorMessage = ref("");
  * 問題リストデータ
  */
 const problems = ref([]);
+
+/**
+ * 警告モーダルの表示フラグ
+ */
+const showWarningModal = ref(false);
 
 // --- URLクエリからのデータ取得 (Computed) ---
 
@@ -389,6 +430,15 @@ onMounted(async () => {
     return;
   }
 
+  // プレイ環境のチェック（タッチデバイス or 画面幅800px未満）
+  const isTouchDevice =
+    "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  const isNarrowScreen = window.innerWidth < 800;
+
+  if (isTouchDevice || isNarrowScreen) {
+    showWarningModal.value = true;
+  }
+
   // 問題データの取得を開始
   await loadProblems();
 });
@@ -447,6 +497,105 @@ onMounted(async () => {
   /* --- コアコンポーネントのラッパー --- */
   &__core {
     width: 100%;
+  }
+
+  /* =======================================================================
+   * 警告モーダル用スタイル
+   * ======================================================================= */
+  &__modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: $z-modal-overlay;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background-color: $modal-overlay-color;
+  }
+
+  &__modal {
+    @include fluid-style(gap, 24, 32);
+    @include fluid-style(padding, 24, 32);
+
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 50rem;
+    margin-inline: 2rem;
+    background-color: $white;
+    border-radius: $radius-md;
+    box-shadow: $modal-box-shadow;
+  }
+
+  &__modal-title {
+    @include fluid-text(18, 22);
+
+    font-weight: $bold;
+    text-align: center;
+    letter-spacing: 0.1em;
+  }
+
+  &__modal-message {
+    @include fluid-style(gap, 12, 16);
+    @include fluid-text(14, 16);
+
+    display: flex;
+    flex-direction: column;
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  &__modal-highlight {
+    font-weight: $bold;
+    color: $red;
+  }
+
+  &__modal-actions {
+    display: flex;
+    gap: 1.6rem;
+    justify-content: space-around;
+  }
+
+  &__modal-button {
+    @include fluid-text(12, 14);
+
+    flex-grow: 1;
+    padding: 1em;
+    font-weight: $bold;
+    text-align: center;
+    cursor: pointer;
+    border-radius: $radius-sm;
+
+    &--back {
+      @include button-style-border($black);
+    }
+
+    &--play {
+      @include button-style-fill($green);
+    }
+  }
+}
+
+/* モーダルのトランジション */
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+
+  /* stylelint-disable-next-line selector-class-pattern */
+  .game-view__modal {
+    transform: translateY(-20px);
+  }
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity $transition-base;
+
+  /* stylelint-disable-next-line selector-class-pattern */
+  .game-view__modal {
+    transition: transform $transition-base;
   }
 }
 </style>
