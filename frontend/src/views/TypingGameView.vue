@@ -34,6 +34,24 @@
         :show-romaji="settingsStore.showRomaji"
         @complete="handleComplete"
       />
+
+      <div v-if="mode === 'gemini'" class="game-view__credits">
+        <p class="game-view__credit-item">
+          AI問題生成 :
+          <span class="game-view__credit-highlight">Powered by Gemini</span>
+        </p>
+        <p class="game-view__credit-item">
+          ふりがな取得API :
+          <a
+            href="https://developer.yahoo.co.jp/sitemap/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="game-view__credit-link"
+          >
+            Web Services by Yahoo! JAPAN
+          </a>
+        </p>
+      </div>
     </div>
 
     <Teleport to="body">
@@ -497,6 +515,38 @@ onMounted(async () => {
   /* --- コアコンポーネントのラッパー --- */
   &__core {
     width: 100%;
+  }
+
+  /* =======================================================================
+   * クレジット表記用スタイル
+   * ======================================================================= */
+  &__credits {
+    @include fluid-style(gap, 8, 12);
+    @include fluid-text(11, 12);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 2.4rem; /* TypingCoreとの間に余白を作る */
+    color: $light-black; /* 目立ちすぎないグレー */
+    text-align: center;
+  }
+
+  &__credit-highlight {
+    font-family: $roboto-mono;
+    font-weight: $bold;
+    letter-spacing: 0.05em;
+  }
+
+  &__credit-link {
+    display: inline-block;
+    color: currentcolor;
+    text-decoration: underline;
+    transition: color $transition-base;
+
+    @include hover {
+      color: $blue;
+    }
   }
 
   /* =======================================================================
