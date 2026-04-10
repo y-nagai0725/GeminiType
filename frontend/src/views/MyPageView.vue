@@ -500,8 +500,14 @@ const handlePageChange = async (page) => {
 // =========================================================================
 // GSAP アニメーション制御
 // =========================================================================
+/**
+ * GSAPコンテキスト (アンマウント時のクリーンアップ用)
+ */
 let gsapContext;
 
+/**
+ * GSAPアニメーション設定
+ */
 const setAnimation = () => {
   // アニメーション共通設定：開始状態
   const fromAnimationSettings = { autoAlpha: 0, y: 20 };
@@ -577,6 +583,9 @@ const setAnimation = () => {
 // ライフサイクル
 // =========================================================================
 
+/**
+ * マウント時処理
+ */
 onMounted(async () => {
   isContentsLoading.value = true;
 
@@ -599,7 +608,11 @@ onMounted(async () => {
   }
 });
 
+/**
+ * アンマウント時処理
+ */
 onUnmounted(() => {
+  // コンポーネントが破棄される時にGSAPのアニメーションをリセットし、メモリリークを防ぐ
   if (gsapContext) {
     gsapContext.revert();
   }
