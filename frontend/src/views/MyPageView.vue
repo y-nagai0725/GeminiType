@@ -1029,8 +1029,6 @@ const setAnimation = () => {
     @include button-arrow-icon-style;
   }
 
-  @include pagination-style;
-
   &__back {
     visibility: hidden; // GSAPアニメーション用
   }

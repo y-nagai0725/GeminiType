@@ -1,8 +1,8 @@
 <template>
-  <div class="pagination__pagination-container" v-if="totalPages > 1">
-    <div class="pagination__pagination">
+  <div class="pagination-wrapper" v-if="totalPages > 1">
+    <div class="pagination">
       <button
-        class="pagination__page-button pagination__page-button--prev"
+        class="page-button is-prev"
         :class="{ 'is-disabled': currentPage === 1 }"
         @click="onPageChange(currentPage - 1)"
         :disabled="currentPage === 1"
@@ -12,19 +12,17 @@
         <button
           v-if="item !== '...'"
           :key="`num-${index}`"
-          class="pagination__page-button pagination__page-button--number"
+          class="page-button"
           :class="{ 'is-active': item === currentPage }"
           @click="onPageChange(item)"
         >
           {{ item }}
         </button>
-        <span v-else :key="`dots-${index}`" class="pagination__page-dots"
-          >…</span
-        >
+        <span v-else :key="`dots-${index}`" class="page-dots">…</span>
       </template>
 
       <button
-        class="pagination__page-button pagination__page-button--next"
+        class="page-button is-next"
         :class="{ 'is-disabled': currentPage === totalPages }"
         @click="onPageChange(currentPage + 1)"
         :disabled="currentPage === totalPages"
@@ -48,7 +46,7 @@ const props = defineProps({
   },
 });
 
-// 親コンポーネントに送るイベント（ページがクリックされたよ！という通知）
+// 親コンポーネントに送るイベント
 const emit = defineEmits(["page-change"]);
 
 // =========================================================================
@@ -108,7 +106,89 @@ const onPageChange = (page) => {
 </script>
 
 <style lang="scss" scoped>
+/* =========================================================================
+ * ページネーション コンポーネントスタイル
+ * ========================================================================= */
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
 .pagination {
-  @include pagination-style;
+  @include fluid-style(gap, 10, 16);
+
+  display: flex;
+  align-items: center;
+}
+
+/* --- 各ボタンのベーススタイル --- */
+.page-button {
+  @include fluid-style(width, 32, 40);
+  @include fluid-style(height, 32, 40);
+  @include fluid-text(12, 14);
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: $roboto-mono;
+  cursor: pointer;
+  background-color: transparent;
+  border: 1px solid $light-black;
+  border-radius: $radius-sm;
+  transition: background-color $transition-base, color $transition-base,
+    border-color $transition-base;
+
+  /* ホバー時 */
+  @include hover {
+    background-color: $light-green;
+  }
+
+  /* 現在のページ（アクティブ） */
+  &.is-active {
+    color: $white;
+    pointer-events: none;
+    cursor: default;
+    background-color: $green;
+    border-color: $green;
+  }
+
+  /* 無効化状態（1ページ目の「前へ」など） */
+  &.is-disabled {
+    color: $light-black;
+    cursor: not-allowed;
+    background-color: $gray;
+    border-color: $gray;
+  }
+}
+
+/* --- 前へ / 次へ ボタンの矢印アイコン（CSSで描画） --- */
+.is-prev::before,
+.is-next::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20%;
+  height: 20%;
+  content: "";
+  border-top: 2px solid currentcolor;
+  border-right: 2px solid currentcolor;
+}
+
+.is-prev::before {
+  transform: translate(-30%, -50%) rotate(-135deg);
+}
+
+.is-next::before {
+  transform: translate(-70%, -50%) rotate(45deg);
+}
+
+/* --- 省略記号（...） --- */
+.page-dots {
+  @include fluid-text(12, 14);
+
+  font-family: $roboto-mono;
+  color: $light-black;
 }
 </style>
