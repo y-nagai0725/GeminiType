@@ -12,6 +12,7 @@
           :text="'統計データ読み込み中です…'"
         />
       </template>
+
       <template v-else-if="errorMessage">
         <div class="mypage-view__error">
           <p class="mypage-view__error-message">
@@ -22,6 +23,7 @@
           </RouterLink>
         </div>
       </template>
+
       <template v-else>
         <div class="mypage-view__top-grid-wrapper">
           <section class="mypage-view__section mypage-view__section--profile">
@@ -70,13 +72,15 @@
                   <span class="mypage-view__card-title">総合スコア</span>
                   <span
                     class="mypage-view__card-value mypage-view__card-value--score"
-                    >{{ score }}</span
                   >
+                    {{ score }}
+                  </span>
                 </div>
                 <ScoreRankCircle ref="scoreRankCircleRef" :score="score" />
               </div>
             </div>
           </section>
+
           <section class="mypage-view__section mypage-view__section--play-data">
             <h2 class="mypage-view__subtitle">プレイデータ</h2>
             <div class="mypage-view__stats-card-wrapper">
@@ -87,8 +91,9 @@
                 <span class="mypage-view__card-title">平均 KPM</span>
                 <span
                   class="mypage-view__card-value mypage-view__card-value--kpm"
-                  >{{ stats.total_types === 0 ? "-" : stats.average_kpm }}</span
                 >
+                  {{ stats.total_types === 0 ? "-" : stats.average_kpm }}
+                </span>
               </div>
               <div class="mypage-view__stat-card">
                 <AccuracyIcon
@@ -97,10 +102,11 @@
                 <span class="mypage-view__card-title">平均 正確率</span>
                 <span
                   class="mypage-view__card-value mypage-view__card-value--accuracy"
-                  >{{
-                    stats.total_types === 0 ? "-" : `${stats.average_accuracy}%`
-                  }}</span
                 >
+                  {{
+                    stats.total_types === 0 ? "-" : `${stats.average_accuracy}%`
+                  }}
+                </span>
               </div>
               <div class="mypage-view__stat-card">
                 <TotalTypeCountIcon
@@ -109,27 +115,27 @@
                 <span class="mypage-view__card-title">総タイプ数</span>
                 <span
                   class="mypage-view__card-value mypage-view__card-value--total-type-count"
-                  >{{
+                >
+                  {{
                     stats.total_types === 0
                       ? "-"
                       : stats.total_types.toLocaleString()
-                  }}</span
-                >
+                  }}
+                </span>
               </div>
             </div>
           </section>
+
           <section class="mypage-view__section mypage-view__section--weak-keys">
             <h2 class="mypage-view__subtitle">
               苦手なキー<span class="en">(Top5)</span>
             </h2>
-
             <div
               v-if="stats.missed_keys_ranking.length === 0"
               class="mypage-view__no-data"
             >
               まだ履歴がありません。たくさん遊んでね！
             </div>
-
             <div v-else class="mypage-view__ranking-wrapper">
               <div
                 v-for="(item, index) in stats.missed_keys_ranking"
@@ -147,14 +153,11 @@
             </div>
           </section>
         </div>
-
         <section class="mypage-view__section mypage-view__section--chart">
           <h2 class="mypage-view__subtitle">成長グラフ</h2>
-
           <div v-if="sessions.length === 0" class="mypage-view__no-data">
             まだ履歴がありません。たくさん遊んでね！
           </div>
-
           <div v-else class="mypage-view__chart-container">
             <ScrollHint :show="!isChartHidden" />
             <div
@@ -176,11 +179,9 @@
 
         <section class="mypage-view__section mypage-view__section--history">
           <h2 class="mypage-view__subtitle">プレイ履歴</h2>
-
           <div v-if="sessions.length === 0" class="mypage-view__no-data">
             まだ履歴がありません。たくさん遊んでね！
           </div>
-
           <template v-else>
             <Pagination
               :current-page="currentPage"
@@ -266,30 +267,56 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch, nextTick } from "vue";
+// =========================================================================
+// パッケージ・モジュールの読み込み
+// =========================================================================
+import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
 import { useRouter, RouterLink } from "vue-router";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+// --- Services & Utilities ---
 import api from "../services/api";
+import { formatDate, truncateText } from "../utils/formatters";
+
+// --- Stores ---
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
+
+// --- Composables ---
 import { useScrollHint } from "../composables/useScrollHint";
+
+// --- Components ---
 import Pagination from "@/components/Pagination.vue";
 import ScoreRankCircle from "@/components/ScoreRankCircle.vue";
 import GrowthChart from "../components/GrowthChart.vue";
-import { formatDate, truncateText } from "../utils/formatters";
+import Loading from "@/components/Loading.vue";
+import Simplebar from "simplebar-vue";
+import ScrollHint from "@/components/ScrollHint.vue";
+
+// --- Icons ---
 import KpmIcon from "@/components/icons/KpmIcon.vue";
 import AccuracyIcon from "@/components/icons/AccuracyIcon.vue";
 import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 import ScoreIcon from "@/components/icons/ScoreIcon.vue";
 import UserIcon from "@/components/icons/UserIcon.vue";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
-import Loading from "@/components/Loading.vue";
-import Simplebar from "simplebar-vue";
-import ScrollHint from "@/components/ScrollHint.vue";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-// ScrollTriggerを登録する
+// GSAPプラグインの登録
 gsap.registerPlugin(ScrollTrigger);
+
+// =========================================================================
+// 定数定義
+// =========================================================================
+
+/**
+ * ローディングの最低表示時間 (ミリ秒)
+ */
+const MIN_LOADING_MS = 300;
+
+// =========================================================================
+// State (状態管理)
+// =========================================================================
 
 /**
  * router
@@ -307,50 +334,19 @@ const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
 
 /**
- *
- */
-const scoreRankCircleRef = ref(null);
-
-/**
- * GSAPアニメーションのスコープ（範囲）用
- */
-const mypageWrapperRef = ref(null);
-
-/**
- * エラーメッセージ
- */
-const errorMessage = ref("");
-
-/**
- * ローディングの最低表示時間 (ミリ秒)
- */
-const MIN_LOADING_MS = 300;
-
-/**
  * ページ全体のローディング状態
  */
 const isContentsLoading = ref(false);
 
 /**
- * グラフと表のローディング状態
+ * グラフと表のローディング状態（ページネーション切り替え時用）
  */
 const isSessionLoading = ref(false);
 
-// グラフ用のスクロール管理
-const {
-  isHidden: isChartHidden,
-  scrollRef: chartScrollRef,
-  handleScroll: handleChartScroll,
-  resetScroll: resetChartScroll,
-} = useScrollHint();
-
-// テーブル用のスクロール管理
-const {
-  isHidden: isTableHidden,
-  scrollRef: tableScrollRef,
-  handleScroll: handleTableScroll,
-  resetScroll: resetTableScroll,
-} = useScrollHint();
+/**
+ * APIエラー時のメッセージ
+ */
+const errorMessage = ref("");
 
 /**
  * 統計データ
@@ -371,7 +367,7 @@ const stats = ref({
 });
 
 /**
- * 履歴データ配列
+ * 履歴データ一覧
  */
 const sessions = ref([]);
 
@@ -390,8 +386,50 @@ const totalCount = ref(0);
  */
 const totalPages = ref(1);
 
+// =========================================================================
+// DOM / コンポーネント参照 (Refs)
+// =========================================================================
+
 /**
- * スコア値
+ * GSAPアニメーションのスコープ設定用ラッパー
+ */
+const mypageWrapperRef = ref(null);
+
+/**
+ * ScoreRankCircleコンポーネントのメソッド呼び出し用
+ */
+const scoreRankCircleRef = ref(null);
+
+// =========================================================================
+// Composables 呼び出し
+// =========================================================================
+
+/**
+ * グラフ用横スクロールヒント管理
+ */
+const {
+  isHidden: isChartHidden,
+  scrollRef: chartScrollRef,
+  handleScroll: handleChartScroll,
+  resetScroll: resetChartScroll,
+} = useScrollHint();
+
+/**
+ * テーブル用横スクロールヒント管理
+ */
+const {
+  isHidden: isTableHidden,
+  scrollRef: tableScrollRef,
+  handleScroll: handleTableScroll,
+  resetScroll: resetTableScroll,
+} = useScrollHint();
+
+// =========================================================================
+// Computed (計算プロパティ)
+// =========================================================================
+
+/**
+ * スコア値の算出 (KPM * (正確率 / 100))
  */
 const score = computed(() => {
   if (stats.value.average_kpm === 0 && stats.value.average_accuracy === 0)
@@ -401,46 +439,9 @@ const score = computed(() => {
   return Math.round(kpm * (acc / 100));
 });
 
-/**
- * GSAPコンテキスト
- */
-let gsapContext;
-
-/**
- * 初期データ読み込み
- */
-onMounted(async () => {
-  // ローディング表示
-  isContentsLoading.value = true;
-
-  try {
-    await Promise.all([
-      fetchStats(),
-      fetchSessions(1),
-      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
-    ]);
-  } catch (error) {
-    // どちらかのAPIでエラーが発生した場合
-    errorMessage.value = "データの取得に失敗しました。";
-  } finally {
-    // ローディング終了
-    isContentsLoading.value = false;
-    if (!errorMessage.value) {
-      await nextTick();
-      setAnimation();
-    }
-  }
-});
-
-/**
- * アンマウント時処理
- */
-onUnmounted(() => {
-  // コンポーネントが破棄される時にアニメーションをリセットする
-  if (gsapContext) {
-    gsapContext.revert();
-  }
-});
+// =========================================================================
+// Actions (処理)
+// =========================================================================
 
 /**
  * 統計データの取得
@@ -459,10 +460,9 @@ const fetchStats = async () => {
 };
 
 /**
- * 履歴データの取得
+ * 履歴データの取得 (ページ指定)
  */
 const fetchSessions = async (page) => {
-  // グラフと表のローディング表示
   isSessionLoading.value = true;
 
   try {
@@ -475,74 +475,60 @@ const fetchSessions = async (page) => {
     totalCount.value = response.data.totalCount;
     currentPage.value = response.data.currentPage;
 
-    // スクロール位置リセット
+    // データが切り替わったらスクロール位置をリセット
     resetChartScroll();
     resetTableScroll();
   } catch (error) {
     notificationStore.addNotification("履歴の取得に失敗しました", "error");
     throw error;
   } finally {
-    // ローディング終了
     isSessionLoading.value = false;
   }
 };
 
 /**
- * ページ切り替え
+ * ページ切り替えイベント
  */
 const handlePageChange = async (page) => {
   try {
-    // 該当ページの履歴データ取得
     await fetchSessions(page);
   } catch (error) {
-    // エラー時の通知は fetchSessions の中で処理済み
+    // エラーハンドリングは fetchSessions 内部で行うためスキップ
   }
 };
 
-/**
- * GSAPアニメーション設定
- */
+// =========================================================================
+// GSAP アニメーション制御
+// =========================================================================
+let gsapContext;
+
 const setAnimation = () => {
   // アニメーション共通設定：開始状態
-  const fromAnimationSettings = {
-    autoAlpha: 0,
-    y: 20,
-  };
+  const fromAnimationSettings = { autoAlpha: 0, y: 20 };
 
   // アニメーション共通設定：終了状態
   const toAnimationSettings = {
     autoAlpha: 1,
     y: 0,
-    duration: 0.8, // 0.8秒かけて表示
+    duration: 0.8,
     ease: "power2.out",
   };
 
-  // アニメーション設定
   gsapContext = gsap.context(() => {
-    // スコープ外の「Simplebarのスクロール要素」を直接取得
+    // スクロールコンテナの取得
     const scrollContainer = document.querySelector(
       "#app-main-scroll .simplebar-content-wrapper"
     );
 
-    // プロフィールセクション
+    // 各セクションのクラス名
     const profileSection = ".mypage-view__section--profile";
-
-    // プレイデータセクション
     const playDataSection = ".mypage-view__section--play-data";
-
-    // 苦手キーセクション
     const weakKeysSection = ".mypage-view__section--weak-keys";
-
-    // 成長グラフセクション
     const chartSection = ".mypage-view__section--chart";
-
-    // 履歴セクション
     const historySection = ".mypage-view__section--history";
-
-    // 戻るボタン
     const back = ".mypage-view__back";
 
-    // --- [プレイデータ,苦手キー,成長グラフ,履歴]セクションの表示アニメーション ---
+    // プロフィール以外の各セクションのスクロール連動表示
     [
       playDataSection,
       weakKeysSection,
@@ -552,9 +538,7 @@ const setAnimation = () => {
     ].forEach((section) => {
       gsap.fromTo(
         section,
-        {
-          ...fromAnimationSettings,
-        },
+        { ...fromAnimationSettings },
         {
           ...toAnimationSettings,
           scrollTrigger: {
@@ -566,7 +550,7 @@ const setAnimation = () => {
       );
     });
 
-    // --- プロフィールセクションのアニメーション設定 ---
+    // プロフィールセクションとスコア円の連動タイムライン
     const timelineProfileSection = gsap.timeline({
       scrollTrigger: {
         trigger: profileSection,
@@ -575,29 +559,57 @@ const setAnimation = () => {
       },
     });
 
-    // プロフィールセクション自体の表示アニメーション
     timelineProfileSection.fromTo(
       profileSection,
-      {
-        ...fromAnimationSettings,
-      },
-      {
-        ...toAnimationSettings,
-      }
+      { ...fromAnimationSettings },
+      { ...toAnimationSettings }
     );
 
-    // スコアランクプログレスバーのアニメーション
     timelineProfileSection.add(() => {
       if (scoreRankCircleRef.value) {
-        // 子コンポーネントのアニメーション関数を発火させる
         scoreRankCircleRef.value.playAnimation();
       }
     }, "-=0.6");
   }, mypageWrapperRef.value);
 };
+
+// =========================================================================
+// ライフサイクル
+// =========================================================================
+
+onMounted(async () => {
+  isContentsLoading.value = true;
+
+  try {
+    await Promise.all([
+      fetchStats(),
+      fetchSessions(1),
+      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+    ]);
+  } catch (error) {
+    errorMessage.value = "データの取得に失敗しました。";
+  } finally {
+    isContentsLoading.value = false;
+
+    // DOMの描画完了を待ってからアニメーションをセット
+    if (!errorMessage.value) {
+      await nextTick();
+      setAnimation();
+    }
+  }
+});
+
+onUnmounted(() => {
+  if (gsapContext) {
+    gsapContext.revert();
+  }
+});
 </script>
 
 <style lang="scss" scoped>
+/* =========================================================================
+ * マイページ 全体レイアウト
+ * ========================================================================= */
 .mypage-view {
   @include contents-width;
 
@@ -624,6 +636,7 @@ const setAnimation = () => {
     }
   }
 
+  /* --- 共通ステータス表示 --- */
   &__error {
     @include fluid-style(gap, 16, 24);
 
@@ -638,7 +651,12 @@ const setAnimation = () => {
     color: $red;
   }
 
-  &__back-button {
+  &__no-data {
+    @include fluid-text(12, 14);
+  }
+
+  &__back-button,
+  &__detail-link {
     @include button-style-fill($green);
     @include fluid-style(width, 240, 350);
     @include fluid-style(padding-block, 17, 22);
@@ -647,10 +665,21 @@ const setAnimation = () => {
     margin-inline: auto;
   }
 
+  &__detail-link {
+    @include button-style-border($black);
+
+    width: 75%;
+    padding: 1em 0;
+    font-size: 1.2rem;
+  }
+
   &__arrow-icon {
     @include button-arrow-icon-style;
   }
 
+  /* =========================================================================
+   * 各セクションレイアウト
+   * ========================================================================= */
   &__top-grid-wrapper {
     display: flex;
     flex-direction: column;
@@ -667,7 +696,7 @@ const setAnimation = () => {
     @include fluid-style(gap, 10, 16);
 
     display: flex;
-    visibility: hidden; // GSAPアニメーション用
+    visibility: hidden; /* GSAPアニメーション用 */
     flex-direction: column;
 
     &--profile {
@@ -691,6 +720,9 @@ const setAnimation = () => {
     }
   }
 
+  /* =========================================================================
+   * プロフィール (Profile)
+   * ========================================================================= */
   &__profile-wrapper {
     @include fluid-style(gap, 20, 24);
     @include fluid-style(padding, 16, 24);
@@ -756,6 +788,9 @@ const setAnimation = () => {
     }
   }
 
+  /* =========================================================================
+   * スコアカード / プレイデータカード群
+   * ========================================================================= */
   &__score-card {
     display: flex;
     gap: 4rem;
@@ -852,10 +887,9 @@ const setAnimation = () => {
     }
   }
 
-  &__no-data {
-    @include fluid-text(12, 14);
-  }
-
+  /* =========================================================================
+   * 苦手キー ランキング
+   * ========================================================================= */
   &__ranking-wrapper {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -907,6 +941,9 @@ const setAnimation = () => {
     }
   }
 
+  /* =========================================================================
+   * 成長グラフ & プレイ履歴テーブル (Simplebar領域)
+   * ========================================================================= */
   &__chart-container,
   &__table-container {
     position: relative;
@@ -955,10 +992,6 @@ const setAnimation = () => {
   &__table {
     @include table-style;
 
-    /* ========================================
-     * マイページ固有の「列（col）」の設定
-     * ======================================== */
-
     /* --- 列ごとの幅やテキスト寄せの共通設定 --- */
     .col-date {
       width: 25%;
@@ -984,6 +1017,7 @@ const setAnimation = () => {
       text-align: center;
     }
 
+    /* --- 各要素の個別装飾 --- */
     th {
       &.col-kpm {
         letter-spacing: 0.05em;
@@ -1016,21 +1050,8 @@ const setAnimation = () => {
     }
   }
 
-  &__detail-link {
-    @include button-style-border($black);
-
-    width: 75%;
-    padding: 1em 0;
-    margin-inline: auto;
-    font-size: 1.2rem;
-  }
-
-  &__arrow-icon {
-    @include button-arrow-icon-style;
-  }
-
   &__back {
-    visibility: hidden; // GSAPアニメーション用
+    visibility: hidden; /* GSAPアニメーション用 */
   }
 }
 </style>
