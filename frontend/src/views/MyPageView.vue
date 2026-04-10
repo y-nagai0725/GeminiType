@@ -176,7 +176,7 @@
                   {{ item.key.toUpperCase() }}
                 </div>
                 <div class="mypage-view__ranking-count">
-                  <span class="en">{{ item.count }}</span> miss
+                  <span class="number">{{ item.count }}</span> miss
                 </div>
               </div>
             </div>
@@ -880,7 +880,7 @@ watch(progressCircleDashoffset, (newValue) => {
   @include contents-width;
 
   @include pc {
-    max-width: 1000px;
+    max-width: 100rem;
   }
 
   &__title {
@@ -888,11 +888,12 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__contents-wrapper {
-    display: flex;
-    flex-direction: column;
     @include fluid-style(gap, 24, 32);
     @include contents-padding;
-    max-width: 600px;
+
+    display: flex;
+    flex-direction: column;
+    max-width: 60rem;
     margin-inline: auto;
 
     @include pc {
@@ -902,14 +903,16 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__error {
+    @include fluid-style(gap, 16, 24);
+
     display: flex;
     flex-direction: column;
-    @include fluid-style(gap, 16, 24);
     text-align: center;
   }
 
   &__error-message {
     @include fluid-text(12, 16);
+
     color: $red;
   }
 
@@ -917,8 +920,9 @@ watch(progressCircleDashoffset, (newValue) => {
     @include button-style-fill($green);
     @include fluid-style(width, 240, 350);
     @include fluid-style(padding-block, 17, 22);
-    margin-inline: auto;
     @include fluid-text(14, 18);
+
+    margin-inline: auto;
   }
 
   &__arrow-icon {
@@ -933,17 +937,16 @@ watch(progressCircleDashoffset, (newValue) => {
     @include pc {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto auto;
-      row-gap: 3.2rem;
-      column-gap: 4rem;
+      gap: 3.2rem 4rem;
     }
   }
 
   &__section {
-    display: flex;
-    flex-direction: column;
     @include fluid-style(gap, 10, 16);
+
+    display: flex;
     visibility: hidden; // GSAPアニメーション用
+    flex-direction: column;
 
     &--profile {
       grid-row: auto;
@@ -956,6 +959,7 @@ watch(progressCircleDashoffset, (newValue) => {
 
   &__subtitle {
     @include fluid-text(16, 18);
+
     font-weight: $bold;
     letter-spacing: 0.1em;
 
@@ -966,10 +970,11 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__profile-wrapper {
-    display: flex;
-    flex-direction: column;
     @include fluid-style(gap, 20, 24);
     @include fluid-style(padding, 16, 24);
+
+    display: flex;
+    flex-direction: column;
     background-color: $gray;
     border-radius: $radius-lg;
 
@@ -981,9 +986,14 @@ watch(progressCircleDashoffset, (newValue) => {
 
   &__profile {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap:2.4rem;
     align-items: center;
-    @include fluid-style(gap, 16, 32);
+    justify-content: center;
+
+    @include tab {
+      flex-direction: row;
+    }
   }
 
   &__profile-user-icon {
@@ -998,23 +1008,26 @@ watch(progressCircleDashoffset, (newValue) => {
   &__profile-info {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    @include fluid-style(gap, 16, 24);
+    gap: 2.4rem;
   }
 
   &__profile-item {
-    display: grid;
     @include fluid-style(gap, 4, 8);
+
+    display: grid;
   }
 
   &__profile-heading {
-    font-weight: $bold;
     @include fluid-text(12, 14);
+
+    font-weight: $bold;
     color: $light-black;
   }
 
   &__profile-value {
-    font-weight: $bold;
     @include fluid-text(12, 14);
+
+    font-weight: $bold;
 
     &--number {
       font-family: $roboto-mono;
@@ -1022,13 +1035,12 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__score-card {
-    align-self: center;
     display: flex;
-    justify-content: center;
     gap: 4rem;
+    justify-content: center;
     width: 100%;
-    border-radius: $radius-lg;
     background-color: $gray;
+    border-radius: $radius-lg;
   }
 
   &__score-item {
@@ -1039,11 +1051,12 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__rank-item {
+    @include fluid-style(width, 90, 108);
+    @include fluid-style(height, 90, 108);
+
     position: relative;
     display: grid;
     place-content: center;
-    @include fluid-style(width, 90, 108);
-    @include fluid-style(height, 90, 108);
   }
 
   &__rank-circle-wrapper {
@@ -1092,8 +1105,9 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__rank-text {
-    font-family: $roboto-mono;
     @include fluid-text(40, 50);
+
+    font-family: $roboto-mono;
     font-weight: $bold;
     line-height: 1;
     transition: color $transition-base;
@@ -1120,17 +1134,19 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__rank-title {
-    font-family: $roboto-mono;
     @include fluid-text(13, 16);
+
+    font-family: $roboto-mono;
     font-weight: $bold;
-    letter-spacing: 0.05em;
     line-height: 1;
+    letter-spacing: 0.05em;
   }
 
   &__stats-card-wrapper {
+    @include fluid-style(gap, 16, 30);
+
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    @include fluid-style(gap, 16, 30);
 
     @include tab {
       grid-template-columns: repeat(3, 1fr);
@@ -1138,24 +1154,24 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__stat-card {
-    justify-self: center;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     width: 100%;
     aspect-ratio: 1;
-    padding: 1.6rem 0;
-    border-radius: $radius-lg;
+    padding: 2.4rem 0;
     background-color: $gray;
+    border-radius: $radius-lg;
 
     @include pc {
-      justify-self: auto;
+      padding: 1.6rem 0;
     }
   }
 
   &__card-icon {
-    @include fluid-style(width, 32, 40);
+    @include fluid-style(width, 34, 40);
+
     line-height: 1;
 
     &--score {
@@ -1177,13 +1193,15 @@ watch(progressCircleDashoffset, (newValue) => {
 
   &__card-title {
     @include fluid-text(14, 16);
+
     font-weight: $bold;
     line-height: 1;
   }
 
   &__card-value {
-    font-family: $roboto-mono;
     @include fluid-text(18, 22);
+
+    font-family: $roboto-mono;
     font-weight: $bold;
     line-height: 1;
 
@@ -1224,8 +1242,8 @@ watch(progressCircleDashoffset, (newValue) => {
   &__ranking-item {
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 1rem;
+    align-items: center;
   }
 
   &__ranking-rank {
@@ -1253,7 +1271,7 @@ watch(progressCircleDashoffset, (newValue) => {
     font-family: $roboto-mono;
     font-size: 1.2rem;
 
-    .en {
+    .number {
       font-weight: $bold;
       color: $red;
     }
@@ -1266,16 +1284,16 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__session-loading-overlay {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     position: absolute;
-    z-index: 10;
     top: 0;
     left: 0;
+    z-index: $z-loading-overlay;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     height: 100%;
-    background: rgba($white, 0.7);
+    background-color: $loading-overlay-color;
   }
 
   &__chart-wrapper {
@@ -1284,7 +1302,7 @@ watch(progressCircleDashoffset, (newValue) => {
 
   &__chart {
     width: 100%;
-    min-width: 1000px;
+    min-width: 100rem;
   }
 
   &__table-wrapper {
@@ -1293,7 +1311,7 @@ watch(progressCircleDashoffset, (newValue) => {
 
   &__table {
     width: 100%;
-    min-width: 1000px;
+    min-width: 100rem;
   }
 
   &__tr {
@@ -1303,29 +1321,29 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__th {
+    @include fluid-text(12,14);
+
     padding: 1em;
-    font-size: 1.4rem;
     font-weight: $bold;
-    letter-spacing: 0.1em;
     line-height: 1;
     color: $white;
+    text-align: left;
+    letter-spacing: 0.1em;
     background-color: $green;
 
     &--date {
       width: 25%;
-      text-align: left;
     }
 
     &--mode {
       width: 40%;
-      text-align: left;
     }
 
     &--kpm {
       width: 10%;
       font-family: $roboto-mono;
-      letter-spacing: 0.05em;
       text-align: right;
+      letter-spacing: 0.05em;
     }
 
     &--acc {
@@ -1340,17 +1358,13 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__td {
-    padding: 1em;
-    font-size: 1.4rem;
-    line-height: 1;
+    @include fluid-text(12,14);
 
-    &--date {
-      text-align: left;
-    }
+    padding: 1em;
+    line-height: 1;
+    text-align: left;
 
     &--mode {
-      text-align: left;
-
       .ai {
         color: $orange;
       }
@@ -1372,16 +1386,17 @@ watch(progressCircleDashoffset, (newValue) => {
     }
 
     &--action {
-      font-size: 1.2rem;
       text-align: center;
     }
   }
 
   &__detail-link {
     @include button-style-border($black);
-    width: 66%;
-    margin-inline: auto;
+
+    width: 75%;
     padding: 1em 0;
+    margin-inline: auto;
+    font-size: 1.2rem;
   }
 
   &__arrow-icon {
@@ -1389,9 +1404,6 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   @include pagination-style;
-  &__pagination-container {
-    margin-top: 2rem;
-  }
 
   &__back {
     visibility: hidden; // GSAPアニメーション用
