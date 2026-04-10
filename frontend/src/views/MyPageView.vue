@@ -73,42 +73,7 @@
                     >{{ score }}</span
                   >
                 </div>
-                <div class="mypage-view__rank-item">
-                  <div class="mypage-view__rank-circle-wrapper">
-                    <svg
-                      class="mypage-view__progress-ring"
-                      viewBox="0 0 100 100"
-                    >
-                      <circle
-                        class="mypage-view__progress-ring-background"
-                        stroke-width="10"
-                        fill="transparent"
-                        r="45"
-                        cx="50"
-                        cy="50"
-                      />
-                      <circle
-                        class="mypage-view__progress-ring-circle"
-                        stroke-width="10"
-                        fill="transparent"
-                        r="45"
-                        cx="50"
-                        cy="50"
-                        :class="scoreRankClass"
-                        :stroke-dasharray="circumference"
-                        :stroke-dashoffset="progressCircleDashoffset"
-                      />
-                    </svg>
-                  </div>
-                  <div class="mypage-view__rank-wrapper">
-                    <span
-                      class="mypage-view__rank-text"
-                      :class="scoreRankClass"
-                      >{{ rank }}</span
-                    >
-                    <span class="mypage-view__rank-title">Rank</span>
-                  </div>
-                </div>
+                <ScoreRankCircle ref="scoreRankCircleRef" :score="score" />
               </div>
             </div>
           </section>
@@ -379,6 +344,7 @@ import api from "../services/api";
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import { useScrollHint } from "../composables/useScrollHint";
+import ScoreRankCircle from "@/components/ScoreRankCircle.vue";
 import GrowthChart from "../components/GrowthChart.vue";
 import { formatDate, truncateText } from "../utils/formatters";
 import KpmIcon from "@/components/icons/KpmIcon.vue";
@@ -410,6 +376,11 @@ const authStore = useAuthStore();
  * お知らせstore
  */
 const notificationStore = useNotificationStore();
+
+/**
+ *
+ */
+const scoreRankCircleRef = ref(null);
 
 /**
  * GSAPアニメーションのスコープ（範囲）用
@@ -495,46 +466,6 @@ const totalCount = ref(0);
 const totalPages = ref(1);
 
 /**
- * スコアランククラス名
- */
-const scoreRankClass = ref("rank-c");
-
-/**
- * ランクテキスト
- */
-const rank = ref("C");
-
-/**
- * 円の半径
- */
-const radius = 45;
-
-/**
- * 円周の長さ（2 * π * r）
- */
-const circumference = 2 * Math.PI * radius;
-
-/**
- * スコアの最大値
- */
-const maxScore = 350;
-
-/**
- * スコアランクプログレスバー（円）のstroke-dashoffset
- */
-const progressCircleDashoffset = ref(circumference);
-
-/**
- * 結果ランクのstroke-dashoffset
- */
-const resultDashoffset = computed(() => {
-  const validPercent = Math.min(100, Math.max(0, scorePercent.value));
-
-  // 計算式：円周 - (進捗割合 * 円周)
-  return circumference - (validPercent / 100) * circumference;
-});
-
-/**
  * スコア値
  */
 const score = computed(() => {
@@ -543,17 +474,6 @@ const score = computed(() => {
   const kpm = stats.value.average_kpm;
   const acc = stats.value.average_accuracy;
   return Math.round(kpm * (acc / 100));
-});
-
-/**
- * スコアの割合
- */
-const scorePercent = computed(() => {
-  if (!score.value || score.value === "-") {
-    return 0;
-  }
-
-  return Math.round((score.value / maxScore) * 100);
 });
 
 /**
@@ -803,54 +723,14 @@ const setAnimation = () => {
     );
 
     // スコアランクプログレスバーのアニメーション
-    timelineProfileSection.fromTo(
-      progressCircleDashoffset,
-      {
-        value: circumference,
-      },
-      {
-        value: resultDashoffset.value,
-        duration: 1.5,
-        ease: "power3.out", // 最初は早く、最後はゆっくり
-      },
-      "-=0.6"
-    );
+    timelineProfileSection.add(() => {
+      if (scoreRankCircleRef.value) {
+        // 子コンポーネントのアニメーション関数を発火させる
+        scoreRankCircleRef.value.playAnimation();
+      }
+    }, "-=0.6");
   }, mypageWrapperRef.value);
 };
-
-/**
- * スコアランクプログレスバー値を監視
- */
-watch(progressCircleDashoffset, (newValue) => {
-  // プログレスバー割合
-  const percent = Math.max(0, (1 - newValue / circumference) * 100);
-
-  // 履歴データが無い時
-  if (percent === 0) {
-    scoreRankClass.value = "rank-none";
-    rank.value = "-";
-    return;
-  }
-
-  // 割合でランク付け
-  if (percent >= 95) {
-    // 95%以上でSランク
-    scoreRankClass.value = "rank-s";
-    rank.value = "S";
-  } else if (percent >= 75) {
-    // 75%以上でAランク
-    scoreRankClass.value = "rank-a";
-    rank.value = "A";
-  } else if (percent >= 60) {
-    // 60%以上でBランク
-    scoreRankClass.value = "rank-b";
-    rank.value = "B";
-  } else {
-    // 60%未満でCランク
-    scoreRankClass.value = "rank-c";
-    rank.value = "C";
-  }
-});
 </script>
 
 <style lang="scss" scoped>
@@ -1026,98 +906,6 @@ watch(progressCircleDashoffset, (newValue) => {
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-  }
-
-  &__rank-item {
-    @include fluid-style(width, 90, 108);
-    @include fluid-style(height, 90, 108);
-
-    position: relative;
-    display: grid;
-    place-content: center;
-  }
-
-  &__rank-circle-wrapper {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 100%;
-    transform: translate(-50%, -50%);
-  }
-
-  &__progress-ring {
-    width: 100%;
-    height: 100%;
-    transform: rotate(-90deg);
-  }
-
-  &__progress-ring-background {
-    stroke: $light-green;
-  }
-
-  &__progress-ring-circle {
-    transition: stroke $transition-base;
-
-    &.rank-c {
-      stroke: $blue;
-    }
-
-    &.rank-b {
-      stroke: $green;
-    }
-
-    &.rank-a {
-      stroke: $orange;
-    }
-
-    &.rank-s {
-      stroke: $yellow;
-    }
-  }
-
-  &__rank-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  &__rank-text {
-    @include fluid-text(40, 50);
-
-    font-family: $roboto-mono;
-    font-weight: $bold;
-    line-height: 1;
-    transition: color $transition-base;
-
-    &.rank-s {
-      color: $yellow;
-    }
-
-    &.rank-a {
-      color: $orange;
-    }
-
-    &.rank-b {
-      color: $green;
-    }
-
-    &.rank-c {
-      color: $blue;
-    }
-
-    &.rank-none {
-      color: $light-black;
-    }
-  }
-
-  &__rank-title {
-    @include fluid-text(13, 16);
-
-    font-family: $roboto-mono;
-    font-weight: $bold;
-    line-height: 1;
-    letter-spacing: 0.05em;
   }
 
   &__stats-card-wrapper {
