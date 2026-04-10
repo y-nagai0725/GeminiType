@@ -182,48 +182,12 @@
           </div>
 
           <template v-else>
-            <div
-              class="mypage-view__pagination-container"
-              v-if="totalPages > 1"
-            >
-              <div class="mypage-view__pagination">
-                <button
-                  class="mypage-view__page-button mypage-view__page-button--prev"
-                  :class="{ 'is-disabled': currentPage === 1 }"
-                  @click="prevPage"
-                  :disabled="currentPage === 1"
-                ></button>
+            <Pagination
+              :current-page="currentPage"
+              :total-pages="totalPages"
+              @page-change="handlePageChange"
+            />
 
-                <template v-for="(item, index) in paginationItems">
-                  <button
-                    v-if="item !== '...'"
-                    :key="`num-${index}`"
-                    class="mypage-view__page-button mypage-view__page-button--number"
-                    :class="{
-                      'is-active': item === currentPage,
-                    }"
-                    @click="handlePageChange(item)"
-                  >
-                    {{ item }}
-                  </button>
-
-                  <span
-                    v-else
-                    :key="`dots-${index}`"
-                    class="mypage-view__page-dots"
-                  >
-                    …
-                  </span>
-                </template>
-
-                <button
-                  class="mypage-view__page-button mypage-view__page-button--next"
-                  :class="{ 'is-disabled': currentPage === totalPages }"
-                  @click="nextPage"
-                  :disabled="currentPage === totalPages"
-                ></button>
-              </div>
-            </div>
             <div class="mypage-view__table-container">
               <ScrollHint :show="!isTableHidden" />
               <div
@@ -282,48 +246,12 @@
                 </table>
               </Simplebar>
             </div>
-            <div
-              class="mypage-view__pagination-container"
-              v-if="totalPages > 1"
-            >
-              <div class="mypage-view__pagination">
-                <button
-                  class="mypage-view__page-button mypage-view__page-button--prev"
-                  :class="{ 'is-disabled': currentPage === 1 }"
-                  @click="prevPage"
-                  :disabled="currentPage === 1"
-                ></button>
 
-                <template v-for="(item, index) in paginationItems">
-                  <button
-                    v-if="item !== '...'"
-                    :key="`num-${index}`"
-                    class="mypage-view__page-button mypage-view__page-button--number"
-                    :class="{
-                      'is-active': item === currentPage,
-                    }"
-                    @click="handlePageChange(item)"
-                  >
-                    {{ item }}
-                  </button>
-
-                  <span
-                    v-else
-                    :key="`dots-${index}`"
-                    class="mypage-view__page-dots"
-                  >
-                    …
-                  </span>
-                </template>
-
-                <button
-                  class="mypage-view__page-button mypage-view__page-button--next"
-                  :class="{ 'is-disabled': currentPage === totalPages }"
-                  @click="nextPage"
-                  :disabled="currentPage === totalPages"
-                ></button>
-              </div>
-            </div>
+            <Pagination
+              :current-page="currentPage"
+              :total-pages="totalPages"
+              @page-change="handlePageChange"
+            />
           </template>
         </section>
 
@@ -344,6 +272,7 @@ import api from "../services/api";
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import { useScrollHint } from "../composables/useScrollHint";
+import Pagination from "@/components/Pagination.vue";
 import ScoreRankCircle from "@/components/ScoreRankCircle.vue";
 import GrowthChart from "../components/GrowthChart.vue";
 import { formatDate, truncateText } from "../utils/formatters";
@@ -406,10 +335,6 @@ const isContentsLoading = ref(false);
  * グラフと表のローディング状態
  */
 const isSessionLoading = ref(false);
-
-// =========================================================
-// コンポーザブルの呼び出し
-// =========================================================
 
 // グラフ用のスクロール管理
 const {
@@ -474,44 +399,6 @@ const score = computed(() => {
   const kpm = stats.value.average_kpm;
   const acc = stats.value.average_accuracy;
   return Math.round(kpm * (acc / 100));
-});
-
-/**
- * ページネーションアイテム
- */
-const paginationItems = computed(() => {
-  const current = currentPage.value;
-  const total = totalPages.value;
-
-  // 必ず表示したいページ番号
-  // (1ページ目、最後のページ、現在のページ、現在の前後のページ)
-  const pages = new Set([1, total, current, current - 1, current + 1]);
-
-  // 範囲外のページ（0以下や最大ページ超え）を除外、昇順に並べ替える
-  const sortedPages = Array.from(pages)
-    .filter((page) => page > 0 && page <= total)
-    .sort((a, b) => a - b);
-
-  const result = [];
-
-  for (let i = 0; i < sortedPages.length; i++) {
-    const page = sortedPages[i];
-
-    if (i > 0) {
-      const prevPage = sortedPages[i - 1];
-      if (page - prevPage > 1) {
-        if (page - prevPage === 2) {
-          result.push(prevPage + 1); // 間の数字が1個だけなら数字を表示
-        } else {
-          result.push("..."); // 間の数字がいっぱいあるなら「...」を表示
-        }
-      }
-    }
-
-    result.push(page);
-  }
-
-  return result;
 });
 
 /**
@@ -604,34 +491,11 @@ const fetchSessions = async (page) => {
  * ページ切り替え
  */
 const handlePageChange = async (page) => {
-  // 「...」や無効なページ番号の場合は何もしない
-  if (page === "..." || page < 1 || page > totalPages.value) return;
-
-  // 該当ページの履歴データ取得
   try {
+    // 該当ページの履歴データ取得
     await fetchSessions(page);
   } catch (error) {
-    // エラー時の通知は fetchSessions の中で処理を行っている
-  }
-};
-
-/**
- * 次へボタンの処理
- */
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++;
-    handlePageChange(currentPage.value);
-  }
-};
-
-/**
- * 前へボタンの処理
- */
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-    handlePageChange(currentPage.value);
+    // エラー時の通知は fetchSessions の中で処理済み
   }
 };
 
