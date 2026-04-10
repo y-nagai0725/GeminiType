@@ -275,46 +275,35 @@
               >
                 <table class="mypage-view__table">
                   <thead>
-                    <tr class="mypage-view__tr">
-                      <th class="mypage-view__th mypage-view__th--date">
-                        日時
-                      </th>
-                      <th class="mypage-view__th mypage-view__th--mode">
-                        モード(AI or DB): お題
-                      </th>
-                      <th class="mypage-view__th mypage-view__th--kpm">KPM</th>
-                      <th class="mypage-view__th mypage-view__th--acc">
-                        正確率
-                      </th>
-                      <th class="mypage-view__th mypage-view__th--action"></th>
+                    <tr>
+                      <th class="col-date">日時</th>
+                      <th class="col-mode">モード(AI or DB): お題</th>
+                      <th class="col-kpm">KPM</th>
+                      <th class="col-acc">正確率</th>
+                      <th class="col-action"></th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr
-                      v-for="session in sessions"
-                      class="mypage-view__tr"
-                      :key="session.id"
-                    >
-                      <td class="mypage-view__td mypage-view__td--date">
+                    <tr v-for="session in sessions" :key="session.id">
+                      <td class="col-date">
                         {{ formatDate(session.created_at) }}
                       </td>
-                      <td class="mypage-view__td mypage-view__td--mode">
+                      <td class="col-mode">
                         <span v-if="session.session_type === 'db'" class="db">
                           DB:
                           {{ session.genre ? session.genre.name : "削除済" }}
                         </span>
-                        <span v-else class="ai"
-                          >AI:
-                          {{ truncateText(session.gemini_prompt, 15) }}
+                        <span v-else class="ai">
+                          AI: {{ truncateText(session.gemini_prompt, 15) }}
                         </span>
                       </td>
-                      <td class="mypage-view__td mypage-view__td--kpm">
+                      <td class="col-kpm">
                         {{ Math.round(session.average_kpm) }}
                       </td>
-                      <td class="mypage-view__td mypage-view__td--acc">
+                      <td class="col-acc">
                         {{ Math.round(session.average_accuracy) }}%
                       </td>
-                      <td class="mypage-view__td mypage-view__td--action">
+                      <td class="col-action">
                         <RouterLink
                           :to="`/mypage/session/${session.id}`"
                           class="mypage-view__detail-link"
@@ -1312,83 +1301,66 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__table {
-    width: 100%;
-    min-width: 100rem;
-  }
+    @include table-style;
 
-  &__tr {
-    &:nth-of-type(odd) {
-      background-color: $gray;
-    }
-  }
+    /* ========================================
+     * マイページ固有の「列（col）」の設定
+     * ======================================== */
 
-  &__th {
-    @include fluid-text(12, 14);
-
-    padding: 1em;
-    font-weight: $bold;
-    line-height: 1;
-    color: $white;
-    text-align: left;
-    letter-spacing: 0.1em;
-    background-color: $green;
-
-    &--date {
+    /* --- 列ごとの幅やテキスト寄せの共通設定 --- */
+    .col-date {
       width: 25%;
     }
 
-    &--mode {
+    .col-mode {
       width: 40%;
     }
 
-    &--kpm {
+    .col-kpm {
       width: 10%;
       font-family: $roboto-mono;
       text-align: right;
-      letter-spacing: 0.05em;
     }
 
-    &--acc {
+    .col-acc {
       width: 10%;
       text-align: right;
     }
 
-    &--action {
+    .col-action {
       width: 15%;
       text-align: center;
     }
-  }
 
-  &__td {
-    @include fluid-text(12, 14);
-
-    padding: 1em;
-    line-height: 1;
-    text-align: left;
-
-    &--mode {
-      .ai {
-        color: $orange;
-      }
-
-      .db {
-        color: $black;
+    th {
+      &.col-kpm {
+        letter-spacing: 0.05em;
       }
     }
 
-    &--kpm {
-      font-family: $roboto-mono;
-      color: $blue;
-      text-align: right;
-    }
+    td {
+      &.col-date {
+        font-family: $roboto-mono;
+      }
 
-    &--acc {
-      color: $green;
-      text-align: right;
-    }
+      &.col-mode {
+        .ai {
+          color: $orange;
+        }
 
-    &--action {
-      text-align: center;
+        .db {
+          color: $black;
+        }
+      }
+
+      &.col-kpm {
+        color: $blue;
+      }
+
+      &.col-acc {
+        font-family: $roboto-mono;
+        color: $green;
+      }
     }
   }
 

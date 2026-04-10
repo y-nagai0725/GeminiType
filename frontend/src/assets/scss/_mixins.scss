@@ -302,6 +302,47 @@
   border-radius: $radius-md;
 }
 
+// --- Tables ---
+
+/**
+ * テーブル共通スタイル
+ */
+@mixin table-style {
+  width: 100%;
+  min-width: 100rem; /* 横スクロール前提なので100remをキープ */
+
+  thead {
+    th {
+      @include fluid-text(12, 14);
+
+      padding: 1em;
+      font-weight: $bold;
+      line-height: 1;
+      color: $white;
+      text-align: left;
+      letter-spacing: 0.1em;
+      background-color: $green;
+    }
+  }
+
+  tbody {
+    tr {
+      /* 奇数行の背景色をグレーにする */
+      &:nth-of-type(odd) {
+        background-color: $gray;
+      }
+    }
+
+    td {
+      @include fluid-text(12, 14);
+
+      padding: 1em;
+      line-height: 1;
+      text-align: left;
+    }
+  }
+}
+
 /* =========================================================================
  * 6. Page Specific (ページ固有のスタイルまとめ)
  * ========================================================================= */
