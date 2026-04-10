@@ -191,20 +191,21 @@
           </div>
 
           <div v-else class="mypage-view__chart-container">
-            <ScrollHint :show="!scrollStates.chart" />
+            <ScrollHint :show="!isChartHidden" />
             <div
               v-if="isSessionLoading"
               class="mypage-view__session-loading-overlay"
             >
               <Loading />
             </div>
-            <div
+            <Simplebar
               class="mypage-view__chart-wrapper"
-              ref="chartWrapper"
-              @scroll="handleScroll($event, 'chart')"
+              ref="chartScrollRef"
+              @scroll="handleChartScroll"
+              :auto-hide="false"
             >
               <GrowthChart class="mypage-view__chart" :sessions="sessions" />
-            </div>
+            </Simplebar>
           </div>
         </section>
 
@@ -259,17 +260,18 @@
               </div>
             </div>
             <div class="mypage-view__table-container">
-              <ScrollHint :show="!scrollStates.table" />
+              <ScrollHint :show="!isTableHidden" />
               <div
                 v-if="isSessionLoading"
                 class="mypage-view__session-loading-overlay"
               >
                 <Loading />
               </div>
-              <div
+              <Simplebar
                 class="mypage-view__table-wrapper"
-                ref="historyTableWrapper"
-                @scroll="handleScroll($event, 'table')"
+                ref="tableScrollRef"
+                @scroll="handleTableScroll"
+                :auto-hide="false"
               >
                 <table class="mypage-view__table">
                   <thead>
@@ -324,7 +326,7 @@
                     </tr>
                   </tbody>
                 </table>
-              </div>
+              </Simplebar>
             </div>
             <div
               class="mypage-view__pagination-container"
@@ -387,6 +389,7 @@ import { useRouter, RouterLink } from "vue-router";
 import api from "../services/api";
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
+import { useScrollHint } from "../composables/useScrollHint";
 import GrowthChart from "../components/GrowthChart.vue";
 import { formatDate, truncateText } from "../utils/formatters";
 import KpmIcon from "@/components/icons/KpmIcon.vue";
@@ -396,6 +399,7 @@ import ScoreIcon from "@/components/icons/ScoreIcon.vue";
 import UserIcon from "@/components/icons/UserIcon.vue";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import Loading from "@/components/Loading.vue";
+import Simplebar from "simplebar-vue";
 import ScrollHint from "@/components/ScrollHint.vue";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -417,16 +421,6 @@ const authStore = useAuthStore();
  * お知らせstore
  */
 const notificationStore = useNotificationStore();
-
-/**
- * グラフ要素を取得するための参照
- */
-const chartWrapper = ref(null);
-
-/**
- * 履歴テーブル要素を取得するための参照
- */
-const historyTableWrapper = ref(null);
 
 /**
  * GSAPアニメーションのスコープ（範囲）用
@@ -453,13 +447,25 @@ const isContentsLoading = ref(false);
  */
 const isSessionLoading = ref(false);
 
-/**
- * スクロールヒントの非表示状態を管理するオブジェクト
- */
-const scrollStates = ref({
-  chart: false,
-  table: false,
-});
+// =========================================================
+// コンポーザブルの呼び出し
+// =========================================================
+
+// グラフ用のスクロール管理
+const {
+  isHidden: isChartHidden,
+  scrollRef: chartScrollRef,
+  handleScroll: handleChartScroll,
+  resetScroll: resetChartScroll,
+} = useScrollHint();
+
+// テーブル用のスクロール管理
+const {
+  isHidden: isTableHidden,
+  scrollRef: tableScrollRef,
+  handleScroll: handleTableScroll,
+  resetScroll: resetTableScroll,
+} = useScrollHint();
 
 /**
  * 統計データ
@@ -674,8 +680,8 @@ const fetchSessions = async (page) => {
     currentPage.value = response.data.currentPage;
 
     // スクロール位置リセット
-    resetScroll("chart", chartWrapper);
-    resetScroll("table", historyTableWrapper);
+    resetChartScroll();
+    resetTableScroll();
   } catch (error) {
     notificationStore.addNotification("履歴の取得に失敗しました", "error");
     throw error;
@@ -721,29 +727,6 @@ const prevPage = () => {
 };
 
 /**
- * スクロールイベントハンドラ
- */
-const handleScroll = (e, targetKey) => {
-  // すでにスクロールヒントが消えている（true）なら、これ以上計算しない
-  if (scrollStates.value[targetKey]) return;
-
-  // 5px以上スクロールされたら、スクロールヒントを消す
-  if (e.target.scrollLeft > 5) {
-    scrollStates.value[targetKey] = true;
-  }
-};
-
-/**
- * スクロール位置とヒント表示をリセットする
- */
-const resetScroll = (targetKey, wrapperRef) => {
-  if (wrapperRef.value) {
-    wrapperRef.value.scrollLeft = 0;
-  }
-  scrollStates.value[targetKey] = false;
-};
-
-/**
  * GSAPアニメーション設定
  */
 const setAnimation = () => {
@@ -764,7 +747,9 @@ const setAnimation = () => {
   // アニメーション設定
   gsapContext = gsap.context(() => {
     // スコープ外の「Simplebarのスクロール要素」を直接取得
-    const scrollContainer = document.querySelector("#app-main-scroll .simplebar-content-wrapper");
+    const scrollContainer = document.querySelector(
+      "#app-main-scroll .simplebar-content-wrapper"
+    );
 
     // プロフィールセクション
     const profileSection = ".mypage-view__section--profile";
@@ -785,24 +770,28 @@ const setAnimation = () => {
     const back = ".mypage-view__back";
 
     // --- [プレイデータ,苦手キー,成長グラフ,履歴]セクションの表示アニメーション ---
-    [playDataSection, weakKeysSection, chartSection, historySection, back].forEach(
-      (section) => {
-        gsap.fromTo(
-          section,
-          {
-            ...fromAnimationSettings,
+    [
+      playDataSection,
+      weakKeysSection,
+      chartSection,
+      historySection,
+      back,
+    ].forEach((section) => {
+      gsap.fromTo(
+        section,
+        {
+          ...fromAnimationSettings,
+        },
+        {
+          ...toAnimationSettings,
+          scrollTrigger: {
+            trigger: section,
+            scroller: scrollContainer,
+            start: "top center+=20%",
           },
-          {
-            ...toAnimationSettings,
-            scrollTrigger: {
-              trigger: section,
-              scroller: scrollContainer,
-              start: "top center+=20%",
-            },
-          }
-        );
-      }
-    );
+        }
+      );
+    });
 
     // --- プロフィールセクションのアニメーション設定 ---
     const timelineProfileSection = gsap.timeline({
@@ -987,7 +976,7 @@ watch(progressCircleDashoffset, (newValue) => {
   &__profile {
     display: flex;
     flex-direction: column;
-    gap:2.4rem;
+    gap: 2.4rem;
     align-items: center;
     justify-content: center;
 
@@ -1296,17 +1285,30 @@ watch(progressCircleDashoffset, (newValue) => {
     background-color: $loading-overlay-color;
   }
 
-  &__chart-wrapper {
-    overflow-x: auto;
+  &__chart-wrapper,
+  &__table-wrapper {
+    /* スクロールバーと中身が被らないように少し下余白を入れる */
+    padding-bottom: 1.6rem;
+
+    /* Simplebarの横スクロールバー(horizontal)をカスタマイズ */
+    &::v-deep(.simplebar-track.simplebar-horizontal) {
+      @include fluid-style(height, 9, 11);
+
+      .simplebar-scrollbar::before {
+        background-color: $green;
+        opacity: 1;
+      }
+    }
+
+    /* PC表示ではスクロールバーが非表示な為、余白は0 */
+    @include pc {
+      padding-bottom: 0;
+    }
   }
 
   &__chart {
     width: 100%;
     min-width: 100rem;
-  }
-
-  &__table-wrapper {
-    overflow-x: auto;
   }
 
   &__table {
@@ -1321,7 +1323,7 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__th {
-    @include fluid-text(12,14);
+    @include fluid-text(12, 14);
 
     padding: 1em;
     font-weight: $bold;
@@ -1358,7 +1360,7 @@ watch(progressCircleDashoffset, (newValue) => {
   }
 
   &__td {
-    @include fluid-text(12,14);
+    @include fluid-text(12, 14);
 
     padding: 1em;
     line-height: 1;

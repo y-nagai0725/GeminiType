@@ -29,6 +29,7 @@ defineProps({
   position: absolute;
   top: 50%;
   right: 1.6rem;
+  z-index: $z-scroll-hint;
   display: flex;
   gap: 0.8rem;
   align-items: center;
