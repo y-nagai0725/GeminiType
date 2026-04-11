@@ -47,14 +47,14 @@
           <div class="admin-view__tab-control">
             <button
               class="admin-view__tab-button admin-view__tab-button--genre"
-              :class="{ selected: currentTab === 'genre' }"
+              :class="{ 'is-active': currentTab === 'genre' }"
               @click="currentTab = 'genre'"
             >
               ジャンル管理
             </button>
             <button
               class="admin-view__tab-button admin-view__tab-button--problem"
-              :class="{ selected: currentTab === 'problem' }"
+              :class="{ 'is-active': currentTab === 'problem' }"
               @click="currentTab = 'problem'"
             >
               問題管理
@@ -453,111 +453,113 @@
       @confirm="handleConfirmDelete"
       @cancel="closeConfirmModal"
     />
-    <Transition name="modal-fade">
-      <div
-        v-if="isEditModalOpen"
-        class="admin-view__modal-overlay"
-        @click.self="closeEditModal"
-      >
-        <div class="admin-view__modal-content" @click.stop>
-          <button @click="closeEditModal" class="admin-view__modal-close">
-            <PlusIcon class="admin-view__modal-close-icon" />
-          </button>
-          <p v-if="editType === 'genre'" class="admin-view__modal-title">
-            ジャンルの編集
-          </p>
-          <p v-else class="admin-view__modal-title">問題文の編集</p>
+    <Teleport to="body">
+      <Transition name="modal-fade">
+        <div
+          v-if="isEditModalOpen"
+          class="admin-view__modal-overlay"
+          @click.self="closeEditModal"
+        >
+          <div class="admin-view__modal-content" @click.stop>
+            <button @click="closeEditModal" class="admin-view__modal-close">
+              <PlusIcon class="admin-view__modal-close-icon" />
+            </button>
+            <p v-if="editType === 'genre'" class="admin-view__modal-title">
+              ジャンルの編集
+            </p>
+            <p v-else class="admin-view__modal-title">問題文の編集</p>
 
-          <form
-            class="admin-view__modal-form"
-            @submit.prevent="handleUpdateItem"
-            novalidate
-          >
-            <div v-if="editType === 'genre'" class="admin-view__form-group">
-              <label class="admin-view__form-label" for="edit-genre-name"
-                >ジャンル名</label
-              >
-              <input
-                class="admin-view__form-input"
-                id="edit-genre-name"
-                type="text"
-                v-model="editForm.name"
-                :maxlength="MAX_GENRE_NAME_LENGTH"
-                required
-              />
-            </div>
-
-            <template v-else>
-              <div class="admin-view__form-group">
-                <label class="admin-view__form-label" for="edit-problem-genre"
-                  >ジャンル</label
+            <form
+              class="admin-view__modal-form"
+              @submit.prevent="handleUpdateItem"
+              novalidate
+            >
+              <div v-if="editType === 'genre'" class="admin-view__form-group">
+                <label class="admin-view__form-label" for="edit-genre-name"
+                  >ジャンル名</label
                 >
-                <div class="admin-view__form-select-wrapper">
-                  <select
-                    class="admin-view__form-select"
-                    id="edit-problem-genre"
-                    v-model="editForm.genre_id"
-                    required
+                <input
+                  class="admin-view__form-input"
+                  id="edit-genre-name"
+                  type="text"
+                  v-model="editForm.name"
+                  :maxlength="MAX_GENRE_NAME_LENGTH"
+                  required
+                />
+              </div>
+
+              <template v-else>
+                <div class="admin-view__form-group">
+                  <label class="admin-view__form-label" for="edit-problem-genre"
+                    >ジャンル</label
                   >
-                    <option
-                      v-for="genre in adminStore.genres"
-                      :key="genre.id"
-                      :value="genre.id"
+                  <div class="admin-view__form-select-wrapper">
+                    <select
+                      class="admin-view__form-select"
+                      id="edit-problem-genre"
+                      v-model="editForm.genre_id"
+                      required
                     >
-                      {{ genre.name }}
-                    </option>
-                  </select>
+                      <option
+                        v-for="genre in adminStore.genres"
+                        :key="genre.id"
+                        :value="genre.id"
+                      >
+                        {{ genre.name }}
+                      </option>
+                    </select>
+                  </div>
                 </div>
-              </div>
-              <div class="admin-view__form-group">
-                <label class="admin-view__form-label" for="edit-problem-text"
-                  >問題文</label
-                >
-                <input
-                  class="admin-view__form-input"
-                  id="edit-problem-text"
-                  type="text"
-                  v-model="editForm.problem_text"
-                  :maxlength="MAX_PROBLEM_TEXT_LENGTH"
-                  required
-                />
-              </div>
-              <div class="admin-view__form-group">
-                <label
-                  class="admin-view__form-label"
-                  for="edit-problem-hiragana"
-                  >ひらがな</label
-                >
-                <input
-                  class="admin-view__form-input"
-                  id="edit-problem-hiragana"
-                  type="text"
-                  v-model="editForm.problem_hiragana"
-                  :maxlength="MAX_PROBLEM_HIRAGANA_LENGTH"
-                  required
-                />
-              </div>
-            </template>
+                <div class="admin-view__form-group">
+                  <label class="admin-view__form-label" for="edit-problem-text"
+                    >問題文</label
+                  >
+                  <input
+                    class="admin-view__form-input"
+                    id="edit-problem-text"
+                    type="text"
+                    v-model="editForm.problem_text"
+                    :maxlength="MAX_PROBLEM_TEXT_LENGTH"
+                    required
+                  />
+                </div>
+                <div class="admin-view__form-group">
+                  <label
+                    class="admin-view__form-label"
+                    for="edit-problem-hiragana"
+                    >ひらがな</label
+                  >
+                  <input
+                    class="admin-view__form-input"
+                    id="edit-problem-hiragana"
+                    type="text"
+                    v-model="editForm.problem_hiragana"
+                    :maxlength="MAX_PROBLEM_HIRAGANA_LENGTH"
+                    required
+                  />
+                </div>
+              </template>
 
-            <div class="admin-view__modal-actions">
-              <button
-                type="button"
-                class="admin-view__modal-button admin-view__modal-button--cancel"
-                @click="closeEditModal"
-              >
-                キャンセル
-              </button>
-              <button
-                type="submit"
-                class="admin-view__modal-button admin-view__modal-button--confirm"
-              >
-                更新する
-              </button>
-            </div>
-          </form>
+              <div class="admin-view__modal-actions">
+                <button
+                  type="button"
+                  class="admin-view__modal-button admin-view__modal-button--cancel"
+                  @click="closeEditModal"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="submit"
+                  class="admin-view__modal-button admin-view__modal-button--confirm"
+                >
+                  更新する
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -1374,7 +1376,7 @@ const resetTableScroll = (targetKey, wrapperRef) => {
   @include contents-width;
 
   @include pc {
-    max-width: 1100px;
+    max-width: 110rem;
   }
 
   &__title {
@@ -1382,13 +1384,12 @@ const resetTableScroll = (targetKey, wrapperRef) => {
   }
 
   &__contents-wrapper {
-    display: flex;
-    flex-direction: column;
-
     @include fluid-style(gap, 24, 32);
     @include contents-padding;
 
-    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    max-width: 60rem;
     margin-inline: auto;
 
     @include pc {
@@ -1398,18 +1399,17 @@ const resetTableScroll = (targetKey, wrapperRef) => {
   }
 
   &__welcome {
+    @include fluid-style(gap, 16, 24);
+
     display: flex;
     flex-direction: column;
     align-items: center;
-
-    @include fluid-style(gap, 16, 24);
   }
 
   &__welcome-message {
-    font-weight: $bold;
-
     @include fluid-text(14, 20);
 
+    font-weight: $bold;
     text-align: center;
 
     &--blue {
@@ -1418,13 +1418,12 @@ const resetTableScroll = (targetKey, wrapperRef) => {
   }
 
   &__welcome-link {
-    @include button-style-border($green);
+    @include button-style-fill($green);
     @include fluid-style(width, 276, 432);
     @include fluid-style(padding-block, 17, 22);
+    @include fluid-text(14, 18);
 
     margin-inline: auto;
-
-    @include fluid-text(14, 18);
   }
 
   &__arrow-icon {
@@ -1437,38 +1436,36 @@ const resetTableScroll = (targetKey, wrapperRef) => {
   }
 
   &__error-message {
-    font-weight: $bold;
-
     @include fluid-text(12, 16);
 
+    font-weight: $bold;
     color: $red;
     text-align: center;
   }
 
   &__content {
+    @include fluid-style(gap, 24, 32);
+
     display: flex;
     flex-direction: column;
-
-    @include fluid-style(gap, 24, 32);
   }
 
   &__tab-control {
-    display: flex;
-
     @include fluid-style(gap, 16, 24);
 
+    display: flex;
     border-bottom: 1px solid $light-black;
   }
 
   &__tab-button {
+    @include fluid-text(14, 16);
+
     position: relative;
     padding: 1em;
     font-weight: $bold;
     cursor: pointer;
-    opacity: 0.6;
+    opacity: 0.5;
     transition: opacity $transition-base;
-
-    @include fluid-text(14, 16);
 
     &::before {
       position: absolute;
@@ -1484,7 +1481,7 @@ const resetTableScroll = (targetKey, wrapperRef) => {
       transition: transform $transition-base;
     }
 
-    @include hover {
+    &.is-active {
       opacity: 1;
 
       &::before {
@@ -1493,7 +1490,7 @@ const resetTableScroll = (targetKey, wrapperRef) => {
       }
     }
 
-    &.selected {
+    @include hover {
       opacity: 1;
 
       &::before {
@@ -1504,16 +1501,10 @@ const resetTableScroll = (targetKey, wrapperRef) => {
   }
 
   &__section {
+    @include fluid-style(gap, 16, 24);
+
     display: flex;
     flex-direction: column;
-
-    @include fluid-style(gap, 8, 16);
-  }
-
-  &__subtitle {
-    font-weight: $bold;
-
-    @include fluid-text(14, 16);
   }
 
   &__table-container {
@@ -1529,26 +1520,25 @@ const resetTableScroll = (targetKey, wrapperRef) => {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 10;
+    z-index: $z-loading-overlay;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     height: 100%;
-    background: rgba($white, 0.7);
+    background-color: $loading-overlay-color;
   }
 
   &__genre-table {
     width: 100%;
-    min-width: 1100px;
+    min-width: 110rem;
   }
 
   &__empty-message {
-    padding: 2rem 1rem;
-    font-weight: $bold;
-
     @include fluid-text(14, 16);
 
+    padding: 2rem 1rem;
+    font-weight: $bold;
     color: $light-black;
     text-align: left;
 
@@ -1649,10 +1639,10 @@ const resetTableScroll = (targetKey, wrapperRef) => {
   }
 
   &__form {
+    @include fluid-style(gap, 16, 24);
+
     display: flex;
     flex-direction: column;
-
-    @include fluid-style(gap, 8, 16);
 
     @include pc {
       flex-direction: row;
@@ -1678,13 +1668,12 @@ const resetTableScroll = (targetKey, wrapperRef) => {
 
   &__input-button {
     @include button-style-fill($black, $hover-action: "none");
+    @include fluid-text(14, 16);
+    @include fluid-style(width, 130, 150);
 
-    width: 15rem;
     padding-block: 1em;
     margin-inline: auto;
     cursor: pointer;
-
-    @include fluid-text(14, 16);
 
     @include pc {
       margin-inline: 0;
@@ -1697,7 +1686,7 @@ const resetTableScroll = (targetKey, wrapperRef) => {
 
   &__problem-table {
     width: 100%;
-    min-width: 1100px;
+    min-width: 110rem;
   }
 
   &__problem-table-tr {
@@ -1785,38 +1774,38 @@ const resetTableScroll = (targetKey, wrapperRef) => {
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 1000;
+    z-index: $z-modal-overlay;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     height: 100%;
-    background-color: rgb(0 0 0 / 33%);
+    background-color: $modal-overlay-color;
   }
 
   &__modal-content {
+    @include fluid-style(padding, 16, 24);
+
     position: relative;
     width: 100%;
-    max-width: 500px;
+    max-width: 50rem;
     margin-inline: 2rem;
     background-color: $white;
     border-radius: $radius-md;
-    box-shadow: 0 5px 15px rgb(0 0 0 / 25%);
-
-    @include fluid-style(padding, 16, 24);
+    box-shadow: $modal-box-shadow;
   }
 
   &__modal-close {
+    @include fluid-style(top, 16, 24);
+    @include fluid-style(right, 16, 24);
+    @include fluid-style(width, 16, 24);
+    @include fluid-style(height, 16, 24);
+
     position: absolute;
     color: $black;
     cursor: pointer;
     transform: rotate(45deg);
     transition: color $transition-base;
-
-    @include fluid-style(top, 16, 24);
-    @include fluid-style(right, 16, 24);
-    @include fluid-style(width, 16, 24);
-    @include fluid-style(height, 16, 24);
 
     @include hover {
       color: $red;
@@ -1830,32 +1819,31 @@ const resetTableScroll = (targetKey, wrapperRef) => {
 
   &__modal-title {
     @include fluid-style(margin-bottom, 10, 16);
+    @include fluid-text(16, 18);
 
     font-weight: $bold;
     text-align: center;
     letter-spacing: 0.1em;
-
-    @include fluid-text(16, 18);
   }
 
   &__modal-form {
+    @include fluid-style(gap, 16, 24);
+
     display: flex;
     flex-direction: column;
-
-    @include fluid-style(gap, 16, 24);
   }
 
   &__form-group {
+    @include fluid-style(gap, 6, 10);
+
     display: flex;
     flex-direction: column;
-
-    @include fluid-style(gap, 4, 8);
   }
 
   &__form-label {
-    font-weight: $bold;
-
     @include fluid-text(12, 14);
+
+    font-weight: $bold;
   }
 
   &__form-select-wrapper {
@@ -1877,13 +1865,13 @@ const resetTableScroll = (targetKey, wrapperRef) => {
   }
 
   &__modal-button {
+    @include fluid-text(12, 14);
+
     flex-grow: 1;
     padding: 1em;
     font-weight: $bold;
     cursor: pointer;
     border-radius: $radius-sm;
-
-    @include fluid-text(12, 14);
 
     &--cancel {
       @include button-style-border($black);
