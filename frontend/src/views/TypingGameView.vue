@@ -54,41 +54,12 @@
       </div>
     </div>
 
-    <Teleport to="body">
-      <Transition name="modal-fade">
-        <div v-if="showWarningModal" class="game-view__modal-overlay">
-          <div class="game-view__modal">
-            <p class="game-view__modal-title">プレイ環境について</p>
-            <div class="game-view__modal-message">
-              <p>
-                このゲームは<strong>物理キーボード</strong>でのプレイを想定しています。
-              </p>
-              <p>
-                また、スマートフォンなど画面の狭い端末では、表示が崩れる場合があります。
-              </p>
-              <p class="game-view__modal-highlight">
-                PC環境でのプレイを強く推奨します。
-              </p>
-            </div>
-
-            <div class="game-view__modal-actions">
-              <RouterLink
-                to="/menu"
-                class="game-view__modal-button game-view__modal-button--back"
-              >
-                メニューに戻る
-              </RouterLink>
-              <button
-                @click="showWarningModal = false"
-                class="game-view__modal-button game-view__modal-button--play"
-              >
-                そのままプレイ
-              </button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
+    <DeviceWarningModal
+      :show="showWarningModal"
+      cancel-text="メニューに戻る"
+      @cancel="handleCancelWarning"
+      @play="showWarningModal = false"
+    />
   </div>
 </template>
 
@@ -102,6 +73,8 @@ import api from "../services/api";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
+import { useDeviceEnvironment } from "../composables/useDeviceEnvironment";
+import DeviceWarningModal from "@/components/DeviceWarningModal.vue";
 import TypingCore from "../components/TypingCore.vue";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import Loading from "@/components/Loading.vue";
@@ -186,6 +159,15 @@ const genreId = computed(() => route.query.genreId);
  * お題 (Geminiモード用)
  */
 const prompt = computed(() => route.query.prompt);
+
+// =========================================================================
+// Composables 呼び出し
+// =========================================================================
+
+/**
+ * デバイスのプレイ環境を判定する
+ */
+const { checkNeedsWarning } = useDeviceEnvironment();
 
 // =========================================================================
 // Actions (処理)
@@ -434,6 +416,14 @@ const handleComplete = async (data) => {
   router.push("/typing/result");
 };
 
+/**
+ * 警告モーダルで「キャンセル」が押された時の処理
+ */
+const handleCancelWarning = () => {
+  // メインメニュー画面へ遷移させる
+  router.push("/menu");
+};
+
 // =========================================================================
 // ライフサイクル
 // =========================================================================
@@ -448,12 +438,9 @@ onMounted(async () => {
     return;
   }
 
-  // プレイ環境のチェック（タッチデバイス or 画面幅800px未満）
-  const isTouchDevice =
-    "ontouchstart" in window || navigator.maxTouchPoints > 0;
-  const isNarrowScreen = window.innerWidth < 800;
-
-  if (isTouchDevice || isNarrowScreen) {
+  // プレイ環境チェック
+  if (checkNeedsWarning()) {
+    // 警告モーダルを表示
     showWarningModal.value = true;
   }
 
@@ -547,105 +534,6 @@ onMounted(async () => {
     @include hover {
       color: $blue;
     }
-  }
-
-  /* =======================================================================
-   * 警告モーダル用スタイル
-   * ======================================================================= */
-  &__modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: $z-modal-overlay;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    background-color: $modal-overlay-color;
-  }
-
-  &__modal {
-    @include fluid-style(gap, 24, 32);
-    @include fluid-style(padding, 24, 32);
-
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 50rem;
-    margin-inline: 2rem;
-    background-color: $white;
-    border-radius: $radius-md;
-    box-shadow: $modal-box-shadow;
-  }
-
-  &__modal-title {
-    @include fluid-text(18, 22);
-
-    font-weight: $bold;
-    text-align: center;
-    letter-spacing: 0.1em;
-  }
-
-  &__modal-message {
-    @include fluid-style(gap, 12, 16);
-    @include fluid-text(14, 16);
-
-    display: flex;
-    flex-direction: column;
-    line-height: 1.6;
-    text-align: center;
-  }
-
-  &__modal-highlight {
-    font-weight: $bold;
-    color: $red;
-  }
-
-  &__modal-actions {
-    display: flex;
-    gap: 1.6rem;
-    justify-content: space-around;
-  }
-
-  &__modal-button {
-    @include fluid-text(12, 14);
-
-    flex-grow: 1;
-    padding: 1em;
-    font-weight: $bold;
-    text-align: center;
-    cursor: pointer;
-    border-radius: $radius-sm;
-
-    &--back {
-      @include button-style-border($black);
-    }
-
-    &--play {
-      @include button-style-fill($green);
-    }
-  }
-}
-
-/* モーダルのトランジション */
-.modal-fade-enter-from,
-.modal-fade-leave-to {
-  opacity: 0;
-
-  /* stylelint-disable-next-line selector-class-pattern */
-  .game-view__modal {
-    transform: translateY(-20px);
-  }
-}
-
-.modal-fade-enter-active,
-.modal-fade-leave-active {
-  transition: opacity $transition-base;
-
-  /* stylelint-disable-next-line selector-class-pattern */
-  .game-view__modal {
-    transition: transform $transition-base;
   }
 }
 </style>

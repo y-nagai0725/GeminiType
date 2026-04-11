@@ -143,7 +143,7 @@
                     <td class="col-action">
                       <button
                         class="session-detail__button session-detail__button--try"
-                        @click="openTryModal(problem)"
+                        @click="handleTryClick(problem)"
                       >
                         <TotalTypeCountIcon
                           class="session-detail__button-icon session-detail__button-icon--keyboard"
@@ -207,6 +207,12 @@
         </div>
       </div>
     </Transition>
+
+    <DeviceWarningModal
+      :show="showWarningModal"
+      @cancel="showWarningModal = false"
+      @play="handleProceedToPlay"
+    />
   </div>
 </template>
 
@@ -232,9 +238,11 @@ import { useSettingsStore } from "../stores/settingsStore";
 
 // --- Composables ---
 import { useScrollHint } from "../composables/useScrollHint";
+import { useDeviceEnvironment } from "../composables/useDeviceEnvironment";
 
 // --- Components ---
 import TypingCore from "../components/TypingCore.vue";
+import DeviceWarningModal from "@/components/DeviceWarningModal.vue";
 import Loading from "@/components/Loading.vue";
 import ScrollHint from "@/components/ScrollHint.vue";
 import Simplebar from "simplebar-vue";
@@ -306,6 +314,16 @@ const isTryModalOpen = ref(false);
  */
 const problemToTry = ref(null);
 
+/**
+ * 警告モーダルの表示・非表示
+ */
+const showWarningModal = ref(false);
+
+/**
+ * 警告が出た際に、一時的に「どの問題を試し打ちしようとしたか」を保存する
+ */
+const pendingProblem = ref(null);
+
 // =========================================================================
 // DOM / コンポーネント参照 (Refs)
 // =========================================================================
@@ -329,12 +347,17 @@ const {
   resetScroll: resetTableScroll,
 } = useScrollHint();
 
+/**
+ * デバイスのプレイ環境を判定する
+ */
+const { checkNeedsWarning } = useDeviceEnvironment();
+
 // =========================================================================
 // Actions (処理)
 // =========================================================================
 
 /**
- * 「試し打ち」ボタンが押された時の処理
+ * 「試し打ちモーダル」を開く時の処理
  * @param {Object} problem 問題オブジェクト
  */
 const openTryModal = (problem) => {
@@ -344,7 +367,7 @@ const openTryModal = (problem) => {
 };
 
 /**
- * 「モーダル」を閉じる時の処理
+ * 「試し打ちモーダル」を閉じる時の処理
  */
 const closeTryModal = () => {
   isTryModalOpen.value = false;
@@ -359,6 +382,35 @@ const closeTryModal = () => {
 const handleEscClose = (e) => {
   if (e.key === "Escape") {
     closeTryModal();
+  }
+};
+
+/**
+ * 「試し打ち」ボタンが押された時の最初の処理
+ */
+const handleTryClick = (problem) => {
+  if (checkNeedsWarning()) {
+    // 警告が必要な環境なら、問題を一時保存してモーダルを出す
+    pendingProblem.value = problem;
+    showWarningModal.value = true;
+  } else {
+    // 問題なければそのまま開く
+    openTryModal(problem);
+  }
+};
+
+/**
+ * 警告モーダルで「そのままプレイ」が押された時の処理
+ */
+const handleProceedToPlay = () => {
+  // 警告モーダルを閉じる
+  showWarningModal.value = false;
+  if (pendingProblem.value) {
+    // 試し打ちモーダルを開く
+    openTryModal(pendingProblem.value);
+
+    // 一時保存をリセット
+    pendingProblem.value = null;
   }
 };
 
