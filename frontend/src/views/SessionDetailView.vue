@@ -165,48 +165,11 @@
       </div>
     </div>
 
-    <Transition name="modal-fade">
-      <div
-        v-if="isTryModalOpen"
-        class="session-detail__modal-overlay"
-        @click.self="closeTryModal"
-      >
-        <div class="session-detail__modal-content">
-          <button @click="closeTryModal" class="session-detail__modal-close">
-            <PlusIcon class="session-detail__modal-close-icon" />
-          </button>
-
-          <p class="session-detail__modal-title">試し打ち</p>
-
-          <div class="session-detail__sound-settings">
-            <label class="session-detail__sound-label">
-              <input
-                type="checkbox"
-                class="session-detail__sound-checkbox"
-                v-model="settingsStore.soundEnabled"
-                @change="settingsStore.saveSettings"
-              />
-              タイプ音
-            </label>
-            <label class="session-detail__sound-label">
-              <input
-                type="checkbox"
-                class="session-detail__sound-checkbox"
-                v-model="settingsStore.missSoundEnabled"
-                @change="settingsStore.saveSettings"
-              />
-              ミス音
-            </label>
-          </div>
-
-          <TypingCore
-            v-if="problemToTry"
-            :problems="[problemToTry]"
-            :isTryMode="true"
-          />
-        </div>
-      </div>
-    </Transition>
+    <TryTypingModal
+      :show="isTryModalOpen"
+      :problem="problemToTry"
+      @close="closeTryModal"
+    />
 
     <DeviceWarningModal
       :show="showWarningModal"
@@ -242,6 +205,7 @@ import { useDeviceEnvironment } from "../composables/useDeviceEnvironment";
 
 // --- Components ---
 import TypingCore from "../components/TypingCore.vue";
+import TryTypingModal from "@/components/TryTypingModal.vue";
 import DeviceWarningModal from "@/components/DeviceWarningModal.vue";
 import Loading from "@/components/Loading.vue";
 import ScrollHint from "@/components/ScrollHint.vue";
@@ -363,7 +327,6 @@ const { checkNeedsWarning } = useDeviceEnvironment();
 const openTryModal = (problem) => {
   problemToTry.value = problem;
   isTryModalOpen.value = true;
-  window.addEventListener("keydown", handleEscClose);
 };
 
 /**
@@ -372,17 +335,6 @@ const openTryModal = (problem) => {
 const closeTryModal = () => {
   isTryModalOpen.value = false;
   problemToTry.value = null;
-  window.removeEventListener("keydown", handleEscClose);
-};
-
-/**
- * ESCキーが押された時にモーダルを閉じる処理
- * @param {KeyboardEvent} e キーボードイベントオブジェクト
- */
-const handleEscClose = (e) => {
-  if (e.key === "Escape") {
-    closeTryModal();
-  }
 };
 
 /**
@@ -847,137 +799,6 @@ onUnmounted(() => {
     &--keyboard {
       fill: currentcolor;
     }
-  }
-
-  /* =========================================================================
-   * 試し打ちモーダル
-   * ========================================================================= */
-  &__modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: $z-modal-overlay;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    background-color: $modal-overlay-color;
-  }
-
-  &__modal-content {
-    @include fluid-style(padding, 16, 24);
-
-    position: relative;
-    z-index: $z-modal-content;
-    width: 90rem;
-    background-color: $white;
-    border-radius: $radius-md;
-    box-shadow: $modal-box-shadow;
-  }
-
-  &__modal-close {
-    @include fluid-style(top, 16, 24);
-    @include fluid-style(right, 16, 24);
-    @include fluid-style(width, 16, 24);
-    @include fluid-style(height, 16, 24);
-
-    position: absolute;
-    color: $black;
-    cursor: pointer;
-    transform: rotate(45deg);
-    transition: color $transition-base;
-
-    @include hover {
-      color: $red;
-    }
-  }
-
-  &__modal-close-icon {
-    width: 100%;
-    fill: currentcolor;
-  }
-
-  &__modal-title {
-    @include fluid-style(margin-bottom, 10, 16);
-    @include fluid-text(16, 18);
-
-    font-weight: $bold;
-    text-align: center;
-    letter-spacing: 0.1em;
-  }
-
-  &__sound-settings {
-    @include fluid-style(gap, 16, 24);
-    @include fluid-style(margin-bottom, 10, 16);
-
-    display: flex;
-    justify-content: flex-end;
-  }
-
-  &__sound-label {
-    @include fluid-text(12, 14);
-
-    display: flex;
-    align-items: center;
-    font-weight: $bold;
-    cursor: pointer;
-    user-select: none;
-    transition: opacity $transition-base;
-
-    @include hover {
-      opacity: 0.7;
-    }
-  }
-
-  &__sound-checkbox {
-    position: relative;
-    display: inline-block;
-    width: 1em;
-    aspect-ratio: 1;
-    margin-right: 1em;
-    background-color: $gray;
-    border: 1px solid $black;
-    border-radius: $radius-sm;
-
-    &::after {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 80%;
-      height: 40%;
-      content: "";
-      border-bottom: 2px solid $green;
-      border-left: 2px solid $green;
-      opacity: 0;
-      transform: translate(-50%, calc(-50% - 1px)) rotate(-45deg);
-      transition: opacity $transition-base;
-    }
-
-    &:checked::after {
-      opacity: 1;
-    }
-  }
-}
-
-/* モーダル用アニメーション */
-.modal-fade-enter-from,
-.modal-fade-leave-to {
-  opacity: 0;
-
-  /* stylelint-disable-next-line selector-class-pattern */
-  .session-detail__modal-content {
-    transform: translateY(-20px);
-  }
-}
-
-.modal-fade-enter-active,
-.modal-fade-leave-active {
-  transition: opacity $transition-base;
-
-  /* stylelint-disable-next-line selector-class-pattern */
-  .session-detail__modal-content {
-    transition: transform $transition-base;
   }
 }
 </style>

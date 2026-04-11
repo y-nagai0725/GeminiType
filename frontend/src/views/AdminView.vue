@@ -440,49 +440,12 @@
       </template>
     </div>
 
-    <Transition name="modal-fade">
-      <div
-        v-if="isTryModalOpen"
-        class="admin-view__modal-overlay"
-        @click.self="closeTryModal"
-      >
-        <div
-          class="admin-view__modal-content admin-view__modal-content--typing-test"
-        >
-          <button @click="closeTryModal" class="admin-view__modal-close">
-            <PlusIcon class="admin-view__modal-close-icon" />
-          </button>
-          <p class="admin-view__modal-title">試し打ち</p>
-          <div class="admin-view__sound-settings">
-            <label class="admin-view__sound-label">
-              <input
-                type="checkbox"
-                class="admin-view__sound-checkbox"
-                v-model="settingsStore.soundEnabled"
-                @change="settingsStore.saveSettings"
-              />
-              タイプ音
-            </label>
-            <label class="admin-view__sound-label">
-              <input
-                type="checkbox"
-                class="admin-view__sound-checkbox"
-                v-model="settingsStore.missSoundEnabled"
-                @change="settingsStore.saveSettings"
-              />
-              ミス音
-            </label>
-          </div>
-
-          <TypingCore
-            v-if="problemToTry"
-            :problems="[problemToTry]"
-            :showDebug="true"
-            :isTryMode="true"
-          />
-        </div>
-      </div>
-    </Transition>
+    <TryTypingModal
+      :show="isTryModalOpen"
+      :problem="problemToTry"
+      :show-debug="true"
+      @close="closeTryModal"
+    />
     <ConfirmModal
       :show="isConfirmOpen"
       :title="confirmTitle"
@@ -606,6 +569,7 @@ import { useAdminStore } from "../stores/adminStore";
 import { useNotificationStore } from "../stores/notificationStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import TypingCore from "../components/TypingCore.vue";
+import TryTypingModal from "@/components/TryTypingModal.vue";
 import ConfirmModal from "../components/ConfirmModal.vue";
 import romajiMapData from "@/data/romajiDictionary.json";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
@@ -1366,9 +1330,6 @@ const openTryModal = (problem) => {
 
   // モーダルを開く
   isTryModalOpen.value = true;
-
-  // ESCキーで閉じられるようにイベントをセット
-  window.addEventListener("keydown", handleEscClose);
 };
 
 /**
@@ -1380,20 +1341,6 @@ const closeTryModal = () => {
 
   // 「試し打ち」してた問題をリセット
   problemToTry.value = null;
-
-  // イベント削除
-  window.removeEventListener("keydown", handleEscClose);
-};
-
-/**
- * ESCキーが押された時の処理
- * @param {KeyboardEvent} e キーボードイベントオブジェクト
- */
-const handleEscClose = (e) => {
-  if (e.key === "Escape") {
-    // モーダルを閉じる処理
-    closeTryModal();
-  }
 };
 
 /**
@@ -1437,8 +1384,10 @@ const resetTableScroll = (targetKey, wrapperRef) => {
   &__contents-wrapper {
     display: flex;
     flex-direction: column;
+
     @include fluid-style(gap, 24, 32);
     @include contents-padding;
+
     max-width: 600px;
     margin-inline: auto;
 
@@ -1452,12 +1401,15 @@ const resetTableScroll = (targetKey, wrapperRef) => {
     display: flex;
     flex-direction: column;
     align-items: center;
+
     @include fluid-style(gap, 16, 24);
   }
 
   &__welcome-message {
     font-weight: $bold;
+
     @include fluid-text(14, 20);
+
     text-align: center;
 
     &--blue {
@@ -1469,7 +1421,9 @@ const resetTableScroll = (targetKey, wrapperRef) => {
     @include button-style-border($green);
     @include fluid-style(width, 276, 432);
     @include fluid-style(padding-block, 17, 22);
+
     margin-inline: auto;
+
     @include fluid-text(14, 18);
   }
 
@@ -1484,7 +1438,9 @@ const resetTableScroll = (targetKey, wrapperRef) => {
 
   &__error-message {
     font-weight: $bold;
+
     @include fluid-text(12, 16);
+
     color: $red;
     text-align: center;
   }
@@ -1492,12 +1448,15 @@ const resetTableScroll = (targetKey, wrapperRef) => {
   &__content {
     display: flex;
     flex-direction: column;
+
     @include fluid-style(gap, 24, 32);
   }
 
   &__tab-control {
     display: flex;
+
     @include fluid-style(gap, 16, 24);
+
     border-bottom: 1px solid $light-black;
   }
 
@@ -1505,20 +1464,21 @@ const resetTableScroll = (targetKey, wrapperRef) => {
     position: relative;
     padding: 1em;
     font-weight: $bold;
-    @include fluid-text(14, 16);
+    cursor: pointer;
     opacity: 0.6;
     transition: opacity $transition-base;
-    cursor: pointer;
+
+    @include fluid-text(14, 16);
 
     &::before {
-      content: "";
       position: absolute;
       bottom: -2px;
       left: 0;
       width: 100%;
       height: 4px;
-      border-radius: $radius-lg;
+      content: "";
       background-color: $green;
+      border-radius: $radius-lg;
       transform: scaleX(0);
       transform-origin: right;
       transition: transform $transition-base;
@@ -1526,6 +1486,7 @@ const resetTableScroll = (targetKey, wrapperRef) => {
 
     @include hover {
       opacity: 1;
+
       &::before {
         transform: scaleX(1);
         transform-origin: left;
@@ -1534,6 +1495,7 @@ const resetTableScroll = (targetKey, wrapperRef) => {
 
     &.selected {
       opacity: 1;
+
       &::before {
         transform: scaleX(1);
         transform-origin: left;
@@ -1544,11 +1506,13 @@ const resetTableScroll = (targetKey, wrapperRef) => {
   &__section {
     display: flex;
     flex-direction: column;
+
     @include fluid-style(gap, 8, 16);
   }
 
   &__subtitle {
     font-weight: $bold;
+
     @include fluid-text(14, 16);
   }
 
@@ -1562,13 +1526,13 @@ const resetTableScroll = (targetKey, wrapperRef) => {
   }
 
   &__loading-overlay {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     position: absolute;
-    z-index: 10;
     top: 0;
     left: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     height: 100%;
     background: rgba($white, 0.7);
@@ -1582,7 +1546,9 @@ const resetTableScroll = (targetKey, wrapperRef) => {
   &__empty-message {
     padding: 2rem 1rem;
     font-weight: $bold;
+
     @include fluid-text(14, 16);
+
     color: $light-black;
     text-align: left;
 
@@ -1601,9 +1567,9 @@ const resetTableScroll = (targetKey, wrapperRef) => {
     padding: 1em;
     font-size: 1.4rem;
     font-weight: $bold;
-    letter-spacing: 0.1em;
     line-height: 1;
     color: $white;
+    letter-spacing: 0.1em;
     background-color: $green;
 
     &--id {
@@ -1646,13 +1612,14 @@ const resetTableScroll = (targetKey, wrapperRef) => {
 
     &--action {
       display: flex;
-      justify-content: center;
       gap: 1.6rem;
+      justify-content: center;
     }
   }
 
   &__genre-table-button {
     @include fluid-text(11, 13);
+
     padding: 1em;
 
     &--edit {
@@ -1668,22 +1635,23 @@ const resetTableScroll = (targetKey, wrapperRef) => {
     width: 1.4em;
 
     &--edit {
-      fill: currentColor;
+      fill: currentcolor;
     }
 
     &--delete {
       fill: none;
-      stroke: currentColor;
+      stroke: currentcolor;
     }
 
     &--keyboard {
-      fill: currentColor;
+      fill: currentcolor;
     }
   }
 
   &__form {
     display: flex;
     flex-direction: column;
+
     @include fluid-style(gap, 8, 16);
 
     @include pc {
@@ -1696,6 +1664,7 @@ const resetTableScroll = (targetKey, wrapperRef) => {
 
     @include pc {
       flex-grow: 1;
+      width: auto;
     }
   }
 
@@ -1709,11 +1678,13 @@ const resetTableScroll = (targetKey, wrapperRef) => {
 
   &__input-button {
     @include button-style-fill($black, $hover-action: "none");
+
     width: 15rem;
-    margin-inline: auto;
     padding-block: 1em;
-    @include fluid-text(14, 16);
+    margin-inline: auto;
     cursor: pointer;
+
+    @include fluid-text(14, 16);
 
     @include pc {
       margin-inline: 0;
@@ -1739,9 +1710,9 @@ const resetTableScroll = (targetKey, wrapperRef) => {
     padding: 1em;
     font-size: 1.4rem;
     font-weight: $bold;
-    letter-spacing: 0.1em;
     line-height: 1;
     color: $white;
+    letter-spacing: 0.1em;
     background-color: $green;
 
     &--genre {
@@ -1779,19 +1750,20 @@ const resetTableScroll = (targetKey, wrapperRef) => {
     }
 
     &--hiragana {
-      text-align: left;
       line-height: 1.5;
+      text-align: left;
     }
 
     &--action {
       display: flex;
-      justify-content: center;
       gap: 1.6rem;
+      justify-content: center;
     }
   }
 
   &__problem-table-button {
     @include fluid-text(11, 13);
+
     padding: 1em;
 
     &--try {
@@ -1810,16 +1782,16 @@ const resetTableScroll = (targetKey, wrapperRef) => {
   @include pagination-style;
 
   &__modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: fixed;
-    z-index: 1000;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.33);
+    background-color: rgb(0 0 0 / 33%);
   }
 
   &__modal-content {
@@ -1827,27 +1799,24 @@ const resetTableScroll = (targetKey, wrapperRef) => {
     width: 100%;
     max-width: 500px;
     margin-inline: 2rem;
-    @include fluid-style(padding, 16, 24);
-    border-radius: $radius-md;
     background-color: $white;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+    border-radius: $radius-md;
+    box-shadow: 0 5px 15px rgb(0 0 0 / 25%);
 
-    &--typing-test {
-      width: 900px;
-      max-width: none;
-    }
+    @include fluid-style(padding, 16, 24);
   }
 
   &__modal-close {
     position: absolute;
+    color: $black;
+    cursor: pointer;
+    transform: rotate(45deg);
+    transition: color $transition-base;
+
     @include fluid-style(top, 16, 24);
     @include fluid-style(right, 16, 24);
     @include fluid-style(width, 16, 24);
     @include fluid-style(height, 16, 24);
-    cursor: pointer;
-    color: $black;
-    transform: rotate(45deg);
-    transition: color $transition-base;
 
     @include hover {
       color: $red;
@@ -1856,81 +1825,36 @@ const resetTableScroll = (targetKey, wrapperRef) => {
 
   &__modal-close-icon {
     width: 100%;
-    fill: currentColor;
+    fill: currentcolor;
   }
 
   &__modal-title {
     @include fluid-style(margin-bottom, 10, 16);
+
     font-weight: $bold;
-    @include fluid-text(16, 18);
-    letter-spacing: 0.1em;
     text-align: center;
-  }
+    letter-spacing: 0.1em;
 
-  &__sound-settings {
-    display: flex;
-    justify-content: flex-end;
-    @include fluid-style(gap, 16, 24);
-    @include fluid-style(margin-bottom, 10, 16);
-  }
-
-  &__sound-label {
-    display: flex;
-    align-items: center;
-    font-weight: $bold;
-    @include fluid-text(12, 14);
-    cursor: pointer;
-    user-select: none;
-    transition: opacity $transition-base;
-
-    @include hover {
-      opacity: 0.7;
-    }
-  }
-
-  &__sound-checkbox {
-    position: relative;
-    display: inline-block;
-    width: 1em;
-    aspect-ratio: 1;
-    margin-right: 1em;
-    background-color: $gray;
-    border: 1px solid $black;
-    border-radius: $radius-sm;
-
-    &::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 80%;
-      height: 40%;
-      border-left: 2px solid $green;
-      border-bottom: 2px solid $green;
-      transform: translate(-50%, calc(-50% - 1px)) rotate(-45deg);
-      opacity: 0;
-      transition: opacity $transition-base;
-    }
-
-    &:checked::after {
-      opacity: 1;
-    }
+    @include fluid-text(16, 18);
   }
 
   &__modal-form {
     display: flex;
     flex-direction: column;
+
     @include fluid-style(gap, 16, 24);
   }
 
   &__form-group {
     display: flex;
     flex-direction: column;
+
     @include fluid-style(gap, 4, 8);
   }
 
   &__form-label {
     font-weight: $bold;
+
     @include fluid-text(12, 14);
   }
 
@@ -1948,17 +1872,18 @@ const resetTableScroll = (targetKey, wrapperRef) => {
 
   &__modal-actions {
     display: flex;
-    justify-content: space-around;
     gap: 2.4rem;
+    justify-content: space-around;
   }
 
   &__modal-button {
     flex-grow: 1;
     padding: 1em;
     font-weight: $bold;
-    @include fluid-text(12, 14);
-    border-radius: $radius-sm;
     cursor: pointer;
+    border-radius: $radius-sm;
+
+    @include fluid-text(12, 14);
 
     &--cancel {
       @include button-style-border($black);
@@ -1974,6 +1899,7 @@ const resetTableScroll = (targetKey, wrapperRef) => {
 .modal-fade-leave-to {
   opacity: 0;
 
+  /* stylelint-disable-next-line selector-class-pattern */
   .admin-view__modal-content {
     transform: translateY(-20px);
   }
@@ -1983,6 +1909,7 @@ const resetTableScroll = (targetKey, wrapperRef) => {
 .modal-fade-leave-active {
   transition: opacity $transition-base;
 
+  /* stylelint-disable-next-line selector-class-pattern */
   .admin-view__modal-content {
     transition: transform $transition-base;
   }
