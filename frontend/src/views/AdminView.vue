@@ -60,6 +60,7 @@
               問題管理
             </button>
           </div>
+
           <section v-if="currentTab === 'genre'" class="admin-view__section">
             <form
               class="admin-view__form"
@@ -78,39 +79,27 @@
                 <PlusIcon class="admin-view__input-button-icon" />追加
               </button>
             </form>
+
             <div class="admin-view__table-container">
-              <ScrollHint :show="!scrollStates.genres" />
+              <ScrollHint :show="!isGenresTableHidden" />
+
               <div v-if="isTableLoading" class="admin-view__loading-overlay">
                 <Loading />
               </div>
-              <div
+
+              <Simplebar
                 class="admin-view__table-wrapper"
-                ref="genresTableWrapper"
-                @scroll="handleScroll($event, 'genres')"
+                ref="genresScrollRef"
+                @scroll="handleGenresScroll"
+                :auto-hide="false"
               >
                 <table class="admin-view__genre-table">
                   <thead>
-                    <tr class="admin-view__genre-table-tr">
-                      <th
-                        class="admin-view__genre-table-th admin-view__genre-table-th--id"
-                      >
-                        ID
-                      </th>
-                      <th
-                        class="admin-view__genre-table-th admin-view__genre-table-th--genre"
-                      >
-                        ジャンル名
-                      </th>
-                      <th
-                        class="admin-view__genre-table-th admin-view__genre-table-th--count"
-                      >
-                        登録問題数
-                      </th>
-                      <th
-                        class="admin-view__genre-table-th admin-view__genre-table-th--action"
-                      >
-                        操作
-                      </th>
+                    <tr>
+                      <th class="col-id">ID</th>
+                      <th class="col-genre">ジャンル名</th>
+                      <th class="col-count">登録問題数</th>
+                      <th class="col-action">操作</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -121,29 +110,11 @@
                         登録されているジャンルがありません。
                       </td>
                     </tr>
-                    <tr
-                      v-for="genre in adminStore.genres"
-                      :key="genre.id"
-                      class="admin-view__genre-table-tr"
-                    >
-                      <td
-                        class="admin-view__genre-table-td admin-view__genre-table-td--id"
-                      >
-                        {{ genre.id }}
-                      </td>
-                      <td
-                        class="admin-view__genre-table-td admin-view__genre-table-td--genre"
-                      >
-                        {{ genre.name }}
-                      </td>
-                      <td
-                        class="admin-view__genre-table-td admin-view__genre-table-td--count"
-                      >
-                        {{ genre._count.problems }}
-                      </td>
-                      <td
-                        class="admin-view__genre-table-td admin-view__genre-table-td--action"
-                      >
+                    <tr v-for="genre in adminStore.genres" :key="genre.id">
+                      <td class="col-id">{{ genre.id }}</td>
+                      <td class="col-genre">{{ genre.name }}</td>
+                      <td class="col-count">{{ genre._count.problems }}</td>
+                      <td class="col-action">
                         <button
                           class="admin-view__genre-table-button admin-view__genre-table-button--edit"
                           @click="openEditModal(genre, 'genre')"
@@ -164,7 +135,7 @@
                     </tr>
                   </tbody>
                 </table>
-              </div>
+              </Simplebar>
             </div>
           </section>
 
@@ -242,85 +213,32 @@
               </button>
             </form>
 
-            <div
-              class="admin-view__pagination-container"
-              v-if="adminStore.totalPages > 1"
-            >
-              <div class="admin-view__pagination">
-                <button
-                  class="admin-view__page-button admin-view__page-button--prev"
-                  :class="{ 'is-disabled': adminStore.currentPage === 1 }"
-                  @click="handleSetPage(adminStore.currentPage - 1)"
-                  :disabled="adminStore.currentPage === 1"
-                ></button>
-
-                <template v-for="(item, index) in paginationItems">
-                  <button
-                    v-if="item !== '...'"
-                    :key="`num-${index}`"
-                    class="admin-view__page-button admin-view__page-button--number"
-                    :class="{
-                      'is-active': item === adminStore.currentPage,
-                    }"
-                    @click="handleSetPage(item)"
-                  >
-                    {{ item }}
-                  </button>
-
-                  <span
-                    v-else
-                    :key="`dots-${index}`"
-                    class="admin-view__page-dots"
-                  >
-                    …
-                  </span>
-                </template>
-
-                <button
-                  class="admin-view__page-button admin-view__page-button--next"
-                  :class="{
-                    'is-disabled':
-                      adminStore.currentPage === adminStore.totalPages,
-                  }"
-                  @click="handleSetPage(adminStore.currentPage + 1)"
-                  :disabled="adminStore.currentPage === adminStore.totalPages"
-                ></button>
-              </div>
-            </div>
+            <Pagination
+              :current-page="adminStore.currentPage"
+              :total-pages="adminStore.totalPages"
+              @page-change="handleSetPage"
+            />
 
             <div class="admin-view__table-container">
-              <ScrollHint :show="!scrollStates.problems" />
+              <ScrollHint :show="!isProblemsTableHidden" />
+
               <div v-if="isTableLoading" class="admin-view__loading-overlay">
                 <Loading />
               </div>
-              <div
+
+              <Simplebar
                 class="admin-view__table-wrapper"
-                ref="problemsTableWrapper"
-                @scroll="handleScroll($event, 'problems')"
+                ref="problemsScrollRef"
+                @scroll="handleProblemsScroll"
+                :auto-hide="false"
               >
                 <table class="admin-view__problem-table">
                   <thead>
-                    <tr class="admin-view__problem-table-tr">
-                      <th
-                        class="admin-view__problem-table-th admin-view__problem-table-th--genre"
-                      >
-                        ジャンル
-                      </th>
-                      <th
-                        class="admin-view__problem-table-th admin-view__problem-table-th--problem"
-                      >
-                        問題文
-                      </th>
-                      <th
-                        class="admin-view__problem-table-th admin-view__problem-table-th--hiragana"
-                      >
-                        ひらがな
-                      </th>
-                      <th
-                        class="admin-view__problem-table-th admin-view__problem-table-th--action"
-                      >
-                        操作
-                      </th>
+                    <tr>
+                      <th class="col-genre">ジャンル</th>
+                      <th class="col-problem">問題文</th>
+                      <th class="col-hiragana">ひらがな</th>
+                      <th class="col-action">操作</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -334,29 +252,16 @@
                     <tr
                       v-for="problem in adminStore.problems"
                       :key="problem.id"
-                      class="admin-view__problem-table-tr"
                     >
-                      <td
-                        class="admin-view__problem-table-td admin-view__problem-table-td--genre"
-                      >
-                        {{ problem.genre.name }}
-                      </td>
-                      <td
-                        class="admin-view__problem-table-td admin-view__problem-table-td--problem"
-                      >
-                        {{ problem.problem_text }}
-                      </td>
-                      <td
-                        class="admin-view__problem-table-td admin-view__problem-table-td--hiragana"
-                      >
+                      <td class="col-genre">{{ problem.genre.name }}</td>
+                      <td class="col-problem">{{ problem.problem_text }}</td>
+                      <td class="col-hiragana">
                         {{ problem.problem_hiragana }}
                       </td>
-                      <td
-                        class="admin-view__problem-table-td admin-view__problem-table-td--action"
-                      >
+                      <td class="col-action">
                         <button
                           class="admin-view__problem-table-button admin-view__problem-table-button--try"
-                          @click="openTryModal(problem)"
+                          @click="handleTryClick(problem)"
                         >
                           <TotalTypeCountIcon
                             class="admin-view__table-button-icon admin-view__table-button-icon--keyboard"
@@ -387,54 +292,14 @@
                     </tr>
                   </tbody>
                 </table>
-              </div>
+              </Simplebar>
             </div>
 
-            <div
-              class="admin-view__pagination-container"
-              v-if="adminStore.totalPages > 1"
-            >
-              <div class="admin-view__pagination">
-                <button
-                  class="admin-view__page-button admin-view__page-button--prev"
-                  :class="{ 'is-disabled': adminStore.currentPage === 1 }"
-                  @click="handleSetPage(adminStore.currentPage - 1)"
-                  :disabled="adminStore.currentPage === 1"
-                ></button>
-
-                <template v-for="(item, index) in paginationItems">
-                  <button
-                    v-if="item !== '...'"
-                    :key="`num-${index}`"
-                    class="admin-view__page-button admin-view__page-button--number"
-                    :class="{
-                      'is-active': item === adminStore.currentPage,
-                    }"
-                    @click="handleSetPage(item)"
-                  >
-                    {{ item }}
-                  </button>
-
-                  <span
-                    v-else
-                    :key="`dots-${index}`"
-                    class="admin-view__page-dots"
-                  >
-                    …
-                  </span>
-                </template>
-
-                <button
-                  class="admin-view__page-button admin-view__page-button--next"
-                  :class="{
-                    'is-disabled':
-                      adminStore.currentPage === adminStore.totalPages,
-                  }"
-                  @click="handleSetPage(adminStore.currentPage + 1)"
-                  :disabled="adminStore.currentPage === adminStore.totalPages"
-                ></button>
-              </div>
-            </div>
+            <Pagination
+              :current-page="adminStore.currentPage"
+              :total-pages="adminStore.totalPages"
+              @page-change="handleSetPage"
+            />
           </section>
         </div>
       </template>
@@ -446,6 +311,7 @@
       :show-debug="true"
       @close="closeTryModal"
     />
+
     <ConfirmModal
       :show="isConfirmOpen"
       :title="confirmTitle"
@@ -453,6 +319,13 @@
       @confirm="handleConfirmDelete"
       @cancel="closeConfirmModal"
     />
+
+    <DeviceWarningModal
+      :show="showWarningModal"
+      @cancel="showWarningModal = false"
+      @play="handleProceedToPlay"
+    />
+
     <Teleport to="body">
       <Transition name="modal-fade">
         <div
@@ -564,87 +437,42 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, reactive, computed } from "vue";
+// =========================================================================
+// パッケージ・モジュールの読み込み
+// =========================================================================
+import { ref, onMounted, onUnmounted, reactive } from "vue";
 import { useRouter } from "vue-router";
+import romajiMapData from "@/data/romajiDictionary.json";
+
+// --- Stores ---
 import { useAuthStore } from "../stores/authStore";
 import { useAdminStore } from "../stores/adminStore";
 import { useNotificationStore } from "../stores/notificationStore";
-import { useSettingsStore } from "../stores/settingsStore";
-import TypingCore from "../components/TypingCore.vue";
+
+// --- Composables ---
+import { useScrollHint } from "../composables/useScrollHint";
+import { useDeviceEnvironment } from "../composables/useDeviceEnvironment";
+
+// --- Components ---
+import Pagination from "@/components/Pagination.vue";
 import TryTypingModal from "@/components/TryTypingModal.vue";
 import ConfirmModal from "../components/ConfirmModal.vue";
-import romajiMapData from "@/data/romajiDictionary.json";
+import DeviceWarningModal from "@/components/DeviceWarningModal.vue";
+import Simplebar from "simplebar-vue";
+import ScrollHint from "@/components/ScrollHint.vue";
+import Loading from "@/components/Loading.vue";
+
+// --- Icons ---
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import SearchIcon from "@/components/icons/SearchIcon.vue";
 import PlusIcon from "@/components/icons/PlusIcon.vue";
 import DeleteIcon from "@/components/icons/DeleteIcon.vue";
 import EditIcon from "@/components/icons/EditIcon.vue";
 import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
-import Loading from "@/components/Loading.vue";
-import ScrollHint from "@/components/ScrollHint.vue";
 
-/**
- * 認証store
- */
-const authStore = useAuthStore();
-
-/**
- * 管理store
- */
-const adminStore = useAdminStore();
-
-/**
- * お知らせstore
- */
-const notificationStore = useNotificationStore();
-
-/**
- * 設定store
- */
-const settingsStore = useSettingsStore();
-
-/**
- * router
- */
-const router = useRouter();
-
-/**
- * 問題登録のひらがなで許可する文字
- */
-const allowedChars = new Set(romajiMapData.map((item) => item.Pattern));
-
-/**
- * ページ全体のローディング状態
- */
-const isContentsLoading = ref(false);
-
-/**
- * エラーメッセージ
- */
-const errorMessage = ref("");
-
-/**
- * スクロールヒントの非表示状態を管理するオブジェクト
- */
-const scrollStates = ref({
-  genres: false,
-  problems: false,
-});
-
-/**
- * ジャンルテーブル要素参照
- */
-const genresTableWrapper = ref(null);
-
-/**
- * 問題テーブル要素参照
- */
-const problemsTableWrapper = ref(null);
-
-/**
- * 表のローディング管理用
- */
-const isTableLoading = ref(false);
+// =========================================================================
+// 定数定義
+// =========================================================================
 
 /**
  * ローディングの最低表示時間 (ミリ秒)
@@ -665,6 +493,50 @@ const MAX_PROBLEM_TEXT_LENGTH = 25;
  * （問題の）ひらがなの最大文字数
  */
 const MAX_PROBLEM_HIRAGANA_LENGTH = 50;
+
+// =========================================================================
+// State (状態管理)
+// =========================================================================
+
+/**
+ * 認証store
+ */
+const authStore = useAuthStore();
+
+/**
+ * 管理store
+ */
+const adminStore = useAdminStore();
+
+/**
+ * お知らせstore
+ */
+const notificationStore = useNotificationStore();
+
+/**
+ * router
+ */
+const router = useRouter();
+
+/**
+ * 問題登録のひらがなで許可する文字
+ */
+const allowedChars = new Set(romajiMapData.map((item) => item.Pattern));
+
+/**
+ * ページ全体のローディング状態
+ */
+const isContentsLoading = ref(false);
+
+/**
+ * 表のローディング管理用
+ */
+const isTableLoading = ref(false);
+
+/**
+ * エラーメッセージ
+ */
+const errorMessage = ref("");
 
 /**
  * (登録用)新しいジャンル名
@@ -707,6 +579,16 @@ const isTryModalOpen = ref(false);
 const problemToTry = ref(null);
 
 /**
+ * 警告モーダルの表示・非表示
+ */
+const showWarningModal = ref(false);
+
+/**
+ * 警告が出た際に、一時的に「どの問題を試し打ちしようとしたか」を保存する
+ */
+const pendingProblem = ref(null);
+
+/**
  * 確認モーダルの表示・非表示
  */
 const isConfirmOpen = ref(false);
@@ -732,7 +614,7 @@ const onConfirmAction = ref(null);
 const isEditModalOpen = ref(false);
 
 /**
- * 編集の種類('genre' と 'problem' を切り替える)
+ * 編集の種類('genre' or 'problem')
  */
 const editType = ref("genre");
 
@@ -752,96 +634,45 @@ const editForm = reactive({
   problem_hiragana: "", // (問題用)ひらがな
 });
 
+// =========================================================================
+// Composables 呼び出し
+// =========================================================================
+
 /**
- * ページネーションアイテム
+ * ジャンルテーブル用横スクロールヒント管理
  */
-const paginationItems = computed(() => {
-  const current = adminStore.currentPage;
-  const total = adminStore.totalPages;
-
-  // 必ず表示したいページ番号
-  // (1ページ目、最後のページ、現在のページ、現在の前後のページ)
-  const pages = new Set([1, total, current, current - 1, current + 1]);
-
-  // 範囲外のページ（0以下や最大ページ超え）を除外、昇順に並べ替える
-  const sortedPages = Array.from(pages)
-    .filter((page) => page > 0 && page <= total)
-    .sort((a, b) => a - b);
-
-  const result = [];
-
-  for (let i = 0; i < sortedPages.length; i++) {
-    const page = sortedPages[i];
-
-    if (i > 0) {
-      const prevPage = sortedPages[i - 1];
-      if (page - prevPage > 1) {
-        if (page - prevPage === 2) {
-          result.push(prevPage + 1); // 間の数字が1個だけなら数字を表示
-        } else {
-          result.push("..."); // 間の数字がいっぱいあるなら「...」を表示
-        }
-      }
-    }
-
-    result.push(page);
-  }
-
-  return result;
-});
+const {
+  isHidden: isGenresTableHidden,
+  scrollRef: genresScrollRef,
+  handleScroll: handleGenresScroll,
+  resetScroll: resetGenresScroll,
+} = useScrollHint();
 
 /**
- * マウント時処理
+ * 問題テーブル用横スクロールヒント管理
  */
-onMounted(async () => {
-  // ユーザー情報がない場合
-  if (!authStore.user) {
-    // ユーザー情報を取得
-    await authStore.fetchUser();
-  }
-
-  // 権限がある場合（roleが"ADMIN" or "GUEST_ADMIN"）
-  if (authStore.canAccessAdmin) {
-    // ページ全体のローディング開始
-    isContentsLoading.value = true;
-
-    try {
-      // ジャンルと問題の取得、最低限の時間待機（ローディング表示用）
-      await Promise.all([
-        adminStore.fetchGenres(),
-        adminStore.fetchProblems(),
-        new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
-      ]);
-    } catch (error) {
-      errorMessage.value = "データの取得に失敗しました。";
-      notificationStore.addNotification(
-        error.response?.data?.message || "データの取得に失敗しました。",
-        "error"
-      );
-    } finally {
-      // ローディング終了
-      isContentsLoading.value = false;
-    }
-  }
-});
+const {
+  isHidden: isProblemsTableHidden,
+  scrollRef: problemsScrollRef,
+  handleScroll: handleProblemsScroll,
+  resetScroll: resetProblemsScroll,
+} = useScrollHint();
 
 /**
- * アンマウント時処理
+ * デバイス環境チェック
  */
-onUnmounted(() => {
-  // 検索条件を初期化しておく
-  adminStore.filterGenreId = "";
-  adminStore.filterSearchText = "";
+const { checkNeedsWarning } = useDeviceEnvironment();
 
-  // 問題テーブルのページネーションを初期位置へ
-  adminStore.currentPage = 1;
-});
+// =========================================================================
+// Actions (処理)
+// =========================================================================
 
 /**
- * ゲスト権限の操作制限をチェックし、制限対象なら通知を出す
+ * ゲスト権限の操作制限チェック
  * @returns {Boolean} ゲストで操作が制限された場合は true、それ以外は false
  */
 const isGuestRestricted = () => {
+  // ゲスト管理者ならエラー通知を出して、その後の処理をストップさせる
   if (authStore.isGuestAdmin) {
     notificationStore.addNotification(
       "ゲスト権限ではこの操作は許可されていません。",
@@ -853,28 +684,26 @@ const isGuestRestricted = () => {
 };
 
 /**
- * 入力された文字列が、タイピング辞書にある文字だけで構成されているかチェック
+ * 入力されたひらがなの辞書チェック
  * @param {String} text チェック対象の文字列
  * @returns {Boolean} OKならtrue
  */
 const isValidReading = (text) => {
-  // 1文字ずつチェックして、辞書にない文字があれば false
+  // 1文字ずつチェックして、タイピング辞書にない文字が含まれていれば false を返す
   for (const char of text) {
-    if (!allowedChars.has(char)) {
-      return false;
-    }
+    if (!allowedChars.has(char)) return false;
   }
   return true;
 };
 
 /**
- * 「ジャンル追加」ボタンが押された時の処理
+ * 「ジャンル追加」処理
  */
 const handleAddGenre = async () => {
   // ゲスト権限では実行させない
   if (isGuestRestricted()) return;
 
-  // バリデーション
+  // ジャンル名の空チェック
   if (!newGenreName.value || newGenreName.value.trim() === "") {
     notificationStore.addNotification("ジャンル名を入力して下さい。", "error");
     return;
@@ -889,44 +718,41 @@ const handleAddGenre = async () => {
     return;
   }
 
-  // ローディング表示
+  // テーブルをローディング状態にする
   isTableLoading.value = true;
-
   try {
-    // ジャンル登録、最低限の待ち時間を入れる（ローディング表示用）
+    // ジャンル登録API (UXのために最低限のローディング時間を見せる)
     await Promise.all([
       adminStore.addGenre(newGenreName.value),
       new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
     ]);
 
-    // データが更新された後にスクロールをリセット
-    resetTableScroll("genres", genresTableWrapper);
+    // 追加されたら、テーブルのスクロール位置とヒントをリセット
+    resetGenresScroll();
 
-    // 成功通知
+    // 成功通知を出して、入力フォームを空に戻す
     notificationStore.addNotification("ジャンルを追加しました。", "success");
-
-    // ジャンル名を空にする
     newGenreName.value = "";
   } catch (error) {
-    // エラー通知
+    // エラー時の通知
     notificationStore.addNotification(
       error.response?.data?.message || "ジャンルの追加に失敗しました。",
       "error"
     );
   } finally {
-    // ローディング終了
+    // 処理が終わったらローディングを解除
     isTableLoading.value = false;
   }
 };
 
 /**
- * 「問題文追加」ボタンが押された時の処理
+ * 「問題文追加」処理
  */
 const handleAddProblem = async () => {
   // ゲスト権限では実行させない
   if (isGuestRestricted()) return;
 
-  // バリデーション
+  // 未入力項目のバリデーション
   if (
     !newProblemGenreId.value ||
     !newProblemText.value ||
@@ -959,20 +785,19 @@ const handleAddProblem = async () => {
     return;
   }
 
-  // ひらがなチェック
+  // ひらがなにタイピング不可能な文字（漢字や未対応記号）が含まれていないかチェック
   if (!isValidReading(newProblemHiragana.value)) {
     notificationStore.addNotification(
-      "ひらがなに「未対応の文字」が含まれています！辞書にある文字（ひらがな、半角英数、一部記号）だけで入力して下さい。",
+      "ひらがなに「未対応の文字」が含まれています！辞書にある文字だけで入力して下さい。",
       "error"
     );
     return;
   }
 
-  // ローディング開始
+  // テーブルをローディング状態にする
   isTableLoading.value = true;
-
   try {
-    // 問題文登録、最低限の待ち時間を入れる（ローディング表示用）
+    // 問題文登録API
     await Promise.all([
       adminStore.addProblem(
         newProblemGenreId.value,
@@ -982,228 +807,182 @@ const handleAddProblem = async () => {
       new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
     ]);
 
-    // データが更新された後にスクロールをリセット
-    resetTableScroll("problems", problemsTableWrapper);
+    // スクロール位置のリセット
+    resetProblemsScroll();
 
-    // 成功通知
+    // 成功通知を出して、入力フォームを空に戻す
     notificationStore.addNotification("問題文を追加しました。", "success");
-
-    // フォームを空にする
     newProblemGenreId.value = "";
     newProblemText.value = "";
     newProblemHiragana.value = "";
   } catch (error) {
-    // エラー通知
     notificationStore.addNotification(
       error.response?.data?.message || "問題文の追加に失敗しました。",
       "error"
     );
   } finally {
-    // ローディング終了
     isTableLoading.value = false;
   }
 };
 
 /**
- * 「検索」ボタンが押された時の処理
+ * 「検索」処理
  */
 const handleSearch = async () => {
-  // ローディング開始
   isTableLoading.value = true;
-
   try {
-    // 入力されてる検索条件をセットする
+    // 入力されている検索条件（ジャンルとテキスト）をStoreにセットする
     adminStore.filterGenreId = localFilterGenreId.value;
     adminStore.filterSearchText = localFilterSearchText.value;
 
-    // 検索実行、最低限の待ち時間を入れる（ローディング表示用）
+    // 検索処理を実行し、結果を取得する
     await Promise.all([
       adminStore.applyFilters(),
       new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
     ]);
 
-    // データが更新された後にスクロールをリセット
-    resetTableScroll("problems", problemsTableWrapper);
+    // 検索結果が表示されたら、スクロールをリセットする
+    resetProblemsScroll();
   } catch (error) {
-    // エラー通知
     notificationStore.addNotification(
       error.response?.data?.message || "検索に失敗しました。",
       "error"
     );
   } finally {
-    // ローディング終了
     isTableLoading.value = false;
   }
 };
 
 /**
- * 「ページネーション」ボタンが押された時の処理
- * @param {Number} newPage 表示するページ番号
+ * 「ページネーション」処理
  */
 const handleSetPage = async (newPage) => {
-  // ローディング表示
   isTableLoading.value = true;
-
   try {
-    // newPageのページを表示する、最低限の待ち時間を入れる（ローディング表示用）
+    // 指定されたページ番号のデータを取得する
     await Promise.all([
       adminStore.setPage(newPage),
       new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
     ]);
 
-    // データが更新された後にスクロールをリセット
-    resetTableScroll("problems", problemsTableWrapper);
+    // ページが切り替わったらスクロールをリセットする
+    resetProblemsScroll();
   } catch (error) {
-    // エラー通知
     notificationStore.addNotification(
       error.response?.data?.message || "ページの取得に失敗しました。",
       "error"
     );
   } finally {
-    // ローディング終了
     isTableLoading.value = false;
   }
 };
 
 /**
- * 「ジャンル削除」ボタンが押された時の処理
- * @param {Number} id 削除対象id
- * @param {String} name ジャンル名
+ * 「ジャンル削除」ボタンが押された時のモーダル準備処理
  */
 const handleDeleteGenre = (id, name) => {
-  // ゲスト権限では実行させない
   if (isGuestRestricted()) return;
 
-  // 確認モーダルのタイトル
+  // 確認モーダルに表示するテキストをセット
   confirmTitle.value = "ジャンルの削除";
-
-  // 確認モーダルのメッセージ
   confirmMessage.value = `本当に「${name}」を削除しますか？\n（※問題文 が残ってると削除できません）`;
 
-  // 確認OK時の処理をセット
+  // モーダルで「OK」が押された時に実行する処理をセット
   onConfirmAction.value = async () => {
     await adminStore.deleteGenre(id);
-    resetTableScroll("genres", genresTableWrapper);
+    resetGenresScroll();
   };
 
-  // 確認モーダルを開く
+  // 準備ができたら確認モーダルを開く
   isConfirmOpen.value = true;
 };
 
 /**
- * 「問題文削除」ボタンが押された時の処理
- * @param {Number} id 削除対象id
- * @param {String} text 問題文
+ * 「問題文削除」ボタンが押された時のモーダル準備処理
  */
 const handleDeleteProblem = (id, text) => {
-  // ゲスト権限では実行させない
   if (isGuestRestricted()) return;
 
-  // 確認モーダルのタイトル
+  // 確認モーダルに表示するテキストをセット
   confirmTitle.value = "問題文の削除";
-
-  // 確認モーダルのメッセージ
   confirmMessage.value = `本当に「${text}」を削除しますか？`;
 
-  // 確認OK時の処理をセット
+  // モーダルで「OK」が押された時に実行する処理をセット
   onConfirmAction.value = async () => {
     await adminStore.deleteProblem(id);
-    resetTableScroll("problems", problemsTableWrapper);
+    resetProblemsScroll();
   };
 
-  // 確認モーダルを開く
+  // 準備ができたら確認モーダルを開く
   isConfirmOpen.value = true;
 };
 
 /**
- * 確認モーダルで「削除する」を押したときの処理
+ * 確認モーダルで「削除する(OK)」を押した時の実行処理
  */
 const handleConfirmDelete = async () => {
-  // セットされている処理を実行
+  // セットされている削除処理(onConfirmAction)があれば実行する
   if (onConfirmAction.value) {
-    // ローディング表示
     isTableLoading.value = true;
-
     try {
-      // 処理実行、最低限の待ち時間を入れる（ローディング表示用）
       await Promise.all([
         onConfirmAction.value(),
         new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
       ]);
-
-      // 成功通知
       notificationStore.addNotification("削除しました。", "success");
     } catch (error) {
-      // エラー通知
       notificationStore.addNotification(
         error.response?.data?.message || "削除に失敗しました。",
         "error"
       );
     } finally {
-      // ローディング終了
       isTableLoading.value = false;
     }
   }
-
-  // 確認モーダルを閉じる
+  // 処理が終わったら確認モーダルを閉じる
   closeConfirmModal();
 };
 
 /**
- * 確認モーダルを閉じる
+ * 確認モーダルを閉じる（キャンセル）処理
  */
 const closeConfirmModal = () => {
-  // モーダルを閉じる
   isConfirmOpen.value = false;
-
-  // 処理、タイトル、メッセージを空にする
+  // セットしていた処理やテキストを初期化しておく
   onConfirmAction.value = null;
   confirmTitle.value = "";
   confirmMessage.value = "";
 };
 
 /**
- * 「編集」ボタンが押された時の処理
- * @param {*} item 問題オブジェクト
- * @param {String} type 'genre' か 'problem'
+ * 「編集」モーダルを開く処理
  */
 const openEditModal = (item, type) => {
-  // ゲスト権限では実行させない
   if (isGuestRestricted()) return;
 
-  // 'genre' か 'problem'をセットする
+  // 編集タイプ('genre' か 'problem')をセット
   editType.value = type;
-
-  // 編集モーダルのフォームに選択したデータの値をコピーする
   editForm.id = item.id;
+
+  // 編集フォームに、現在登録されている元のデータをセットする
   if (type === "genre") {
-    // ---ジャンル編集の場合---
-    // ジャンル名
     editForm.name = item.name;
   } else {
-    // ---問題文編集の場合---
-    // ジャンルID
     editForm.genre_id = item.genre_id;
-
-    // 問題文
     editForm.problem_text = item.problem_text;
-
-    // ひらがな
     editForm.problem_hiragana = item.problem_hiragana;
   }
 
-  // モーダルを開く
+  // モーダルを表示
   isEditModalOpen.value = true;
 };
 
 /**
- * 編集モーダルを閉じる
+ * 「編集」モーダルを閉じる処理
  */
 const closeEditModal = () => {
-  // モーダルを閉じる
   isEditModalOpen.value = false;
-
-  // フォームの中身を空にする
+  // フォームの中身をリセット
   editForm.id = null;
   editForm.name = "";
   editForm.genre_id = "";
@@ -1212,16 +991,14 @@ const closeEditModal = () => {
 };
 
 /**
- * 編集モーダルの「更新」ボタンが押された時の処理
+ * 編集モーダルの「更新する」ボタンが押された時の処理
  */
 const handleUpdateItem = async () => {
-  // ローディング表示
   isTableLoading.value = true;
-
   try {
+    // --- ジャンル編集の場合の処理 ---
     if (editType.value === "genre") {
-      // ---ジャンル編集の場合---
-      // ジャンル名のバリデーション
+      // ジャンル名の空チェック
       if (!editForm.name || editForm.name.trim() === "") {
         notificationStore.addNotification(
           "ジャンル名を入力して下さい。",
@@ -1229,8 +1006,7 @@ const handleUpdateItem = async () => {
         );
         return;
       }
-
-      // ジャンル名の文字数チェック
+      // ジャンル名の文字数オーバーチェック
       if (editForm.name.length > MAX_GENRE_NAME_LENGTH) {
         notificationStore.addNotification(
           `ジャンル名は${MAX_GENRE_NAME_LENGTH}文字以内にして下さい。`,
@@ -1239,17 +1015,16 @@ const handleUpdateItem = async () => {
         return;
       }
 
-      // ジャンル更新、最低限の待ち時間を入れる（ローディング表示用）
+      // ジャンル更新API
       await Promise.all([
         adminStore.updateGenre(editForm.id, editForm.name),
         new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
       ]);
+      resetGenresScroll();
 
-      // データが更新された後にスクロールをリセット
-      resetTableScroll("genres", genresTableWrapper);
+      // --- 問題文編集の場合の処理 ---
     } else {
-      // ---問題文編集の場合---
-      // ジャンルと問題文とひらがなのバリデーション
+      // ジャンルと問題文とひらがなの空チェック
       if (
         !editForm.genre_id ||
         !editForm.problem_text ||
@@ -1282,16 +1057,16 @@ const handleUpdateItem = async () => {
         return;
       }
 
-      // ひらがなチェック
+      // ひらがなにタイピング不可能な文字（漢字や未対応記号）が含まれていないかチェック
       if (!isValidReading(editForm.problem_hiragana)) {
         notificationStore.addNotification(
-          "ひらがなに「未対応の文字」が含まれています！辞書にある文字（ひらがな、半角英数、一部記号）だけで入力して下さい。",
+          "ひらがなに「未対応の文字」が含まれています！",
           "error"
         );
         return;
       }
 
-      // 問題文更新、最低限の待ち時間を入れる（ローディング表示用）
+      // 問題更新API
       await Promise.all([
         adminStore.updateProblem(
           editForm.id,
@@ -1301,15 +1076,11 @@ const handleUpdateItem = async () => {
         ),
         new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
       ]);
-
-      // データが更新された後にスクロールをリセット
-      resetTableScroll("problems", problemsTableWrapper);
+      resetProblemsScroll();
     }
 
-    // 成功通知
+    // 成功通知を出してモーダルを閉じる
     notificationStore.addNotification("更新しました。", "success");
-
-    // モーダルを閉じる
     closeEditModal();
   } catch (error) {
     notificationStore.addNotification(
@@ -1317,61 +1088,105 @@ const handleUpdateItem = async () => {
       "error"
     );
   } finally {
-    // ローディング終了
     isTableLoading.value = false;
   }
 };
 
 /**
- * 「試し打ち」ボタンが押された時の処理
- * @param {*} problem 問題オブジェクト
+ * 試し打ちモーダルを開く処理
  */
 const openTryModal = (problem) => {
-  // 「試し打ち」の問題をセット
   problemToTry.value = problem;
-
-  // モーダルを開く
   isTryModalOpen.value = true;
 };
 
 /**
- * 「モーダル」を閉じる時の処理
+ * 試し打ちモーダルを閉じる処理
  */
 const closeTryModal = () => {
-  // モーダルを閉じる
   isTryModalOpen.value = false;
-
-  // 「試し打ち」してた問題をリセット
   problemToTry.value = null;
 };
 
 /**
- * スクロールイベントハンドラ
+ * 「試し打ち」ボタンが押された時の処理 (環境チェックあり)
  */
-const handleScroll = (e, targetKey) => {
-  // すでにスクロールヒントが消えている（true）なら、これ以上計算しない
-  if (scrollStates.value[targetKey]) return;
-
-  // 5px以上スクロールされたら、スクロールヒントを消す
-  if (e.target.scrollLeft > 5) {
-    scrollStates.value[targetKey] = true;
+const handleTryClick = (problem) => {
+  // PC以外の環境（タッチ端末や狭い画面）なら警告モーダルを出す
+  if (checkNeedsWarning()) {
+    pendingProblem.value = problem;
+    showWarningModal.value = true;
+  } else {
+    // 問題なければそのまま試し打ちを開く
+    openTryModal(problem);
   }
 };
 
 /**
- * スクロール位置とヒント表示をリセットする関数
+ * デバイス警告モーダルで「そのままプレイ」が押された時の処理
  */
-const resetTableScroll = (targetKey, wrapperRef) => {
-  // スクロール位置を一番左（0）に戻す
-  if (wrapperRef.value) {
-    wrapperRef.value.scrollLeft = 0;
+const handleProceedToPlay = () => {
+  showWarningModal.value = false;
+  // 保存しておいた問題を使って試し打ちを開く
+  if (pendingProblem.value) {
+    openTryModal(pendingProblem.value);
+    pendingProblem.value = null;
   }
-  // スクロールヒントがもう一度表示されるように状態をリセットする
-  scrollStates.value[targetKey] = false;
 };
+
+// =========================================================================
+// ライフサイクル
+// =========================================================================
+
+/**
+ * マウント時処理
+ */
+onMounted(async () => {
+  // ユーザー情報がない場合
+  if (!authStore.user) {
+    // ユーザー情報を取得
+    await authStore.fetchUser();
+  }
+
+  // 権限がある場合（roleが"ADMIN" or "GUEST_ADMIN"）
+  if (authStore.canAccessAdmin) {
+    // ページ全体のローディング開始
+    isContentsLoading.value = true;
+    try {
+      // ジャンルと問題の取得
+      await Promise.all([
+        adminStore.fetchGenres(),
+        adminStore.fetchProblems(),
+        new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+      ]);
+    } catch (error) {
+      errorMessage.value = "データの取得に失敗しました。";
+      notificationStore.addNotification(
+        error.response?.data?.message || "データの取得に失敗しました。",
+        "error"
+      );
+    } finally {
+      // ローディング終了
+      isContentsLoading.value = false;
+    }
+  }
+});
+
+/**
+ * アンマウント時処理
+ */
+onUnmounted(() => {
+  // 検索条件を初期化
+  adminStore.filterGenreId = "";
+  adminStore.filterSearchText = "";
+  adminStore.currentPage = 1;
+});
 </script>
 
 <style lang="scss" scoped>
+/* =========================================================================
+ * 管理画面 全体レイアウト
+ * ========================================================================= */
 .admin-view {
   @include contents-width;
 
@@ -1450,6 +1265,9 @@ const resetTableScroll = (targetKey, wrapperRef) => {
     flex-direction: column;
   }
 
+  /* =========================================================================
+   * タブ切り替え
+   * ========================================================================= */
   &__tab-control {
     @include fluid-style(gap, 16, 24);
 
@@ -1507,137 +1325,9 @@ const resetTableScroll = (targetKey, wrapperRef) => {
     flex-direction: column;
   }
 
-  &__table-container {
-    position: relative;
-    width: 100%;
-  }
-
-  &__table-wrapper {
-    overflow-x: auto;
-  }
-
-  &__loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: $z-loading-overlay;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    background-color: $loading-overlay-color;
-  }
-
-  &__genre-table {
-    width: 100%;
-    min-width: 110rem;
-  }
-
-  &__empty-message {
-    @include fluid-text(14, 16);
-
-    padding: 2rem 1rem;
-    font-weight: $bold;
-    color: $light-black;
-    text-align: left;
-
-    @include pc {
-      text-align: center;
-    }
-  }
-
-  &__genre-table-tr {
-    &:nth-of-type(odd) {
-      background-color: $gray;
-    }
-  }
-
-  &__genre-table-th {
-    padding: 1em;
-    font-size: 1.4rem;
-    font-weight: $bold;
-    line-height: 1;
-    color: $white;
-    letter-spacing: 0.1em;
-    background-color: $green;
-
-    &--id {
-      width: 15%;
-      text-align: right;
-    }
-
-    &--genre {
-      width: 40%;
-      text-align: left;
-    }
-
-    &--count {
-      width: 15%;
-      text-align: right;
-    }
-
-    &--action {
-      width: 30%;
-      text-align: center;
-    }
-  }
-
-  &__genre-table-td {
-    padding: 1em;
-    font-size: 1.4rem;
-    line-height: 1;
-
-    &--id {
-      text-align: right;
-    }
-
-    &--genre {
-      text-align: left;
-    }
-
-    &--count {
-      text-align: right;
-    }
-
-    &--action {
-      display: flex;
-      gap: 1.6rem;
-      justify-content: center;
-    }
-  }
-
-  &__genre-table-button {
-    @include fluid-text(11, 13);
-
-    padding: 1em;
-
-    &--edit {
-      @include button-style-fill($green, $hover-action: "none");
-    }
-
-    &--delete {
-      @include button-style-fill($red, $hover-action: "none");
-    }
-  }
-
-  &__table-button-icon {
-    width: 1.4em;
-
-    &--edit {
-      fill: currentcolor;
-    }
-
-    &--delete {
-      fill: none;
-      stroke: currentcolor;
-    }
-
-    &--keyboard {
-      fill: currentcolor;
-    }
-  }
-
+  /* =========================================================================
+   * フォームエリア
+   * ========================================================================= */
   &__form {
     @include fluid-style(gap, 16, 24);
 
@@ -1684,69 +1374,158 @@ const resetTableScroll = (targetKey, wrapperRef) => {
     @include button-icon-style;
   }
 
-  &__problem-table {
+  /* =========================================================================
+   * テーブル共通 (Simplebar)
+   * ========================================================================= */
+  &__table-container {
+    position: relative;
     width: 100%;
-    min-width: 110rem;
   }
 
-  &__problem-table-tr {
-    &:nth-of-type(odd) {
-      background-color: $gray;
+  &__table-wrapper {
+    padding-bottom: 1.6rem;
+
+    &::v-deep(.simplebar-track.simplebar-horizontal) {
+      @include fluid-style(height, 9, 11);
+
+      .simplebar-scrollbar::before {
+        background-color: $green;
+        opacity: 1;
+      }
+    }
+
+    @include pc {
+      padding-bottom: 0;
     }
   }
 
-  &__problem-table-th {
-    padding: 1em;
-    font-size: 1.4rem;
+  &__loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: $z-loading-overlay;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background-color: $loading-overlay-color;
+  }
+
+  &__empty-message {
+    @include fluid-text(14, 16);
+
+    padding: 2rem 1rem;
     font-weight: $bold;
-    line-height: 1;
-    color: $white;
-    letter-spacing: 0.1em;
-    background-color: $green;
+    color: $light-black;
+    text-align: left;
 
-    &--genre {
-      width: 15%;
-      text-align: left;
-    }
-
-    &--problem {
-      width: 30%;
-      text-align: left;
-    }
-
-    &--hiragana {
-      width: 30%;
-      text-align: left;
-    }
-
-    &--action {
-      width: 25%;
+    @include pc {
       text-align: center;
     }
   }
 
-  &__problem-table-td {
-    padding: 1em;
-    font-size: 1.4rem;
-    line-height: 1;
+  /* --- ボタンアイコン --- */
+  &__table-button-icon {
+    width: 1.4em;
 
-    &--genre {
+    &--edit {
+      fill: currentcolor;
+    }
+
+    &--delete {
+      fill: none;
+      stroke: currentcolor;
+    }
+
+    &--keyboard {
+      fill: currentcolor;
+    }
+  }
+
+  /* =========================================================================
+   * 【タブ1】ジャンルテーブル
+   * ========================================================================= */
+  &__genre-table {
+    @include table-style;
+
+    .col-id {
+      width: 15%;
+      text-align: right;
+    }
+
+    .col-genre {
+      width: 40%;
       text-align: left;
     }
 
-    &--problem {
-      text-align: left;
+    .col-count {
+      width: 15%;
+      text-align: right;
     }
 
-    &--hiragana {
-      line-height: 1.5;
-      text-align: left;
+    .col-action {
+      width: 30%;
+      text-align: center;
     }
 
-    &--action {
+    td.col-action {
       display: flex;
       gap: 1.6rem;
       justify-content: center;
+      width: 100%;
+    }
+  }
+
+  &__genre-table-button {
+    @include fluid-text(11, 13);
+
+    padding: 1em;
+
+    &--edit {
+      @include button-style-fill($green, $hover-action: "none");
+    }
+
+    &--delete {
+      @include button-style-fill($red, $hover-action: "none");
+    }
+  }
+
+  /* =========================================================================
+   * 【タブ2】問題テーブル
+   * ========================================================================= */
+  &__problem-table {
+    @include table-style;
+
+    .col-genre {
+      width: 15%;
+      text-align: left;
+    }
+
+    .col-problem {
+      width: 30%;
+      text-align: left;
+    }
+
+    .col-hiragana {
+      width: 30%;
+      text-align: left;
+    }
+
+    .col-action {
+      width: 25%;
+      text-align: center;
+    }
+
+    td.col-hiragana {
+      line-height: 1.5;
+    }
+
+    td.col-action {
+      display: flex;
+      gap: 1.6rem;
+      justify-content: center;
+      width: 100%;
     }
   }
 
@@ -1768,8 +1547,9 @@ const resetTableScroll = (targetKey, wrapperRef) => {
     }
   }
 
-  @include pagination-style;
-
+  /* =========================================================================
+   * 編集モーダル
+   * ========================================================================= */
   &__modal-overlay {
     position: fixed;
     top: 0;
