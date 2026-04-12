@@ -888,9 +888,8 @@ onUnmounted(() => {
     position: absolute;
     bottom: 6rem;
     left: 50%;
-    z-index: 10;
     display: flex;
-    gap: 1rem;
+    gap: 1.2rem;
     width: 100%;
     transform: translateX(-50%);
   }
@@ -900,7 +899,7 @@ onUnmounted(() => {
     height: 2px;
     overflow: hidden;
     background-color: rgba($black, 0.1);
-    border-radius: $radius-sm;
+    border-radius: 100vmax;
   }
 
   &__progress-fill {
