@@ -37,6 +37,13 @@
           /></RouterLink>
         </div>
       </div>
+
+      <div class="top-view__scroll-indicator">
+        <span class="top-view__scroll-text">SCROLL</span>
+        <div class="top-view__scroll-line-wrapper">
+          <div class="top-view__scroll-line"></div>
+        </div>
+      </div>
     </section>
 
     <section class="top-view__features">
@@ -168,7 +175,7 @@
         ref="horizontalScrollWrapper"
       >
         <div class="top-view__slide-wrapper" ref="slideWrapper">
-          <div class="top-view__slide top-view__slide--green">
+          <div class="top-view__slide">
             <div class="top-view__slide-inner">
               <h3 class="top-view__slide-title">飽きさせない多彩なモード</h3>
               <img
@@ -183,7 +190,7 @@
             </div>
           </div>
 
-          <div class="top-view__slide top-view__slide--orange">
+          <div class="top-view__slide">
             <div class="top-view__slide-inner">
               <h3 class="top-view__slide-title">
                 AIコーチからのフィードバック
@@ -200,7 +207,7 @@
             </div>
           </div>
 
-          <div class="top-view__slide top-view__slide--blue">
+          <div class="top-view__slide">
             <div class="top-view__slide-inner">
               <h3 class="top-view__slide-title">成長が目に見えるマイページ</h3>
               <img
@@ -215,7 +222,7 @@
             </div>
           </div>
 
-          <div class="top-view__slide top-view__slide--yellow">
+          <div class="top-view__slide">
             <div class="top-view__slide-inner">
               <h3 class="top-view__slide-title">弱点を克服する詳細データ</h3>
               <img
@@ -360,6 +367,15 @@ const setAnimation = () => {
     ease: "power2.out",
   };
 
+  // CSS変数の値をブラウザの :root から取得する
+  const style = getComputedStyle(document.documentElement);
+  const bgColors = {
+    green: style.getPropertyValue("--color-bg-green").trim(),
+    orange: style.getPropertyValue("--color-bg-orange").trim(),
+    blue: style.getPropertyValue("--color-bg-blue").trim(),
+    yellow: style.getPropertyValue("--color-bg-yellow").trim(),
+  };
+
   // GSAPアニメーションをContextで囲む（Vueのコンポーネント破棄時に一括解除するため）
   gsapContext = gsap.context(() => {
     // App.vue側にある「Simplebarのスクロール要素」を直接取得して、ScrollTriggerの基準にする
@@ -425,6 +441,20 @@ const setAnimation = () => {
         xPercent: -100 * (slides.length - 1),
         ease: "none",
         duration: slides.length - 1,
+      },
+      0
+    );
+
+    // スライド背景色をグラデーションのように変化させる
+    tl.to(
+      slideWrapper.value,
+      {
+        keyframes: [
+          { backgroundColor: bgColors.orange, duration: 1 },
+          { backgroundColor: bgColors.blue, duration: 1 },
+          { backgroundColor: bgColors.yellow, duration: 1 },
+        ],
+        ease: "none",
       },
       0
     );
@@ -499,6 +529,7 @@ onUnmounted(() => {
     @include full-width-style;
     @include fluid-style(gap, 32, 48);
 
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -592,6 +623,59 @@ onUnmounted(() => {
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  &__scroll-indicator {
+    position: absolute;
+    bottom: 2.4rem;
+    left: 50%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    align-items: center;
+    opacity: 0;
+    transform: translateX(-50%);
+
+    /* 画面が開いてから1秒後に、フワッと表示させる */
+    animation: indicator-fade-in 1s ease-out 1s forwards;
+
+    @include pc {
+      bottom: 4rem;
+    }
+  }
+
+  &__scroll-text {
+    @include fluid-text(10, 12);
+
+    font-family: $roboto-mono;
+    font-weight: $bold;
+    color: $green;
+    letter-spacing: 0.2em;
+  }
+
+  &__scroll-line-wrapper {
+    position: relative;
+    width: 2px;
+    height: 4.8rem;
+    overflow: hidden;
+    background-color: rgba($black, 0.1);
+    border-radius: 100vmax;
+
+    @include pc {
+      height: 6.4rem;
+    }
+  }
+
+  &__scroll-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background-color: $green;
+
+    /* 上から下へスーッと落ちるループアニメーション */
+    animation: scroll-down-drop 2s cubic-bezier(0.77, 0, 0.175, 1) infinite;
   }
 
   /* =======================================================================
@@ -689,9 +773,6 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     cursor: pointer;
-
-    /* button自体のデフォルトの枠線を消す（Safari対策） */
-    outline: none;
   }
 
   &__circle {
@@ -757,6 +838,7 @@ onUnmounted(() => {
 
   &__slide-wrapper {
     display: flex;
+    background-color: $light-green;
   }
 
   &__slide {
@@ -765,23 +847,7 @@ onUnmounted(() => {
     align-items: center;
     justify-content: center;
     width: 100vw;
-    height: 100vh;
-
-    &--orange {
-      background-color: $light-orange;
-    }
-
-    &--blue {
-      background-color: $light-blue;
-    }
-
-    &--green {
-      background-color: $light-green;
-    }
-
-    &--yellow {
-      background-color: $light-yellow;
-    }
+    height: 100svh;
   }
 
   &__slide-inner {
@@ -804,7 +870,7 @@ onUnmounted(() => {
 
   &__slide-image {
     width: 100%;
-    max-width: 90rem;
+    max-width: 85rem;
     height: auto;
     border-radius: $radius-md;
   }
@@ -833,14 +899,14 @@ onUnmounted(() => {
     flex: 1;
     height: 2px;
     overflow: hidden;
-    background-color: $light-black;
+    background-color: rgba($black, 0.1);
     border-radius: $radius-sm;
   }
 
   &__progress-fill {
     width: 100%;
     height: 100%;
-    background-color: $white;
+    background-color: $green;
     transform: scaleX(0);
     transform-origin: left;
   }
@@ -849,6 +915,25 @@ onUnmounted(() => {
 /* =========================================================================
  * @keyframes / Transitions
  * ========================================================================= */
+
+/* スクロールラインが落ちるアニメーション */
+@keyframes scroll-down-drop {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(200%);
+  }
+}
+
+/* インジケーター自体のフェードイン */
+@keyframes indicator-fade-in {
+  to {
+    opacity: 1;
+  }
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.15s ease-out;
