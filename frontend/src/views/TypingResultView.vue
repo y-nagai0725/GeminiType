@@ -72,11 +72,14 @@
 
         <div class="result-view__ai-area">
           <div class="result-view__ai-image-wrapper">
-            <img
-              class="result-view__ai-image"
-              src="@/assets/images/typing-result/ai-icon__loading.webp"
-              alt="AIアイコン画像"
-            />
+            <Transition name="icon-fade" mode="out-in">
+              <img
+                :key="currentAiIcon"
+                class="result-view__ai-image"
+                :src="currentAiIcon"
+                alt="AIアイコン画像"
+              />
+            </Transition>
           </div>
           <div class="result-view__ai-comment-wrapper">
             <p v-if="isCommentLoading" class="result-view__ai-comment">
@@ -188,6 +191,14 @@ import TotalMissCountIcon from "@/components/icons/TotalMissCountIcon.vue";
 import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 import ScoreIcon from "@/components/icons/ScoreIcon.vue";
 
+// --- Images (AI Icons) ---
+import iconLoading from "@/assets/images/typing-result/ai-icon__loading.webp";
+import iconError from "@/assets/images/typing-result/ai-icon__error.webp";
+import iconRankC from "@/assets/images/typing-result/ai-icon__rank-c.webp";
+import iconRankB from "@/assets/images/typing-result/ai-icon__rank-b.webp";
+import iconRankA from "@/assets/images/typing-result/ai-icon__rank-a.webp";
+import iconRankS from "@/assets/images/typing-result/ai-icon__rank-s.webp";
+
 // =========================================================================
 // State (状態管理)
 // =========================================================================
@@ -216,6 +227,28 @@ const aiComment = ref("");
  * AIコメント生成時のローディング
  */
 const isCommentLoading = ref(false);
+
+/**
+ * 現在表示するAIアイコン画像
+ */
+const currentAiIcon = ref(iconLoading);
+
+// =========================================================================
+// 定数定義
+// =========================================================================
+/**
+ * スコア上限値
+ */
+const MAX_SCORE = 350;
+
+/**
+ * ランク判定用のスコア閾値
+ */
+const RANK_THRESHOLDS = {
+  S: Math.round(MAX_SCORE * 0.95),
+  A: Math.round(MAX_SCORE * 0.75),
+  B: Math.round(MAX_SCORE * 0.6),
+};
 
 // =========================================================================
 // DOM / コンポーネント参照 (Refs)
@@ -269,6 +302,8 @@ const score = computed(() => {
 const fetchAiComment = async () => {
   if (!resultData.value) return;
   isCommentLoading.value = true;
+  currentAiIcon.value = iconLoading; // 取得開始時はローディング用AIアイコン
+
   try {
     const totalMissedKeys = {};
     resultData.value.results.forEach((result) => {
@@ -286,10 +321,23 @@ const fetchAiComment = async () => {
     });
 
     aiComment.value = response.data.comment;
+
+    // コメント取得成功後、スコアに合わせてAIアイコンを切り替える
+    const currentScore = score.value;
+    if (currentScore >= RANK_THRESHOLDS.S) {
+      currentAiIcon.value = iconRankS;
+    } else if (currentScore >= RANK_THRESHOLDS.A) {
+      currentAiIcon.value = iconRankA;
+    } else if (currentScore >= RANK_THRESHOLDS.B) {
+      currentAiIcon.value = iconRankB;
+    } else {
+      currentAiIcon.value = iconRankC; // B未満はCランク扱い
+    }
   } catch (error) {
     console.error("AIコメント取得エラー:", error);
     aiComment.value =
       "お疲れ様！ (AIコメントの取得に失敗しちゃったけど、応援してるよ！)";
+    currentAiIcon.value = iconError; // エラー時はエラー用AIアイコン
   } finally {
     isCommentLoading.value = false;
   }
@@ -822,5 +870,20 @@ onUnmounted(() => {
       }
     }
   }
+}
+
+/* =========================================================================
+ * @keyframes / Transitions
+ * ========================================================================= */
+
+/* AIアイコン切り替えアニメーション */
+.icon-fade-enter-active,
+.icon-fade-leave-active {
+  transition: opacity 0.15s ease-out;
+}
+
+.icon-fade-enter-from,
+.icon-fade-leave-to {
+  opacity: 0;
 }
 </style>
