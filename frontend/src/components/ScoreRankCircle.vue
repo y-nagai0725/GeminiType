@@ -166,6 +166,7 @@ onMounted(() => {
   }
 
   &__progress {
+    stroke-linecap: round;
     transition: stroke $transition-base;
 
     &.rank-c {
