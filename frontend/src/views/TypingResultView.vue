@@ -74,7 +74,7 @@
           <div class="result-view__ai-image-wrapper">
             <img
               class="result-view__ai-image"
-              src="@/assets/images/typing-result/ai-icon.webp"
+              src="@/assets/images/typing-result/ai-icon__loading.webp"
               alt="AIアイコン画像"
             />
           </div>
@@ -629,16 +629,16 @@ onUnmounted(() => {
 
     @include pc {
       flex-direction: row;
-      gap: 4rem;
     }
   }
 
   &__ai-image-wrapper {
+    @include fluid-style(width, 120, 140);
+
     display: flex;
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    width: 10rem;
     aspect-ratio: 1;
     background-color: $gray;
     border-radius: 100vmax;
