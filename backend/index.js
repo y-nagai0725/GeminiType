@@ -113,7 +113,7 @@ const geminiModel = genAI.getGenerativeModel({
 /**
  * Gemini APIのタイムアウト時間（ミリ秒）
  */
-const GEMINI_TIMEOUT_MS = 10000;
+const GEMINI_TIMEOUT_MS = 15000;
 
 /**
  * Yahoo APIのタイムアウト時間（ミリ秒）
