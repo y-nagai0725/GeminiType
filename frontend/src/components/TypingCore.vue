@@ -92,37 +92,41 @@
         {{ currentProblemIndex + 1 }} / {{ problems.length }}
       </div>
 
-      <div class="typing-core__hud" v-if="gameMode !== 'normal'">
-        <div
-          v-if="gameMode === 'time_limit'"
-          class="typing-core__timer-container"
-        >
-          <div
-            class="typing-core__timer-text"
-            :class="{ danger: remainingTime <= 10 }"
-          >
-            <TimerIcon class="typing-core__timer-icon" />残り時間:
-            {{ remainingTime }} 秒
-          </div>
-          <div class="typing-core__progress-bar">
-            <div
-              class="typing-core__progress-bar-fill"
-              :class="timeBarColorClass"
-              :style="{ width: timeProgressPercentage + '%' }"
-            ></div>
-          </div>
-        </div>
+      <div class="typing-core__circular-indicator" v-if="gameMode !== 'normal'">
+        <svg viewBox="0 0 60 60">
+          <circle
+            class="typing-core__indicator-bg"
+            cx="30"
+            cy="30"
+            :r="INDICATOR_RADIUS"
+          />
+          <circle
+            class="typing-core__indicator-progress"
+            :class="indicatorClass"
+            cx="30"
+            cy="30"
+            :r="INDICATOR_RADIUS"
+            :stroke-dasharray="CIRCUMFERENCE"
+            :stroke-dashoffset="indicatorOffset"
+          />
+        </svg>
 
         <div
-          v-if="gameMode === 'sudden_death'"
-          class="typing-core__lives-container"
+          class="typing-core__indicator-content"
+          :class="{
+            'is-danger':
+              indicatorClass.includes('is-danger') && gameMode === 'time_limit',
+          }"
         >
-          <HeartIcon
-            v-for="n in 10"
-            :key="n"
-            class="typing-core__heart-icon"
-            :class="{ fill: n <= remainingLives }"
-          />
+          <template v-if="gameMode === 'time_limit'">
+            <span class="typing-core__indicator-time">{{ remainingTime }}</span>
+          </template>
+          <template v-else-if="gameMode === 'sudden_death'">
+            <HeartIcon class="typing-core__indicator-heart" />
+            <span class="typing-core__indicator-life">{{
+              remainingLives
+            }}</span>
+          </template>
         </div>
       </div>
 
@@ -478,6 +482,16 @@ const romajiMap = new Map(
  */
 const MIN_LOADING_MS = 300;
 
+/**
+ * 円形インジケーター用の半径
+ */
+const INDICATOR_RADIUS = 25;
+
+/**
+ * 円形インジケーター用の円周
+ */
+const CIRCUMFERENCE = 2 * Math.PI * INDICATOR_RADIUS;
+
 // =========================================================================
 // Props & Emits
 // =========================================================================
@@ -718,13 +732,37 @@ const timeProgressPercentage = computed(() => {
 });
 
 /**
- * プログレスバーの色クラス
+ * インジケーターの色クラスとアニメーション種類
  */
-const timeBarColorClass = computed(() => {
-  const p = timeProgressPercentage.value;
-  if (p <= 25) return "bar-red"; // 25%以下なら赤
-  if (p <= 50) return "bar-yellow"; // 50%以下なら黄色
-  return "bar-green"; // それ以外は緑
+const indicatorClass = computed(() => {
+  if (props.gameMode === "time_limit") {
+    if (remainingTime.value >= 15) return "is-safe time-mode";
+    if (remainingTime.value >= 10) return "is-warning time-mode";
+    return "is-danger time-mode";
+  } else if (props.gameMode === "sudden_death") {
+    if (remainingLives.value >= 4) return "is-safe life-mode";
+    if (remainingLives.value >= 2) return "is-warning life-mode";
+    return "is-danger life-mode";
+  }
+  return "";
+});
+
+/**
+ * インジケーターの破線オフセット（減り具合）
+ */
+const indicatorOffset = computed(() => {
+  if (props.gameMode === "time_limit") {
+    const progress = timeProgressPercentage.value / 100;
+    // 100%の時に0、0%の時に円周と同じ長さ（隠れる）になる
+    return CIRCUMFERENCE * (1 - progress);
+  } else if (props.gameMode === "sudden_death") {
+    let progress = 0;
+    if (props.missLimit > 0) {
+      progress = remainingLives.value / props.missLimit;
+    }
+    return CIRCUMFERENCE * (1 - progress);
+  }
+  return 0;
 });
 
 /**
@@ -1469,6 +1507,7 @@ onUnmounted(() => {
   }
 
   &__playing {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
@@ -1495,99 +1534,88 @@ onUnmounted(() => {
     text-align: center;
   }
 
-  /* --- HUD (ヘッドアップディスプレイ) 関連 --- */
-  &__hud {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    max-width: 60rem;
-    margin-inline: auto;
-  }
-
-  &__timer-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    width: 100%;
-  }
-
-  &__timer-text {
+  /* --- 円形インジケーター --- */
+  &__circular-indicator {
+    position: absolute;
+    top: 1.6rem;
+    right: 1.6rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
+    width: 6.4rem;
+    aspect-ratio: 1;
+  }
+
+  &__indicator-bg {
+    fill: none;
+    stroke: $white; // 背景色($gray)より一段明るい色でトラックを作る
+    stroke-width: 5;
+  }
+
+  &__indicator-progress {
+    fill: none;
+    stroke-width: 5;
+    stroke-linecap: round;
+
+    /* 12時の方向からスタートさせるため -90度回転 */
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+
+    &.is-safe {
+      stroke: $green;
+    }
+
+    &.is-warning {
+      stroke: $yellow;
+    }
+
+    &.is-danger {
+      stroke: $red;
+    }
+
+    /* 時間制限モード：滑らかに減る */
+    &.time-mode {
+      transition: stroke-dashoffset 1s linear, stroke $transition-base;
+    }
+
+    /* サドンデスモード：ミス時にカクッと減る */
+    &.life-mode {
+      transition: stroke-dashoffset 0.2s ease-out, stroke $transition-base;
+    }
+  }
+
+  &__indicator-content {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: $roboto-mono;
+    font-weight: $bold;
+    line-height: 1;
     color: $light-black;
 
-    &.danger {
+    &.is-danger {
       color: $red;
 
-      /* 残り時間が少ない時に、ドキドキ感を煽るための鼓動アニメーション */
+      /* 時間が少ない時の鼓動アニメーション */
       animation: pulse 1s infinite;
     }
   }
 
-  &__progress-bar {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    height: 1.6rem;
-    padding: 0 0.4rem;
-
-    /* 中のゲージが角丸を突き抜けないように隠す */
-    overflow: hidden;
-    border: 2px solid $light-black;
-    border-radius: 100vmax;
+  &__indicator-time {
+    font-size: 1.8rem;
+    color: inherit;
   }
 
-  &__progress-bar-fill {
-    height: 50%;
-    border-radius: 100vmax;
-
-    /* ゲージが減る時（width）に1秒かけて滑らかに動かすことで、1秒ごとのカクつきを消す */
-    transition: width 1s linear, background-color $transition-base;
-
-    &.bar-green {
-      background-color: $green;
-    }
-
-    &.bar-yellow {
-      background-color: $yellow;
-    }
-
-    &.bar-red {
-      background-color: $red;
-    }
-  }
-
-  &__lives-container {
-    position: relative;
-    display: flex;
-    gap: 0.8rem;
-
-    /* 「残りライフ:」という文字を疑似要素で追加する */
-    &::before {
-      position: absolute;
-      top: 50%;
-      left: 0;
-      font-size: 1.6rem;
-      line-height: 1;
-      color: $light-black;
-      content: "残りライフ: ";
-      transform: translate(calc(-100% - 8px), -50%);
-    }
-  }
-
-  &__heart-icon {
-    width: 2rem;
+  &__indicator-heart {
+    width: 1.6rem;
     aspect-ratio: 1;
-    fill: transparent;
-    stroke: $red;
-    stroke-width: 2px;
-    transition: fill $transition-base;
+    margin-right: 0.2rem;
+    fill: $red;
+  }
 
-    &.fill {
-      fill: $red;
-    }
+  &__indicator-life {
+    font-size: 1.6rem;
   }
 
   /* --- メインテキスト（問題・ふりがな・ローマ字）関連 --- */
@@ -1596,6 +1624,9 @@ onUnmounted(() => {
     flex-direction: column;
     gap: 1.6rem;
     justify-content: center;
+
+    /* 問題文が特殊モードのインジケーターに被さらないように */
+    padding-right: 4rem;
   }
 
   &__problem {
@@ -1834,7 +1865,7 @@ onUnmounted(() => {
   }
 
   50% {
-    transform: scale(1.07);
+    transform: scale(1.1);
   }
 
   100% {
