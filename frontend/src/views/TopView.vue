@@ -59,6 +59,7 @@
               <img
                 class="top-view__image"
                 src="@/assets/images/top/feature-1.webp"
+                loading="lazy"
                 alt="AI問題生成のイメージ"
               />
             </div>
@@ -97,6 +98,7 @@
               <img
                 class="top-view__image"
                 src="@/assets/images/top/feature-2.webp"
+                loading="lazy"
                 alt="成長記録のイメージ"
               />
             </div>
@@ -108,7 +110,7 @@
                 「KPM（1分間の打鍵数）」や「正確率」を自動で記録。自分の実力が数値になるから、モチベーションが続く！
               </p>
               <p class="top-view__text">
-                苦手なキーもAIがバッチリ分析。弱点をピンポイントで克服して、最短距離で上達しちゃおう！
+                苦手なキーも過去のデータから集計・ランキング化。弱点をピンポイントで克服して、最短距離で上達しちゃおう！
               </p>
             </div>
           </Transition>
@@ -136,20 +138,20 @@
               <img
                 class="top-view__image"
                 src="@/assets/images/top/feature-3.webp"
+                loading="lazy"
                 alt="ストレスフリーな入力判定のイメージ"
               />
             </div>
             <div v-else class="top-view__feature-content">
               <p class="top-view__text">
-                「し」は [si] でも [shi]
-                でもOK。あなたの慣れ親しんだ入力スタイルを尊重する、柔軟な判定システム。
+                「し」の [si] [shi] [ci] や、「ち」の [ti] [chi]
+                など、複数の入力パターンをしっかりカバーしています！
               </p>
               <p class="top-view__text">
-                「ん」の [n] [nn]
-                問題も解決。細かいルールにイライラすることなく、純粋にスピードと正確さを追求できます。
+                途中で入力のクセが出ても大丈夫。細かいルールにイライラすることなく、タイピングの勢いを止めずにスピードを追求できます。
               </p>
               <p class="top-view__text">
-                独自開発の判定エンジンが、あなたの指の動きにしっかり寄り添い、最高に気持ちいいタイピング体験を届けます。
+                こだわり抜いた柔軟な入力判定が、あなたの指の動きにしっかり寄り添い、最高に気持ちいいタイピング体験を届けます。
               </p>
             </div>
           </Transition>
@@ -177,15 +179,32 @@
         <div class="top-view__slide-wrapper" ref="slideWrapper">
           <div class="top-view__slide">
             <div class="top-view__slide-inner">
-              <h3 class="top-view__slide-title">飽きさせない多彩なモード</h3>
+              <h3 class="top-view__slide-title">基本を学ぶ「通常モード」</h3>
               <img
                 src="@/assets/images/top/gallery-1.webp"
-                alt="タイピング画面"
+                loading="lazy"
+                alt="通常モードタイピング画面"
                 class="top-view__slide-image"
               />
               <p class="top-view__slide-description">
-                「通常モード」に加え、白熱の「時間制限」「サドンデス」モードを搭載！<br />
-                画面上のキーボードと運指ガイドが、正しい指の配置をしっかりサポートします。
+                画面上のキーボードと運指ガイドが、正しい指の配置をしっかりサポート！<br />まずは自分のペースで、正確なタイピングの基礎を楽しく身につけましょう。
+              </p>
+            </div>
+          </div>
+
+          <div class="top-view__slide">
+            <div class="top-view__slide-inner">
+              <h3 class="top-view__slide-title">
+                「特殊モード」で限界に挑戦！
+              </h3>
+              <img
+                src="@/assets/images/top/gallery-2.webp"
+                loading="lazy"
+                alt="特殊モードタイピング画面"
+                class="top-view__slide-image"
+              />
+              <p class="top-view__slide-description">
+                速さ勝負の「時間制限」と、ミスが許されない「サドンデス」を搭載！<br />ゲーム感覚で楽しみながら正確さと速さを鍛え、自分のスキルの限界を突破しよう！
               </p>
             </div>
           </div>
@@ -196,13 +215,14 @@
                 AIコーチからのフィードバック
               </h3>
               <img
-                src="@/assets/images/top/gallery-2.webp"
+                src="@/assets/images/top/gallery-3.webp"
+                loading="lazy"
                 alt="タイピング結果画面"
                 class="top-view__slide-image"
               />
               <p class="top-view__slide-description">
                 プレイ後はスコアやランクと一緒に、AIからのパーソナルなアドバイスがもらえます。<br />
-                あなたの頑張りをしっかり分析して、可愛く応援してくれます！
+                あなたの頑張りをしっかり分析して、ポジティブに可愛く応援してくれます！
               </p>
             </div>
           </div>
@@ -211,13 +231,13 @@
             <div class="top-view__slide-inner">
               <h3 class="top-view__slide-title">成長が目に見えるマイページ</h3>
               <img
-                src="@/assets/images/top/gallery-3.webp"
+                src="@/assets/images/top/gallery-4.webp"
+                loading="lazy"
                 alt="マイページの成長グラフ"
                 class="top-view__slide-image"
               />
               <p class="top-view__slide-description">
-                毎日のプレイ記録は自動で保存され、「成長グラフ」として可視化されます。<br />
-                KPMや正確率の推移がひと目で分かるので、成長する実感が湧いてモチベーションUP！
+                KPMや正確率の推移が分かる「成長グラフ」で、日々の頑張りをしっかり可視化！<br />過去のデータから算出した「苦手キーランキング」で、弱点もひと目で把握できます。
               </p>
             </div>
           </div>
@@ -226,19 +246,19 @@
             <div class="top-view__slide-inner">
               <h3 class="top-view__slide-title">弱点を克服する詳細データ</h3>
               <img
-                src="@/assets/images/top/gallery-4.webp"
+                src="@/assets/images/top/gallery-5.webp"
+                loading="lazy"
                 alt="苦手キーと詳細履歴"
                 class="top-view__slide-image"
               />
               <p class="top-view__slide-description">
-                過去のデータから「苦手なキー」を自動で集計＆ランキング化。<br />
-                問題ごとの詳細データの振り返り、「試し打ち」機能で弱点のピンポイント練習が可能です。
+                プレイごとのスコアや「どの問題でどのキーをミスしたか」を細かく振り返り！<br />ミスした問題を練習できる「試し打ち」機能で、ピンポイントに弱点を克服できます。
               </p>
             </div>
           </div>
         </div>
         <div class="top-view__progress-bar-wrapper">
-          <div class="top-view__progress-segment" v-for="i in 4" :key="i">
+          <div class="top-view__progress-segment" v-for="i in 5" :key="i">
             <div class="top-view__progress-fill"></div>
           </div>
         </div>
@@ -296,8 +316,6 @@ import ScrollTrigger from "gsap/ScrollTrigger";
 // プラグイン登録・初期設定
 // =========================================================================
 gsap.registerPlugin(ScrollTrigger);
-
-// TODO: .top-view__galleryのgallery-1の画像のみ仮です
 
 // =========================================================================
 // State (状態管理)
@@ -370,6 +388,7 @@ const setAnimation = () => {
   // CSS変数の値をブラウザの :root から取得する
   const style = getComputedStyle(document.documentElement);
   const bgColors = {
+    gray: style.getPropertyValue("--color-bg-gray").trim(),
     green: style.getPropertyValue("--color-bg-green").trim(),
     orange: style.getPropertyValue("--color-bg-orange").trim(),
     blue: style.getPropertyValue("--color-bg-blue").trim(),
@@ -450,9 +469,10 @@ const setAnimation = () => {
       slideWrapper.value,
       {
         keyframes: [
-          { backgroundColor: bgColors.orange, duration: 1 },
-          { backgroundColor: bgColors.blue, duration: 1 },
-          { backgroundColor: bgColors.yellow, duration: 1 },
+          { backgroundColor: bgColors.blue, duration: 1 }, // 2枚目へ向かう時
+          { backgroundColor: bgColors.green, duration: 1 }, // 3枚目へ向かう時
+          { backgroundColor: bgColors.yellow, duration: 1 }, // 4枚目へ向かう時
+          { backgroundColor: bgColors.orange, duration: 1 }, // 5枚目へ向かう時
         ],
         ease: "none",
       },
@@ -636,8 +656,8 @@ onUnmounted(() => {
     opacity: 0;
     transform: translateX(-50%);
 
-    /* 画面が開いてから1秒後に、フワッと表示させる */
-    animation: indicator-fade-in 1s ease-out 1s forwards;
+    /* 画面が開いてから0.5秒後に、フワッと表示させる */
+    animation: indicator-fade-in 1s ease-out 0.5s forwards;
 
     @include pc {
       bottom: 4rem;
@@ -707,7 +727,7 @@ onUnmounted(() => {
 
     @include pc {
       grid-template-columns: repeat(3, 1fr);
-      gap: 8rem;
+      gap: 9.8rem;
       max-width: none;
     }
   }
@@ -838,7 +858,7 @@ onUnmounted(() => {
 
   &__slide-wrapper {
     display: flex;
-    background-color: $light-green;
+    background-color: $gray; /* 横スクロール部分の初期背景色 */
   }
 
   &__slide {
