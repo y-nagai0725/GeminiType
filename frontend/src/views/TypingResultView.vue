@@ -138,7 +138,13 @@
                 <tr v-for="(problem, index) in resultData.results" :key="index">
                   <td class="col-problem">{{ problem.problem_text }}</td>
                   <td class="col-romaji">{{ problem.romaji_text || "-" }}</td>
-                  <td class="col-kpm">{{ Math.round(problem.kpm) }}</td>
+                  <td class="col-kpm">
+                    {{
+                      Math.round(problem.kpm) === 0
+                        ? "-"
+                        : Math.round(problem.kpm)
+                    }}
+                  </td>
                   <td class="col-acc">{{ Math.round(problem.accuracy) }}%</td>
                   <td
                     class="col-miss-keys"
