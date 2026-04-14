@@ -60,6 +60,17 @@
       @cancel="handleCancelWarning"
       @play="showWarningModal = false"
     />
+
+    <Teleport to="body">
+      <Transition name="fade-game-over">
+        <div v-if="isGameOver" class="game-over-overlay">
+          <div class="game-over-content">
+            <p class="game-over-text">GAME OVER</p>
+            <p class="game-over-reason">{{ gameOverReason }}</p>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -132,6 +143,16 @@ const loadingMessage = ref("");
  * エラーメッセージ
  */
 const errorMessage = ref("");
+
+/**
+ * ゲームオーバー演出用のフラグ
+ */
+const isGameOver = ref(false);
+
+/**
+ * ゲームオーバーの理由テキスト
+ */
+const gameOverReason = ref("");
 
 /**
  * 問題リストデータ
@@ -376,7 +397,8 @@ const handleComplete = async (data) => {
   } else if (!isNormalMode) {
     notificationStore.addNotification(
       "特殊モードのため、結果は保存されません（記録のみ表示します）",
-      "success"
+      "success",
+      2500
     );
   } else {
     notificationStore.addNotification(
@@ -412,8 +434,19 @@ const handleComplete = async (data) => {
     })
   );
 
-  // 結果画面へ遷移
-  router.push("/typing/result");
+  if (!info.isClear && settingsStore.gameMode !== "normal") {
+    // 特殊モードで失敗した場合、ゲームオーバー演出を見せる
+    isGameOver.value = true;
+    gameOverReason.value = info.reason;
+
+    // 2.5秒(2500ms)ゲームオーバー画面を見せてから、結果画面へ遷移
+    setTimeout(() => {
+      router.push("/typing/result");
+    }, 2500);
+  } else {
+    // 成功時、または通常モードの場合はすぐ遷移
+    router.push("/typing/result");
+  }
 };
 
 /**
@@ -534,6 +567,84 @@ onMounted(async () => {
     @include hover {
       color: $blue;
     }
+  }
+}
+
+/* =========================================================================
+ * ゲームオーバー演出用スタイル
+ * ========================================================================= */
+.game-over-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: $z-modal-overlay;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100svh;
+
+  /* 背景を真っ黒の半透明にして、後ろを少しぼかす */
+  background-color: rgb(0 0 0 / 85%);
+  backdrop-filter: blur(5px);
+}
+
+.game-over-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+  align-items: center;
+
+  /* 拡大しながら少し下から現れるアニメーション */
+  animation: game-over-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.game-over-text {
+  @include fluid-text(60, 100);
+
+  font-family: $roboto-mono;
+  font-weight: $bold;
+  line-height: 1;
+  color: $red;
+  letter-spacing: 0.1em;
+
+  /* 禍々しく赤く光らせる */
+  text-shadow: 0 0 20px rgba($red, 0.6), 0 0 40px rgba($red, 0.4);
+}
+
+.game-over-reason {
+  font-family: $roboto-mono;
+  font-size: 2.4rem;
+  font-weight: $bold;
+  color: $white;
+  letter-spacing: 0.05em;
+}
+
+/* オーバーレイ自体のフェードイン・フェードアウト */
+.fade-game-over-enter-active,
+.fade-game-over-leave-active {
+  transition: opacity $transition-base;
+}
+
+.fade-game-over-enter-from,
+.fade-game-over-leave-to {
+  opacity: 0;
+}
+
+/* =========================================================================
+ * @keyframes (アニメーションの定義)
+ * ========================================================================= */
+
+/* 文字のポップアップアニメーション */
+@keyframes game-over-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 </style>

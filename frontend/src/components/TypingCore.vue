@@ -1021,7 +1021,6 @@ const forceFinishGame = (reason) => {
   }
 
   isCompleted.value = true;
-  notificationStore.addNotification(`Game Over... ${reason}`, "error");
   emitComplete(reason);
 };
 
