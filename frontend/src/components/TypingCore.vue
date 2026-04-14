@@ -224,7 +224,11 @@
           v-for="keyObj in row"
           :key="keyObj.key"
           class="typing-core__key"
-          :class="[keyObj.class, { active: isKeyActive(keyObj) }]"
+          :class="[
+            keyObj.class,
+            { 'is-active': isKeyActive(keyObj) },
+            { 'is-miss-flash': isKeyActive(keyObj) && isMissAnimating },
+          ]"
         >
           {{ keyObj.label }}
         </div>
@@ -235,45 +239,96 @@
       <div class="typing-core__hand typing-core__hand--left">
         <div
           class="typing-core__finger typing-core__finger--pinky"
-          :class="{ active: isFingerActive('left-pinky') }"
+          :class="[
+            { 'is-active': isFingerActive('left-pinky') },
+            {
+              'is-miss-flash': isFingerActive('left-pinky') && isMissAnimating,
+            },
+          ]"
         ></div>
         <div
           class="typing-core__finger typing-core__finger--ring"
-          :class="{ active: isFingerActive('left-ring') }"
+          :class="[
+            { 'is-active': isFingerActive('left-ring') },
+            {
+              'is-miss-flash': isFingerActive('left-ring') && isMissAnimating,
+            },
+          ]"
         ></div>
         <div
           class="typing-core__finger typing-core__finger--middle"
-          :class="{ active: isFingerActive('left-middle') }"
+          :class="[
+            { 'is-active': isFingerActive('left-middle') },
+            {
+              'is-miss-flash': isFingerActive('left-middle') && isMissAnimating,
+            },
+          ]"
         ></div>
         <div
           class="typing-core__finger typing-core__finger--index"
-          :class="{ active: isFingerActive('left-index') }"
+          :class="[
+            { 'is-active': isFingerActive('left-index') },
+            {
+              'is-miss-flash': isFingerActive('left-index') && isMissAnimating,
+            },
+          ]"
         ></div>
         <div
           class="typing-core__finger typing-core__finger--thumb"
-          :class="{ active: isFingerActive('left-thumb') }"
+          :class="[
+            { 'is-active': isFingerActive('left-thumb') },
+            {
+              'is-miss-flash': isFingerActive('left-thumb') && isMissAnimating,
+            },
+          ]"
         ></div>
       </div>
       <div class="typing-core__hand typing-core__hand--right">
         <div
           class="typing-core__finger typing-core__finger--thumb"
-          :class="{ active: isFingerActive('right-thumb') }"
+          :class="[
+            { 'is-active': isFingerActive('right-thumb') },
+            {
+              'is-miss-flash': isFingerActive('right-thumb') && isMissAnimating,
+            },
+          ]"
         ></div>
         <div
           class="typing-core__finger typing-core__finger--index"
-          :class="{ active: isFingerActive('right-index') }"
+          :class="[
+            { 'is-active': isFingerActive('right-index') },
+            {
+              'is-miss-flash': isFingerActive('right-index') && isMissAnimating,
+            },
+          ]"
         ></div>
         <div
           class="typing-core__finger typing-core__finger--middle"
-          :class="{ active: isFingerActive('right-middle') }"
+          :class="[
+            { 'is-active': isFingerActive('right-middle') },
+            {
+              'is-miss-flash':
+                isFingerActive('right-middle') && isMissAnimating,
+            },
+          ]"
         ></div>
         <div
           class="typing-core__finger typing-core__finger--ring"
-          :class="{ active: isFingerActive('right-ring') }"
+          :class="[
+            { 'is-active': isFingerActive('right-ring') },
+            {
+              'is-miss-flash': isFingerActive('right-ring') && isMissAnimating,
+            },
+          ]"
         ></div>
         <div
           class="typing-core__finger typing-core__finger--pinky"
-          :class="{ active: isFingerActive('right-pinky') }"
+          :class="[
+            { 'is-active': isFingerActive('right-pinky') },
+            {
+              'is-miss-flash': isFingerActive('right-pinky') && isMissAnimating,
+            },
+          ]"
         ></div>
       </div>
     </div>
@@ -639,6 +694,11 @@ const remainingTime = ref(props.timeLimit);
  * セッション通算ミス数
  */
 const totalMissCountSession = ref(0);
+
+/**
+ * ミスした瞬間の点滅アニメーション用フラグ
+ */
+const isMissAnimating = ref(false);
 
 /**
  * タイマーID
@@ -1092,6 +1152,13 @@ const handleMiss = (key) => {
     }
     currentMissedKeys.value[expected]++;
   }
+
+  // ミスアニメーションを発火させる
+  isMissAnimating.value = true;
+  // 0.3秒(アニメーションと同じ長さ)後にフラグを戻す
+  setTimeout(() => {
+    isMissAnimating.value = false;
+  }, 300);
 
   // Sudden Death判定
   if (props.gameMode === "sudden_death") {
@@ -1808,11 +1875,15 @@ onUnmounted(() => {
       width: 5.8rem;
     }
 
-    &.active {
+    &.is-active {
       color: $white;
       background-color: $orange;
       box-shadow: 0 4px 0 color.adjust($orange, $lightness: -10%);
       transform: translateY(2px);
+    }
+
+    &.is-miss-flash {
+      animation: miss-flash 0.3s ease-out;
     }
   }
 
@@ -1850,8 +1921,12 @@ onUnmounted(() => {
       height: 4rem;
     }
 
-    &.active {
+    &.is-active {
       background-color: $orange;
+    }
+
+    &.is-miss-flash {
+      animation: miss-flash 0.3s ease-out;
     }
   }
 }
@@ -1870,6 +1945,23 @@ onUnmounted(() => {
 
   100% {
     transform: scale(1);
+  }
+}
+
+@keyframes miss-flash {
+  0% {
+    background-color: $orange;
+  }
+
+  /* ミスしたら一瞬だけ赤く光らせる */
+  30% {
+    background-color: $red;
+    box-shadow: 0 4px 0 color.adjust($red, $lightness: -10%);
+    transform: translateY(2px) scale(1.05);
+  }
+
+  100% {
+    background-color: $orange;
   }
 }
 </style>
