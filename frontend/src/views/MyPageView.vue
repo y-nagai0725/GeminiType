@@ -254,13 +254,12 @@
               @page-change="handlePageChange"
             />
           </template>
+          <div class="mypage-view__back">
+            <RouterLink to="/menu" class="mypage-view__back-button">
+              メインメニューに戻る<ArrowIcon class="mypage-view__arrow-icon" />
+            </RouterLink>
+          </div>
         </section>
-
-        <div class="mypage-view__back">
-          <RouterLink to="/menu" class="mypage-view__back-button">
-            メインメニューに戻る<ArrowIcon class="mypage-view__arrow-icon" />
-          </RouterLink>
-        </div>
       </template>
     </div>
   </div>
@@ -436,7 +435,7 @@ const score = computed(() => {
     return "-";
   const kpm = stats.value.average_kpm;
   const acc = stats.value.average_accuracy;
-  return Math.round(kpm * ((acc / 100) ** 3));
+  return Math.round(kpm * (acc / 100) ** 3);
 });
 
 // =========================================================================
@@ -532,7 +531,6 @@ const setAnimation = () => {
     const weakKeysSection = ".mypage-view__section--weak-keys";
     const chartSection = ".mypage-view__section--chart";
     const historySection = ".mypage-view__section--history";
-    const back = ".mypage-view__back";
 
     // プロフィール以外の各セクションのスクロール連動表示
     [
@@ -540,7 +538,6 @@ const setAnimation = () => {
       weakKeysSection,
       chartSection,
       historySection,
-      back,
     ].forEach((section) => {
       gsap.fromTo(
         section,
@@ -713,6 +710,8 @@ onUnmounted(() => {
     flex-direction: column;
 
     &--profile {
+      position: relative;
+      z-index: $z-toast;
       grid-row: auto;
 
       @include pc {
@@ -1061,10 +1060,6 @@ onUnmounted(() => {
         color: $green;
       }
     }
-  }
-
-  &__back {
-    visibility: hidden; /* GSAPアニメーション用 */
   }
 }
 </style>

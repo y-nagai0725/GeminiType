@@ -656,6 +656,8 @@ onUnmounted(() => {
 
   /* --- スコアカード --- */
   &__score-card {
+    position: relative;
+    z-index: $z-toast;
     display: flex;
     visibility: hidden; // GSAPアニメーション用
     gap: 4rem;
@@ -707,7 +709,7 @@ onUnmounted(() => {
 
     position: relative;
     width: 100%;
-    min-height: 20rem;
+    min-height: 23.4rem;
     background-color: $light-yellow;
     border-radius: $radius-lg;
 
