@@ -1,6 +1,6 @@
 <template>
   <div class="score-rank-circle">
-    <div class="score-rank-circle__svg-wrapper">
+    <div class="score-rank-circle__svg-wrapper" aria-hidden="true">
       <svg class="score-rank-circle__svg" viewBox="0 0 100 100">
         <circle
           class="score-rank-circle__background"
@@ -23,13 +23,20 @@
         />
       </svg>
     </div>
+
     <div class="score-rank-circle__text-wrapper">
       <span class="score-rank-circle__rank" :class="scoreRankClass">{{
         rank
       }}</span>
       <span class="score-rank-circle__title">Rank</span>
     </div>
-    <div class="score-rank-circle__info">
+
+    <div
+      class="score-rank-circle__info"
+      tabindex="0"
+      aria-label="スコア算出方法について"
+      aria-describedby="score-tooltip"
+    >
       <svg
         class="score-rank-circle__info-icon"
         viewBox="0 0 24 24"
@@ -38,13 +45,14 @@
         stroke-width="2"
         stroke-linecap="round"
         stroke-linejoin="round"
+        aria-hidden="true"
       >
         <circle cx="12" cy="12" r="10"></circle>
         <path d="M12 16v-4"></path>
         <path d="M12 8h.01"></path>
       </svg>
 
-      <div class="score-rank-circle__tooltip">
+      <div id="score-tooltip" class="score-rank-circle__tooltip" role="tooltip">
         <p class="score-rank-circle__tooltip-title">スコア算出方法</p>
         <p class="score-rank-circle__tooltip-formula">KPM × (正確率 / 100)³</p>
         <ul class="score-rank-circle__tooltip-list">
@@ -67,15 +75,30 @@
 </template>
 
 <script setup>
+// =========================================================================
+// パッケージ・モジュールの読み込み
+// =========================================================================
 import { ref, computed, watch, onMounted } from "vue";
 import gsap from "gsap";
 
+// =========================================================================
+// Props & Emits
+// =========================================================================
+
+/**
+ * Props定義
+ * @type {import('vue').DefineProps<{
+ * score: number | string,
+ * autoPlay?: boolean
+ * }>}
+ */
 const props = defineProps({
   // 親から受け取るスコア値
   score: {
     type: [Number, String],
     required: true,
   },
+  // マウント時に自動でアニメーションを開始するかどうか
   autoPlay: {
     type: Boolean,
     default: false,
@@ -83,18 +106,30 @@ const props = defineProps({
 });
 
 // =========================================================================
-// 定数・計算ロジック
+// 定数定義
 // =========================================================================
+
+/**
+ * SVGの円の半径
+ * @type {number}
+ */
 const RADIUS = 45;
+
+/**
+ * 円周の長さ (2 * π * r)
+ * @type {number}
+ */
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 /**
  * スコア上限値
+ * @type {number}
  */
 const MAX_SCORE = 370;
 
 /**
  * ランク判定用のスコア閾値
+ * @type {Object.<string, number>}
  */
 const RANK_SCORE_THRESHOLDS = {
   S: Math.round(MAX_SCORE * 0.95),
@@ -102,13 +137,36 @@ const RANK_SCORE_THRESHOLDS = {
   B: Math.round(MAX_SCORE * 0.6),
 };
 
-// アニメーションで変化する値 (GSAPで操作)
+// =========================================================================
+// State (状態管理)
+// =========================================================================
+
+/**
+ * アニメーションで変化するプログレスバーのオフセット値
+ * @type {import('vue').Ref<number>}
+ */
 const progressCircleDashoffset = ref(CIRCUMFERENCE);
 
+/**
+ * 現在のランクを示すクラス名
+ * @type {import('vue').Ref<string>}
+ */
 const scoreRankClass = ref("rank-none");
+
+/**
+ * 現在のランクテキスト ("S", "A", "B", "C", "-")
+ * @type {import('vue').Ref<string>}
+ */
 const rank = ref("-");
 
-// 最終的な描画位置 (Dashoffset)
+// =========================================================================
+// Computed (計算プロパティ)
+// =========================================================================
+
+/**
+ * 最終的な描画位置 (Dashoffset) の算出
+ * @returns {number} 計算されたDashoffset値
+ */
 const resultDashoffset = computed(() => {
   if (!props.score || props.score === "-") return CIRCUMFERENCE;
 
@@ -119,22 +177,33 @@ const resultDashoffset = computed(() => {
   return CIRCUMFERENCE - (validScore / MAX_SCORE) * CIRCUMFERENCE;
 });
 
-// ランク判定ロジック
+// =========================================================================
+// Actions (処理)
+// =========================================================================
+
+/**
+ * 渡されたスコアからランクと適用するクラス名を判定する
+ * @param {number} checkScore - 判定対象のスコア
+ * @returns {{ rank: string, class: string }} 判定結果のオブジェクト
+ */
 const evaluateRank = (checkScore) => {
   if (!checkScore || isNaN(checkScore)) return { rank: "C", class: "rank-c" };
-  if (checkScore >= RANK_SCORE_THRESHOLDS.S) return { rank: "S", class: "rank-s" };
-  if (checkScore >= RANK_SCORE_THRESHOLDS.A) return { rank: "A", class: "rank-a" };
-  if (checkScore >= RANK_SCORE_THRESHOLDS.B) return { rank: "B", class: "rank-b" };
+  if (checkScore >= RANK_SCORE_THRESHOLDS.S)
+    return { rank: "S", class: "rank-s" };
+  if (checkScore >= RANK_SCORE_THRESHOLDS.A)
+    return { rank: "A", class: "rank-a" };
+  if (checkScore >= RANK_SCORE_THRESHOLDS.B)
+    return { rank: "B", class: "rank-b" };
   return { rank: "C", class: "rank-c" };
 };
 
 // =========================================================================
-// アニメーション連動処理
+// ライフサイクル & ウォッチャー
 // =========================================================================
 
 /**
  * プログレスバーのアニメーション中の値を監視して、
- * リアルタイムにランクテキストと色（クラス）を変化させる！
+ * リアルタイムにランクテキストと色（クラス）を変化させる
  */
 watch(progressCircleDashoffset, (newValue) => {
   if (newValue === CIRCUMFERENCE) {
@@ -143,24 +212,25 @@ watch(progressCircleDashoffset, (newValue) => {
     return;
   }
 
-  // 今のアニメーションの「描画位置(オフセット)」から「現在のスコア」を逆算！
-  const currentAnimatedScore = Math.round(MAX_SCORE * (1 - newValue / CIRCUMFERENCE));
+  // アニメーションの描画位置から現在のスコアを逆算
+  const currentAnimatedScore = Math.round(
+    MAX_SCORE * (1 - newValue / CIRCUMFERENCE)
+  );
 
-  // 共通の関数で判定してセット！
   const evaluated = evaluateRank(currentAnimatedScore);
   scoreRankClass.value = evaluated.class;
   rank.value = evaluated.rank;
 });
 
 // =========================================================================
-// アニメーション制御
+// 外部公開 (Expose)
 // =========================================================================
 
 /**
- * 外部（親コンポーネント）から自由に呼び出せるアニメーション発火関数！
+ * GSAPアニメーションを発火する関数
+ * @returns {void}
  */
 const playAnimation = () => {
-  // 常に初期位置（0%）から目標値へアニメーションさせる
   gsap.fromTo(
     progressCircleDashoffset,
     { value: CIRCUMFERENCE },
@@ -169,19 +239,22 @@ const playAnimation = () => {
 };
 
 /**
- * 現在のスコアから「最終的なランク」を計算して返す関数
+ * 現在のプロパティのスコアから最終的なランクを計算して返す関数
+ * @returns {string} 最終ランク ("S", "A", "B", "C")
  */
 const getFinalRank = () => {
   return evaluateRank(Number(props.score)).rank;
 };
 
-// defineExposeを使うと、親コンポーネントから playAnimation() を直接叩ける
+// 親コンポーネントから直接メソッドを呼び出せるように公開
 defineExpose({
   playAnimation,
   getFinalRank,
 });
 
-// マウント時に autoPlay が true なら自動実行
+/**
+ * マウント時処理
+ */
 onMounted(() => {
   if (props.autoPlay) {
     playAnimation();
@@ -190,6 +263,10 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+/* =========================================================================
+ * スコアランクサークル コンポーネントスタイル
+ * ========================================================================= */
+
 .score-rank-circle {
   @include fluid-style(width, 90, 108);
   @include fluid-style(height, 90, 108);
@@ -200,6 +277,7 @@ onMounted(() => {
   display: grid;
   place-content: center;
 
+  /* --- プログレスバー (SVG) --- */
   &__svg-wrapper {
     position: absolute;
     top: 50%;
@@ -240,6 +318,7 @@ onMounted(() => {
     }
   }
 
+  /* --- 中央のテキスト群 --- */
   &__text-wrapper {
     display: flex;
     flex-direction: column;
@@ -284,6 +363,7 @@ onMounted(() => {
     letter-spacing: 0.05em;
   }
 
+  /* --- ツールチップ関連 --- */
   &__info {
     position: absolute;
     right: 9rem;
@@ -294,7 +374,7 @@ onMounted(() => {
     width: 2.4rem;
     aspect-ratio: 1;
     color: $light-black;
-    cursor: help; // カーソルを「？」マークにする
+    cursor: help;
     background-color: $white;
     border-radius: 50%;
     transition: color $transition-base, transform $transition-base;
@@ -303,11 +383,11 @@ onMounted(() => {
       right: -1.6rem;
     }
 
-    &:hover {
+    &:hover,
+    &:focus-visible {
       color: $green;
       transform: scale(1.1);
 
-      /* ホバー時にツールチップを表示させる！ */
       #{$parent}__tooltip {
         visibility: visible;
         opacity: 1;
@@ -336,7 +416,6 @@ onMounted(() => {
     transition: opacity $transition-base, transform $transition-base,
       visibility $transition-base;
 
-    /* 吹き出しの三角 */
     &::after {
       position: absolute;
       bottom: 100%;
@@ -380,7 +459,6 @@ onMounted(() => {
       align-items: center;
     }
 
-    /* ランクの文字色付け */
     span {
       display: inline-block;
       width: 1.8rem;
