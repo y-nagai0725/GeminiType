@@ -2,9 +2,18 @@
   <Teleport to="body">
     <Transition name="modal-fade">
       <div v-if="show" class="warning-modal__overlay">
-        <div class="warning-modal__content">
-          <p class="warning-modal__title">プレイ環境について</p>
-          <div class="warning-modal__message">
+        <div
+          class="warning-modal__content"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="warning-modal-title"
+          aria-describedby="warning-modal-desc"
+        >
+          <h2 id="warning-modal-title" class="warning-modal__title">
+            プレイ環境について
+          </h2>
+
+          <div id="warning-modal-desc" class="warning-modal__message">
             <p>
               このゲームは<strong>物理キーボード</strong>でのプレイを想定しています。
             </p>
@@ -18,6 +27,7 @@
 
           <div class="warning-modal__actions">
             <button
+              type="button"
               @click="$emit('cancel')"
               class="warning-modal__button warning-modal__button--cancel"
             >
@@ -25,6 +35,7 @@
             </button>
 
             <button
+              type="button"
               @click="$emit('play')"
               class="warning-modal__button warning-modal__button--play"
             >
@@ -38,7 +49,17 @@
 </template>
 
 <script setup>
-// 親から受け取る設定 (Props)
+// =========================================================================
+// Props & Emits
+// =========================================================================
+
+/**
+ * Props定義
+ * @type {import('vue').DefineProps<{
+ * show: boolean,
+ * cancelText?: string
+ * }>}
+ */
 defineProps({
   show: {
     type: Boolean,
@@ -50,7 +71,10 @@ defineProps({
   },
 });
 
-// 親へ送る通知 (Emits)
+/**
+ * Emits定義
+ * @type {import('vue').DefineEmits<{(e: 'cancel'): void, (e: 'play'): void}>}
+ */
 defineEmits(["cancel", "play"]);
 </script>
 
