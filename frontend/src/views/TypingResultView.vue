@@ -240,23 +240,6 @@ const isCommentLoading = ref(false);
 const currentAiIcon = ref(iconLoading);
 
 // =========================================================================
-// 定数定義
-// =========================================================================
-/**
- * スコア上限値
- */
-const MAX_SCORE = 370;
-
-/**
- * ランク判定用のスコア閾値
- */
-const RANK_THRESHOLDS = {
-  S: Math.round(MAX_SCORE * 0.95),
-  A: Math.round(MAX_SCORE * 0.75),
-  B: Math.round(MAX_SCORE * 0.6),
-};
-
-// =========================================================================
 // DOM / コンポーネント参照 (Refs)
 // =========================================================================
 
@@ -295,7 +278,7 @@ const score = computed(() => {
   if (!resultData.value) return "-";
   const kpm = resultData.value.stats.kpm;
   const acc = resultData.value.stats.accuracy;
-  return Math.round(kpm * ((acc / 100) ** 3));
+  return Math.round(kpm * (acc / 100) ** 3);
 });
 
 // =========================================================================
@@ -328,16 +311,21 @@ const fetchAiComment = async () => {
 
     aiComment.value = response.data.comment;
 
-    // コメント取得成功後、スコアに合わせてAIアイコンを切り替える
-    const currentScore = score.value;
-    if (currentScore >= RANK_THRESHOLDS.S) {
+    // ランクを取得
+    let finalRank = "C";
+    if (scoreRankCircleRef.value) {
+      finalRank = scoreRankCircleRef.value.getFinalRank();
+    }
+
+    // 取得したランクに合わせてAIアイコンを切り替える
+    if (finalRank === "S") {
       currentAiIcon.value = iconRankS;
-    } else if (currentScore >= RANK_THRESHOLDS.A) {
+    } else if (finalRank === "A") {
       currentAiIcon.value = iconRankA;
-    } else if (currentScore >= RANK_THRESHOLDS.B) {
+    } else if (finalRank === "B") {
       currentAiIcon.value = iconRankB;
     } else {
-      currentAiIcon.value = iconRankC; // B未満はCランク扱い
+      currentAiIcon.value = iconRankC;
     }
   } catch (error) {
     console.error("AIコメント取得エラー:", error);

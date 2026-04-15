@@ -76,7 +76,6 @@ const props = defineProps({
     type: [Number, String],
     required: true,
   },
-  // trueにすると、コンポーネントが表示された瞬間に自動でアニメーションする（結果画面用）
   autoPlay: {
     type: Boolean,
     default: false,
@@ -95,21 +94,12 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 const MAX_SCORE = 370;
 
 /**
- * ランク判定用の割合閾値
- */
-const RANK_PERCENTAGE_THRESHOLDS = {
-  S: 0.95,
-  A: 0.75,
-  B: 0.6,
-};
-
-/**
  * ランク判定用のスコア閾値
  */
 const RANK_SCORE_THRESHOLDS = {
-  S: Math.round(MAX_SCORE * RANK_PERCENTAGE_THRESHOLDS.S),
-  A: Math.round(MAX_SCORE * RANK_PERCENTAGE_THRESHOLDS.A),
-  B: Math.round(MAX_SCORE * RANK_PERCENTAGE_THRESHOLDS.B),
+  S: Math.round(MAX_SCORE * 0.95),
+  A: Math.round(MAX_SCORE * 0.75),
+  B: Math.round(MAX_SCORE * 0.6),
 };
 
 // アニメーションで変化する値 (GSAPで操作)
@@ -118,17 +108,25 @@ const progressCircleDashoffset = ref(CIRCUMFERENCE);
 const scoreRankClass = ref("rank-none");
 const rank = ref("-");
 
-// スコアの最終的な割合 (0〜100%)
-const scorePercent = computed(() => {
-  if (!props.score || props.score === "-") return 0;
-  return Math.round((props.score / MAX_SCORE) * 100);
-});
-
 // 最終的な描画位置 (Dashoffset)
 const resultDashoffset = computed(() => {
-  const validPercent = Math.min(100, Math.max(0, scorePercent.value));
-  return CIRCUMFERENCE - (validPercent / 100) * CIRCUMFERENCE;
+  if (!props.score || props.score === "-") return CIRCUMFERENCE;
+
+  // スコアを0〜MAX_SCOREの範囲に収める
+  const validScore = Math.min(MAX_SCORE, Math.max(0, Number(props.score)));
+
+  // スコアの割合から描画位置を計算
+  return CIRCUMFERENCE - (validScore / MAX_SCORE) * CIRCUMFERENCE;
 });
+
+// ランク判定ロジック
+const evaluateRank = (checkScore) => {
+  if (!checkScore || isNaN(checkScore)) return { rank: "C", class: "rank-c" };
+  if (checkScore >= RANK_SCORE_THRESHOLDS.S) return { rank: "S", class: "rank-s" };
+  if (checkScore >= RANK_SCORE_THRESHOLDS.A) return { rank: "A", class: "rank-a" };
+  if (checkScore >= RANK_SCORE_THRESHOLDS.B) return { rank: "B", class: "rank-b" };
+  return { rank: "C", class: "rank-c" };
+};
 
 // =========================================================================
 // アニメーション連動処理
@@ -139,31 +137,19 @@ const resultDashoffset = computed(() => {
  * リアルタイムにランクテキストと色（クラス）を変化させる！
  */
 watch(progressCircleDashoffset, (newValue) => {
-  // 現在の描画位置から、今何%までアニメーションが進んでいるかを逆算する
-  const currentPercent = Math.round(
-    Math.max(0, (1 - newValue / CIRCUMFERENCE) * 100)
-  );
-
-  if (currentPercent === 0) {
+  if (newValue === CIRCUMFERENCE) {
     scoreRankClass.value = "rank-none";
     rank.value = "-";
     return;
   }
 
-  // 進行度合いに応じてランクをリアルタイム更新
-  if (currentPercent >= RANK_PERCENTAGE_THRESHOLDS.S * 100) {
-    scoreRankClass.value = "rank-s";
-    rank.value = "S";
-  } else if (currentPercent >= RANK_PERCENTAGE_THRESHOLDS.A * 100) {
-    scoreRankClass.value = "rank-a";
-    rank.value = "A";
-  } else if (currentPercent >= RANK_PERCENTAGE_THRESHOLDS.B * 100) {
-    scoreRankClass.value = "rank-b";
-    rank.value = "B";
-  } else {
-    scoreRankClass.value = "rank-c";
-    rank.value = "C";
-  }
+  // 今のアニメーションの「描画位置(オフセット)」から「現在のスコア」を逆算！
+  const currentAnimatedScore = Math.round(MAX_SCORE * (1 - newValue / CIRCUMFERENCE));
+
+  // 共通の関数で判定してセット！
+  const evaluated = evaluateRank(currentAnimatedScore);
+  scoreRankClass.value = evaluated.class;
+  rank.value = evaluated.rank;
 });
 
 // =========================================================================
@@ -182,9 +168,17 @@ const playAnimation = () => {
   );
 };
 
+/**
+ * 現在のスコアから「最終的なランク」を計算して返す関数
+ */
+const getFinalRank = () => {
+  return evaluateRank(Number(props.score)).rank;
+};
+
 // defineExposeを使うと、親コンポーネントから playAnimation() を直接叩ける
 defineExpose({
   playAnimation,
+  getFinalRank,
 });
 
 // マウント時に autoPlay が true なら自動実行
