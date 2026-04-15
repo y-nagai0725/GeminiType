@@ -1,40 +1,63 @@
 <template>
-  <div class="pagination-wrapper" v-if="totalPages > 1">
+  <nav
+    class="pagination-wrapper"
+    aria-label="ページネーション"
+    v-if="totalPages > 1"
+  >
     <div class="pagination">
       <button
+        type="button"
         class="page-button is-prev"
         :class="{ 'is-disabled': currentPage === 1 }"
         @click="onPageChange(currentPage - 1)"
         :disabled="currentPage === 1"
+        aria-label="前のページへ"
       ></button>
 
       <template v-for="(item, index) in paginationItems">
         <button
           v-if="item !== '...'"
           :key="`num-${index}`"
+          type="button"
           class="page-button"
           :class="{ 'is-active': item === currentPage }"
+          :aria-current="item === currentPage ? 'page' : undefined"
+          :aria-label="`${item}ページ目へ`"
           @click="onPageChange(item)"
         >
           {{ item }}
         </button>
-        <span v-else :key="`dots-${index}`" class="page-dots">…</span>
+        <span v-else :key="`dots-${index}`" class="page-dots" aria-hidden="true"
+          >…</span
+        >
       </template>
 
       <button
+        type="button"
         class="page-button is-next"
         :class="{ 'is-disabled': currentPage === totalPages }"
         @click="onPageChange(currentPage + 1)"
         :disabled="currentPage === totalPages"
+        aria-label="次のページへ"
       ></button>
     </div>
-  </div>
+  </nav>
 </template>
 
 <script setup>
 import { computed } from "vue";
 
-// 親コンポーネントから受け取るデータ
+// =========================================================================
+// Props & Emits
+// =========================================================================
+
+/**
+ * Props定義
+ * @type {import('vue').DefineProps<{
+ * currentPage: number,
+ * totalPages: number
+ * }>}
+ */
 const props = defineProps({
   currentPage: {
     type: Number,
@@ -46,7 +69,10 @@ const props = defineProps({
   },
 });
 
-// 親コンポーネントに送るイベント
+/**
+ * Emits定義
+ * @type {import('vue').DefineEmits<{(e: 'page-change', page: number): void}>}
+ */
 const emit = defineEmits(["page-change"]);
 
 // =========================================================================
@@ -55,6 +81,7 @@ const emit = defineEmits(["page-change"]);
 
 /**
  * ページネーションの配列を計算 (例: [1, 2, 3, "...", 10])
+ * @returns {Array<number|string>} ページ番号と省略記号("...")を含む配列
  */
 const paginationItems = computed(() => {
   const current = props.currentPage;
@@ -88,7 +115,9 @@ const paginationItems = computed(() => {
 // =========================================================================
 
 /**
- * ページ変更ボタンが押された時の処理
+ * ページ変更ボタンが押された時のイベントハンドラ
+ * @param {number|string} page - 遷移先のページ番号、または省略記号
+ * @returns {void}
  */
 const onPageChange = (page) => {
   // 無効なクリック（「...」や現在のページなど）はガードする
@@ -100,7 +129,7 @@ const onPageChange = (page) => {
   )
     return;
 
-  // 親コンポーネントに「このページ番号を取得してね！」と通知する
+  // 親コンポーネントにページ変更を通知
   emit("page-change", page);
 };
 </script>
