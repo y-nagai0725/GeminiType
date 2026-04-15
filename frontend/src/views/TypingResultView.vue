@@ -724,6 +724,8 @@ onUnmounted(() => {
     }
 
     @include pc {
+      min-height: 22rem;
+
       &::after {
         top: 50%;
         left: 0;
