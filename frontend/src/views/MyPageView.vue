@@ -310,6 +310,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 /**
  * ローディングの最低表示時間 (ミリ秒)
+ * @type {number}
  */
 const MIN_LOADING_MS = 300;
 
@@ -318,7 +319,7 @@ const MIN_LOADING_MS = 300;
 // =========================================================================
 
 /**
- * router
+ * routerインスタンス
  */
 const router = useRouter();
 
@@ -334,54 +335,56 @@ const notificationStore = useNotificationStore();
 
 /**
  * ページ全体のローディング状態
+ * @type {import('vue').Ref<boolean>}
  */
 const isContentsLoading = ref(false);
 
 /**
  * グラフと表のローディング状態（ページネーション切り替え時用）
+ * @type {import('vue').Ref<boolean>}
  */
 const isSessionLoading = ref(false);
 
 /**
  * APIエラー時のメッセージ
+ * @type {import('vue').Ref<string>}
  */
 const errorMessage = ref("");
 
 /**
  * 統計データ
+ * @type {import('vue').Ref<Object>}
  */
 const stats = ref({
-  // 総タイプ数
   total_types: 0,
-  // 平均KPM
   average_kpm: 0,
-  // 平均正確率
   average_accuracy: 0,
-  // 苦手キー配列
   missed_keys_ranking: [],
-  // 初回プレイ日時
   first_play_at: null,
-  // 最新プレイ日時
   latest_play_at: null,
 });
 
 /**
  * 履歴データ一覧
+ * @type {import('vue').Ref<Array>}
  */
 const sessions = ref([]);
 
 /**
  * 履歴データページネーションの現在のページ数
+ * @type {import('vue').Ref<number>}
  */
 const currentPage = ref(1);
 
 /**
  * 履歴データ総件数
+ * @type {import('vue').Ref<number>}
  */
 const totalCount = ref(0);
 
 /**
  * 履歴データページネーションの総ページ数
+ * @type {import('vue').Ref<number>}
  */
 const totalPages = ref(1);
 
@@ -391,11 +394,13 @@ const totalPages = ref(1);
 
 /**
  * GSAPアニメーションのスコープ設定用ラッパー
+ * @type {import('vue').Ref<HTMLElement|null>}
  */
 const mypageWrapperRef = ref(null);
 
 /**
  * ScoreRankCircleコンポーネントのメソッド呼び出し用
+ * @type {import('vue').Ref<any>}
  */
 const scoreRankCircleRef = ref(null);
 
@@ -429,6 +434,7 @@ const {
 
 /**
  * スコア値の算出 (KPM * (正確率 / 100)^3)
+ * @returns {number|string} 計算されたスコア値、データが存在しない場合は "-"
  */
 const score = computed(() => {
   if (stats.value.average_kpm === 0 && stats.value.average_accuracy === 0)
@@ -443,7 +449,8 @@ const score = computed(() => {
 // =========================================================================
 
 /**
- * 統計データの取得
+ * 統計データの取得処理
+ * @returns {Promise<void>}
  */
 const fetchStats = async () => {
   try {
@@ -459,7 +466,9 @@ const fetchStats = async () => {
 };
 
 /**
- * 履歴データの取得 (ページ指定)
+ * 履歴データの取得処理 (ページ指定)
+ * @param {number} page - 取得するページ番号
+ * @returns {Promise<void>}
  */
 const fetchSessions = async (page) => {
   isSessionLoading.value = true;
@@ -486,7 +495,9 @@ const fetchSessions = async (page) => {
 };
 
 /**
- * ページ切り替えイベント
+ * ページ切り替えイベントのハンドラー
+ * @param {number} page - 切り替え先のページ番号
+ * @returns {Promise<void>}
  */
 const handlePageChange = async (page) => {
   try {
@@ -499,13 +510,14 @@ const handlePageChange = async (page) => {
 // =========================================================================
 // GSAP アニメーション制御
 // =========================================================================
+
 /**
  * GSAPコンテキスト (アンマウント時のクリーンアップ用)
  */
 let gsapContext;
 
 /**
- * GSAPアニメーション設定
+ * GSAPアニメーションのセットアップ処理
  */
 const setAnimation = () => {
   // アニメーション共通設定：開始状態
@@ -533,25 +545,22 @@ const setAnimation = () => {
     const historySection = ".mypage-view__section--history";
 
     // プロフィール以外の各セクションのスクロール連動表示
-    [
-      playDataSection,
-      weakKeysSection,
-      chartSection,
-      historySection,
-    ].forEach((section) => {
-      gsap.fromTo(
-        section,
-        { ...fromAnimationSettings },
-        {
-          ...toAnimationSettings,
-          scrollTrigger: {
-            trigger: section,
-            scroller: scrollContainer,
-            start: "top center+=20%",
-          },
-        }
-      );
-    });
+    [playDataSection, weakKeysSection, chartSection, historySection].forEach(
+      (section) => {
+        gsap.fromTo(
+          section,
+          { ...fromAnimationSettings },
+          {
+            ...toAnimationSettings,
+            scrollTrigger: {
+              trigger: section,
+              scroller: scrollContainer,
+              start: "top center+=20%",
+            },
+          }
+        );
+      }
+    );
 
     // プロフィールセクションとスコア円の連動タイムライン
     const timelineProfileSection = gsap.timeline({
