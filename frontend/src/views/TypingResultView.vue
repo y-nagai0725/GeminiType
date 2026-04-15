@@ -289,13 +289,13 @@ const {
 // =========================================================================
 
 /**
- * スコア値の算出 (KPM * (正確率 / 100))
+ * スコア値の算出 (KPM * (正確率 / 100)^3)
  */
 const score = computed(() => {
   if (!resultData.value) return "-";
   const kpm = resultData.value.stats.kpm;
   const acc = resultData.value.stats.accuracy;
-  return Math.round(kpm * (acc / 100));
+  return Math.round(kpm * ((acc / 100) ** 3));
 });
 
 // =========================================================================

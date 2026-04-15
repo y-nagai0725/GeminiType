@@ -429,14 +429,14 @@ const {
 // =========================================================================
 
 /**
- * スコア値の算出 (KPM * (正確率 / 100))
+ * スコア値の算出 (KPM * (正確率 / 100)^3)
  */
 const score = computed(() => {
   if (stats.value.average_kpm === 0 && stats.value.average_accuracy === 0)
     return "-";
   const kpm = stats.value.average_kpm;
   const acc = stats.value.average_accuracy;
-  return Math.round(kpm * (acc / 100));
+  return Math.round(kpm * ((acc / 100) ** 3));
 });
 
 // =========================================================================
