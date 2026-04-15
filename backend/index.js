@@ -158,15 +158,15 @@ const MAX_GEMINI_PROMPT_LENGTH = 20;
 /**
  * スコア上限値
  */
-const MAX_SCORE = 350;
+const MAX_SCORE = 370;
 
 /**
  * ランク判定用のスコア閾値
  */
 const RANK_THRESHOLDS = {
-  S: Math.round(MAX_SCORE * 0.95), // 333
-  A: Math.round(MAX_SCORE * 0.75), // 263
-  B: Math.round(MAX_SCORE * 0.6),  // 210
+  S: Math.round(MAX_SCORE * 0.95),
+  A: Math.round(MAX_SCORE * 0.75),
+  B: Math.round(MAX_SCORE * 0.6),
 };
 
 /**

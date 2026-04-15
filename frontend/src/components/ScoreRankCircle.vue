@@ -92,7 +92,7 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 /**
  * スコア上限値
  */
-const MAX_SCORE = 350;
+const MAX_SCORE = 370;
 
 /**
  * ランク判定用の割合閾値

@@ -245,7 +245,7 @@ const currentAiIcon = ref(iconLoading);
 /**
  * スコア上限値
  */
-const MAX_SCORE = 350;
+const MAX_SCORE = 370;
 
 /**
  * ランク判定用のスコア閾値
