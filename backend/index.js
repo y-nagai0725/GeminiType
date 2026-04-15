@@ -156,6 +156,20 @@ const MAX_PROBLEM_HIRAGANA_LENGTH = 50;
 const MAX_GEMINI_PROMPT_LENGTH = 20;
 
 /**
+ * スコア上限値
+ */
+const MAX_SCORE = 350;
+
+/**
+ * ランク判定用のスコア閾値
+ */
+const RANK_THRESHOLDS = {
+  S: Math.round(MAX_SCORE * 0.95), // 333
+  A: Math.round(MAX_SCORE * 0.75), // 263
+  B: Math.round(MAX_SCORE * 0.6),  // 210
+};
+
+/**
  * Yahoo web APIのURL
  */
 const YAHOO_API_URL = 'https://jlp.yahooapis.jp/FuriganaService/V2/furigana';
@@ -1081,6 +1095,15 @@ app.post('/api/typing/ai-comment', async (req, res) => {
       return res.status(400).json({ message: 'ミスしたキーのデータが多すぎます。' });
     }
 
+    // スコア計算式 (KPM * (正確率 / 100)^3)
+    const score = Math.round(kpm * ((accuracy / 100) ** 3));
+
+    // ランクの判定
+    let rank = "C";
+    if (score >= RANK_THRESHOLDS.S) rank = "S";
+    else if (score >= RANK_THRESHOLDS.A) rank = "A";
+    else if (score >= RANK_THRESHOLDS.B) rank = "B";
+
     // 苦手キーの情報を整理（Top 3を教える）
     // missedKeys は { "a": 2, "k": 1 } みたいなオブジェクト
     const missedKeyText = Object.entries(missedKeys || {})
@@ -1093,12 +1116,28 @@ app.post('/api/typing/ai-comment', async (req, res) => {
     あなたはタイピング練習ゲームのコーチです。
     あなたは「妹キャラ」です。
     ユーザーのタイピング結果に対して、可愛く、励ましや称賛のコメントをしてください。
+
     【条件】
-    - 150文字以内で簡潔に。
+    - 160文字程度。
     - 口調は「〜だね！」「〜だよ！」のように親しみやすく、敬語は使いすぎないこと。
     - 「妹キャラ」で話すことが大事ですが、ユーザーの性別は固定ではないので「お兄ちゃん」や「お姉ちゃん」は使わないようにすること。
-    - KPMが350以上且つ正確率が98%以上ならしっかりと褒める。
-    - 正確率が95%未満なら、正確さを意識するようアドバイスする。
+
+    【スコア・ランクのルール】
+    - スコア算出式： KPM * (正確率 / 100)^3
+    - 各ランクのしきい値（ボーダーライン）：
+      - Sランク：${RANK_THRESHOLDS.S}点以上
+      - Aランク：${RANK_THRESHOLDS.A}点以上
+      - Bランク：${RANK_THRESHOLDS.B}点以上
+      - Cランク：${RANK_THRESHOLDS.B}点未満
+
+    【コメントの指針】
+    - 今回の成績の「ランク (S, A, B, C)」に応じたリアクションを必ず入れること：
+      - ランクS: 大絶賛して、最高に褒めちぎる。
+      - ランクA: すごく褒めつつ、Sランクまであと一歩だと熱く励ます。
+      - ランクB: 頑張りをねぎらいつつ、さらに上を目指すよう応援する。
+      - ランクC: 落ち込まないように優しく慰め、まずは正確さを意識して打つようにアドバイスする。
+    - 渡されたスコアとしきい値を比較して、しきい値付近(20点くらい)のスコアの場合は「あと何点でAランクだね！惜しいっ！」のように、次のランクへの具体的なアドバイスをしてください。
+    - 正確率が低い（特に95%未満）ユーザーには、「スピードを少し落としてでも正確に打つと、スコアが爆伸びするよ！」といった、計算式の特性に基づいた助言をしてください。
     - ミスしたキーがあれば、具体的な練習のアドバイスを含める。
     - 絵文字を1〜2個使って可愛くすること。
     `;
@@ -1106,6 +1145,8 @@ app.post('/api/typing/ai-comment', async (req, res) => {
     // 状況説明を作る
     let statusDescription = `
     【今回の成績】
+    - スコア: ${score}
+    - ランク: ${rank}
     - KPM (1分間の打鍵数): ${kpm}
     - 正確率: ${accuracy}%
     - ミスしたキーTOP3: ${missedKeyText || 'なし（完璧！）'}`;
