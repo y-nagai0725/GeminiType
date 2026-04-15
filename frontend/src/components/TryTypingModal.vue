@@ -2,12 +2,22 @@
   <Teleport to="body">
     <Transition name="modal-fade">
       <div v-if="show" class="try-modal__overlay" @click.self="handleClose">
-        <div class="try-modal__content">
-          <button @click="handleClose" class="try-modal__close">
-            <PlusIcon class="try-modal__close-icon" />
+        <div
+          class="try-modal__content"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="try-modal-title"
+        >
+          <button
+            type="button"
+            @click="handleClose"
+            class="try-modal__close"
+            aria-label="モーダルを閉じる"
+          >
+            <PlusIcon class="try-modal__close-icon" aria-hidden="true" />
           </button>
 
-          <p class="try-modal__title">試し打ち</p>
+          <h2 id="try-modal-title" class="try-modal__title">試し打ち</h2>
 
           <div class="try-modal__sound-settings">
             <label class="try-modal__sound-label">
@@ -51,29 +61,43 @@ import PlusIcon from "@/components/icons/PlusIcon.vue";
 // =========================================================================
 // Props & Emits
 // =========================================================================
+
+/**
+ * Props定義
+ * @type {import('vue').DefineProps<{
+ * show: boolean,
+ * problem: Object|null,
+ * showDebug: boolean
+ * }>}
+ */
 const props = defineProps({
-  // モーダルの表示・非表示
   show: {
     type: Boolean,
     required: true,
   },
-  // 試し打ちする問題データ
   problem: {
     type: Object,
     default: null,
   },
-  // デバッグ表示（AdminView用）
   showDebug: {
     type: Boolean,
     default: false,
   },
 });
 
+/**
+ * Emits定義
+ * @type {import('vue').DefineEmits<{(e: 'close'): void}>}
+ */
 const emit = defineEmits(["close"]);
 
 // =========================================================================
 // State (状態管理)
 // =========================================================================
+
+/**
+ * 設定管理用のストア
+ */
 const settingsStore = useSettingsStore();
 
 // =========================================================================
@@ -81,14 +105,17 @@ const settingsStore = useSettingsStore();
 // =========================================================================
 
 /**
- * モーダルを閉じる処理
+ * モーダルを閉じるイベントを発火する
+ * @returns {void}
  */
 const handleClose = () => {
   emit("close");
 };
 
 /**
- * ESCキーが押された時の処理
+ * ESCキーが押下された際にモーダルを閉じる
+ * @param {KeyboardEvent} e - キーボードイベント
+ * @returns {void}
  */
 const handleEscClose = (e) => {
   if (e.key === "Escape") {
@@ -100,7 +127,7 @@ const handleEscClose = (e) => {
 // ライフサイクル & ウォッチャー
 // =========================================================================
 
-// モーダルが開いている時だけ、ESCキーのイベントを監視する
+// モーダルが開いている時のみ、ESCキーのイベントリスナーを登録する
 watch(
   () => props.show,
   (isShown) => {
@@ -112,7 +139,7 @@ watch(
   }
 );
 
-// コンポーネントが破棄された時にイベント削除
+// コンポーネント破棄時にイベントリスナーを確実に削除する
 onUnmounted(() => {
   window.removeEventListener("keydown", handleEscClose);
 });
