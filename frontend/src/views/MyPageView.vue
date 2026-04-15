@@ -1,7 +1,7 @@
 <template>
   <div class="mypage-view">
     <h1 class="mypage-view__title">
-      <span class="en">MYPAGE</span>
+      <span class="en" aria-hidden="true">MYPAGE</span>
       <span class="ja">マイページ</span>
     </h1>
 
@@ -14,23 +14,34 @@
       </template>
 
       <template v-else-if="errorMessage">
-        <div class="mypage-view__error">
+        <div class="mypage-view__error" role="alert">
           <p class="mypage-view__error-message">
             {{ errorMessage }}
           </p>
           <RouterLink to="/menu" class="mypage-view__back-button">
-            メインメニューに戻る<ArrowIcon class="mypage-view__arrow-icon" />
+            メインメニューに戻る<ArrowIcon
+              class="mypage-view__arrow-icon"
+              aria-hidden="true"
+            />
           </RouterLink>
         </div>
       </template>
 
       <template v-else>
         <div class="mypage-view__top-grid-wrapper">
-          <section class="mypage-view__section mypage-view__section--profile">
-            <h2 class="mypage-view__subtitle">プロフィール</h2>
+          <section
+            class="mypage-view__section mypage-view__section--profile"
+            aria-labelledby="profile-heading"
+          >
+            <h2 id="profile-heading" class="mypage-view__subtitle">
+              プロフィール
+            </h2>
             <div class="mypage-view__profile-wrapper">
               <div class="mypage-view__profile">
-                <UserIcon class="mypage-view__profile-user-icon" />
+                <UserIcon
+                  class="mypage-view__profile-user-icon"
+                  aria-hidden="true"
+                />
                 <dl class="mypage-view__profile-info">
                   <div class="mypage-view__profile-item">
                     <dt class="mypage-view__profile-heading">お名前</dt>
@@ -68,6 +79,7 @@
                 <div class="mypage-view__score-item">
                   <ScoreIcon
                     class="mypage-view__card-icon mypage-view__card-icon--score"
+                    aria-hidden="true"
                   />
                   <span class="mypage-view__card-title">総合スコア</span>
                   <span
@@ -81,12 +93,18 @@
             </div>
           </section>
 
-          <section class="mypage-view__section mypage-view__section--play-data">
-            <h2 class="mypage-view__subtitle">プレイデータ</h2>
+          <section
+            class="mypage-view__section mypage-view__section--play-data"
+            aria-labelledby="play-data-heading"
+          >
+            <h2 id="play-data-heading" class="mypage-view__subtitle">
+              プレイデータ
+            </h2>
             <div class="mypage-view__stats-card-wrapper">
               <div class="mypage-view__stat-card">
                 <KpmIcon
                   class="mypage-view__card-icon mypage-view__card-icon--kpm"
+                  aria-hidden="true"
                 />
                 <span class="mypage-view__card-title">平均 KPM</span>
                 <span
@@ -98,6 +116,7 @@
               <div class="mypage-view__stat-card">
                 <AccuracyIcon
                   class="mypage-view__card-icon mypage-view__card-icon--accuracy"
+                  aria-hidden="true"
                 />
                 <span class="mypage-view__card-title">平均 正確率</span>
                 <span
@@ -111,6 +130,7 @@
               <div class="mypage-view__stat-card">
                 <TotalTypeCountIcon
                   class="mypage-view__card-icon mypage-view__card-icon--total-type-count"
+                  aria-hidden="true"
                 />
                 <span class="mypage-view__card-title">総タイプ数</span>
                 <span
@@ -126,9 +146,12 @@
             </div>
           </section>
 
-          <section class="mypage-view__section mypage-view__section--weak-keys">
-            <h2 class="mypage-view__subtitle">
-              苦手なキー<span class="en">(Top5)</span>
+          <section
+            class="mypage-view__section mypage-view__section--weak-keys"
+            aria-labelledby="weak-keys-heading"
+          >
+            <h2 id="weak-keys-heading" class="mypage-view__subtitle">
+              苦手なキー<span class="en" aria-hidden="true">(Top5)</span>
             </h2>
             <div
               v-if="stats.missed_keys_ranking.length === 0"
@@ -153,8 +176,12 @@
             </div>
           </section>
         </div>
-        <section class="mypage-view__section mypage-view__section--chart">
-          <h2 class="mypage-view__subtitle">成長グラフ</h2>
+
+        <section
+          class="mypage-view__section mypage-view__section--chart"
+          aria-labelledby="chart-heading"
+        >
+          <h2 id="chart-heading" class="mypage-view__subtitle">成長グラフ</h2>
           <div v-if="sessions.length === 0" class="mypage-view__no-data">
             まだ履歴がありません。たくさん遊んでね！
           </div>
@@ -177,8 +204,11 @@
           </div>
         </section>
 
-        <section class="mypage-view__section mypage-view__section--history">
-          <h2 class="mypage-view__subtitle">プレイ履歴</h2>
+        <section
+          class="mypage-view__section mypage-view__section--history"
+          aria-labelledby="history-heading"
+        >
+          <h2 id="history-heading" class="mypage-view__subtitle">プレイ履歴</h2>
           <div v-if="sessions.length === 0" class="mypage-view__no-data">
             まだ履歴がありません。たくさん遊んでね！
           </div>
@@ -237,9 +267,15 @@
                         <RouterLink
                           :to="`/mypage/session/${session.id}`"
                           class="mypage-view__detail-link"
+                          :aria-label="`${formatDate(
+                            session.created_at
+                          )}のプレイ詳細を見る`"
                         >
                           詳細
-                          <ArrowIcon class="mypage-view__arrow-icon" />
+                          <ArrowIcon
+                            class="mypage-view__arrow-icon"
+                            aria-hidden="true"
+                          />
                         </RouterLink>
                       </td>
                     </tr>
@@ -256,7 +292,10 @@
           </template>
           <div class="mypage-view__back">
             <RouterLink to="/menu" class="mypage-view__back-button">
-              メインメニューに戻る<ArrowIcon class="mypage-view__arrow-icon" />
+              メインメニューに戻る<ArrowIcon
+                class="mypage-view__arrow-icon"
+                aria-hidden="true"
+              />
             </RouterLink>
           </div>
         </section>
