@@ -1,6 +1,6 @@
 <template>
   <Transition name="submenu-fade">
-    <div v-if="isVisible" class="submenu">
+    <nav v-if="isVisible" class="submenu" aria-label="サブナビゲーション">
       <div class="submenu__inner">
         <div class="submenu__title-wrapper">
           <span class="submenu__title-en">SUBMENU</span>
@@ -38,13 +38,13 @@
               </RouterLink>
             </li>
             <li class="submenu__item">
-              <a href="#" class="submenu__link" @click.prevent="handleLogout">
+              <button type="button" class="submenu__link" @click="handleLogout">
                 <span class="submenu__link-title-wrapper">
                   <span class="submenu__link-title-en">LOGOUT</span>
                   <span class="submenu__link-title-jp">ログアウト</span>
                 </span>
                 <LogoutIcon class="submenu__link-icon" />
-              </a>
+              </button>
             </li>
           </template>
           <li class="submenu__item">
@@ -69,7 +69,7 @@
           </template>
         </ul>
       </div>
-    </div>
+    </nav>
   </Transition>
 </template>
 
@@ -104,12 +104,14 @@ const notificationStore = useNotificationStore();
 
 /**
  * ルート情報
+ * @type {import('vue-router').RouteLocationNormalizedLoaded}
  */
 const route = useRoute();
 
 /**
  * サブメニューを表示するルート名（画面一覧）
  * ※全画面で表示するわけではなく、特定の機能画面のフッター手前でのみ表示させるため
+ * @type {string[]}
  */
 const allowedRoutes = [
   "menu",
@@ -129,6 +131,7 @@ const allowedRoutes = [
 /**
  * サブメニューの表示・非表示判定
  * 現在開いている画面のルート名が allowedRoutes に含まれているかチェックします
+ * @type {import('vue').ComputedRef<boolean>}
  */
 const isVisible = computed(() => {
   const routeName = route.name;
@@ -141,6 +144,7 @@ const isVisible = computed(() => {
 
 /**
  * ログアウト処理
+ * @returns {void}
  */
 const handleLogout = () => {
   // ログアウト
@@ -224,9 +228,11 @@ const handleLogout = () => {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    text-align: left;
 
     /* 全体がクリック可能であることをユーザーに直感的に伝える */
     cursor: pointer;
+    outline: none;
     background-color: $white;
     border: 2px solid $green;
     border-radius: $radius-lg;
