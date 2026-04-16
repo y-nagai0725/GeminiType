@@ -25,7 +25,6 @@
                 type="checkbox"
                 class="try-modal__sound-checkbox"
                 v-model="settingsStore.soundEnabled"
-                @change="settingsStore.saveSettings"
               />
               タイプ音
             </label>
@@ -34,7 +33,6 @@
                 type="checkbox"
                 class="try-modal__sound-checkbox"
                 v-model="settingsStore.missSoundEnabled"
-                @change="settingsStore.saveSettings"
               />
               ミス音
             </label>

@@ -22,7 +22,7 @@
           <p class="setup-view__heading">問題数</p>
           <div class="setup-view__radios">
             <label
-              v-for="count in PROBLEM_COUNTS"
+              v-for="count in settingsStore.PROBLEM_COUNTS"
               :key="count"
               class="setup-view__radio-label"
             >
@@ -43,7 +43,7 @@
             <label class="setup-view__radio-label">
               <input
                 type="radio"
-                value="normal"
+                :value="settingsStore.GAME_MODES.NORMAL"
                 v-model="settingsStore.gameMode"
                 class="setup-view__radio"
               />
@@ -52,7 +52,7 @@
             <label class="setup-view__radio-label">
               <input
                 type="radio"
-                value="time_limit"
+                :value="settingsStore.GAME_MODES.TIME_LIMIT"
                 v-model="settingsStore.gameMode"
                 class="setup-view__radio"
               />
@@ -61,7 +61,7 @@
             <label class="setup-view__radio-label">
               <input
                 type="radio"
-                value="sudden_death"
+                :value="settingsStore.GAME_MODES.SUDDEN_DEATH"
                 v-model="settingsStore.gameMode"
                 class="setup-view__radio"
               />
@@ -85,7 +85,7 @@
                 id="time-limit"
               >
                 <option
-                  v-for="time in TIME_LIMIT_OPTIONS"
+                  v-for="time in settingsStore.TIME_LIMIT_OPTIONS"
                   :key="time"
                   :value="time"
                 >
@@ -109,7 +109,7 @@
                 id="sudden-death"
               >
                 <option
-                  v-for="miss in MISS_LIMIT_OPTIONS"
+                  v-for="miss in settingsStore.MISS_LIMIT_OPTIONS"
                   :key="miss"
                   :value="miss"
                 >
@@ -195,35 +195,18 @@ import TimerIcon from "@/components/icons/TimerIcon.vue";
 import SuddenDeathIcon from "@/components/icons/SuddenDeathIcon.vue";
 
 // =========================================================================
-// 定数定義
-// =========================================================================
-
-/**
- * 選択可能な問題数リスト
- */
-const PROBLEM_COUNTS = [5, 10, 20, 30];
-
-/**
- * 選択可能な制限時間リスト (秒)
- */
-const TIME_LIMIT_OPTIONS = [30, 60, 90, 120];
-
-/**
- * 選択可能な許容ミス数リスト (回)
- */
-const MISS_LIMIT_OPTIONS = [0, 1, 3, 5, 10];
-
-// =========================================================================
 // State (状態管理)
 // =========================================================================
 
 /**
  * route
+ * @type {import('vue-router').RouteLocationNormalizedLoaded}
  */
 const route = useRoute();
 
 /**
  * router
+ * @type {import('vue-router').Router}
  */
 const router = useRouter();
 
@@ -241,21 +224,25 @@ const notificationStore = useNotificationStore();
 
 /**
  * URLクエリから取得: モード ('db' or 'gemini')
+ * @type {import('vue').ComputedRef<string|undefined>}
  */
 const mode = computed(() => route.query.mode);
 
 /**
  * URLクエリから取得: AIお題
+ * @type {import('vue').ComputedRef<string|undefined>}
  */
 const prompt = computed(() => route.query.prompt);
 
 /**
  * URLクエリから取得: ジャンルID
+ * @type {import('vue').ComputedRef<string|undefined>}
  */
 const genreId = computed(() => route.query.genreId);
 
 /**
  * URLクエリから取得: ジャンル名
+ * @type {import('vue').ComputedRef<string|undefined>}
  */
 const genreName = computed(() => route.query.genreName);
 
@@ -265,11 +252,9 @@ const genreName = computed(() => route.query.genreName);
 
 /**
  * タイピング開始処理
+ * @returns {void}
  */
 const handleStart = () => {
-  // 設定をlocalStorageに保存
-  settingsStore.saveSettings();
-
   // タイピング実行画面へ遷移
   router.push({
     path: "/typing/play",
