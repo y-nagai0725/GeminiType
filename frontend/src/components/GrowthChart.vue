@@ -39,17 +39,27 @@ ChartJS.register(
 // =========================================================================
 // Props & Emits
 // =========================================================================
+
+/**
+ * 親コンポーネントから受け取るデータ
+ * @type {Readonly<import('vue').ExtractPropTypes<{ sessions: { type: ArrayConstructor, required: true } }>>}
+ */
 const props = defineProps({
   // 履歴データ (新しい順に入ってる想定)
-  sessions: { type: Array, required: true },
+  sessions: {
+    type: Array,
+    required: true,
+  },
 });
 
 // =========================================================================
 // Helpers (便利ツール)
 // =========================================================================
+
 /**
  * :rootに定義されたCSS変数（カスタムプロパティ）の値を取得する
  * @param {string} varName - CSS変数名 (例: '--color-blue')
+ * @returns {string} 取得した色やフォントの文字列
  */
 const getCssVar = (varName) => {
   if (typeof document === "undefined") return ""; // 安全対策
@@ -63,23 +73,24 @@ const getCssVar = (varName) => {
 // =========================================================================
 
 /**
- * グラフデータ
+ * グラフに渡すデータセット (ラベル、KPM、正確率)
+ * @type {import('vue').ComputedRef<import('chart.js').ChartData<'line'>>}
  */
 const chartData = computed(() => {
   // グラフは「古い順（左→右）」で見たいから、配列を逆順にする
   const reversedSessions = props.sessions.slice().reverse();
 
-  // 日付ラベル
+  // 日付ラベルを作成
   const labels = reversedSessions.map((s) => {
     const d = new Date(s.created_at);
     return `${d.getMonth() + 1}/${d.getDate()}`;
   });
 
-  // KPMデータと正確率データ
+  // KPMデータと正確率データを作成
   const kpmData = reversedSessions.map((s) => Math.round(s.average_kpm));
   const accData = reversedSessions.map((s) => Math.round(s.average_accuracy));
 
-  // CSS変数を取得（予備色も設定）
+  // CSS変数を取得（取得できない場合の予備色も設定）
   const colorBlue = getCssVar("--color-blue") || "#3490d1";
   const colorGreen = getCssVar("--color-green") || "#41a9a5";
 
@@ -107,10 +118,11 @@ const chartData = computed(() => {
 });
 
 /**
- * オプション設定
+ * グラフのオプション設定 (見た目や動作のカスタマイズ)
+ * @type {import('vue').ComputedRef<import('chart.js').ChartOptions<'line'>>}
  */
 const chartOptions = computed(() => {
-  // CSS変数を取得
+  // CSS変数からデザイン用の値を取得
   const colorBlack = getCssVar("--color-black") || "#444444";
   const colorBlue = getCssVar("--color-blue") || "#3490d1";
   const colorGreen = getCssVar("--color-green") || "#41a9a5";
@@ -191,7 +203,7 @@ const chartOptions = computed(() => {
           },
         },
         grid: {
-          drawOnChartArea: false,
+          drawOnChartArea: false, // 右軸のグリッド線を消す
         },
       },
     },
