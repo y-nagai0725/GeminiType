@@ -7,6 +7,7 @@ import axios from 'axios';
 /**
  * Axiosのカスタムインスタンス
  * .env.localからベースURLを読み込んで設定する
+ * @type {import('axios').AxiosInstance}
  */
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL
@@ -22,7 +23,7 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token');
 
     // トークンがある場合は、リクエストヘッダーに'Bearer "token"'の形式で付与する
-    if (token) {
+    if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -43,8 +44,8 @@ api.interceptors.response.use(
   },
   async (error) => {
     // エラーが起きたAPIの「URL」と「ステータスコード」を取得
-    const originalRequestUrl = error.config.url;
-    const status = error.response ? error.response.status : null;
+    const originalRequestUrl = error.config?.url;
+    const status = error.response?.status;
 
     // 「401エラー（トークン切れ・未認証）」且つ「ログインAPI」ではない場合
     // ※ログイン時のパスワード間違い等(401)で強制ログアウト処理が走るのを防ぐため
