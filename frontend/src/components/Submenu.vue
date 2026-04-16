@@ -14,7 +14,7 @@
                   <span class="submenu__link-title-en">LOGIN</span>
                   <span class="submenu__link-title-jp">ログイン</span>
                 </span>
-                <LoginIcon class="submenu__link-icon" />
+                <LoginIcon class="submenu__link-icon" aria-hidden="true" />
               </RouterLink>
             </li>
             <li class="submenu__item">
@@ -23,7 +23,7 @@
                   <span class="submenu__link-title-en">REGISTER</span>
                   <span class="submenu__link-title-jp">ユーザー登録</span>
                 </span>
-                <RegisterIcon class="submenu__link-icon" />
+                <RegisterIcon class="submenu__link-icon" aria-hidden="true" />
               </RouterLink>
             </li>
           </template>
@@ -34,7 +34,7 @@
                   <span class="submenu__link-title-en">MYPAGE</span>
                   <span class="submenu__link-title-jp">マイページ</span>
                 </span>
-                <MyPageIcon class="submenu__link-icon" />
+                <MyPageIcon class="submenu__link-icon" aria-hidden="true" />
               </RouterLink>
             </li>
             <li class="submenu__item">
@@ -43,7 +43,7 @@
                   <span class="submenu__link-title-en">LOGOUT</span>
                   <span class="submenu__link-title-jp">ログアウト</span>
                 </span>
-                <LogoutIcon class="submenu__link-icon" />
+                <LogoutIcon class="submenu__link-icon" aria-hidden="true" />
               </button>
             </li>
           </template>
@@ -53,7 +53,7 @@
                 <span class="submenu__link-title-en">MAIN MENU</span>
                 <span class="submenu__link-title-jp">メインメニュー</span>
               </span>
-              <MainMenuIcon class="submenu__link-icon" />
+              <MainMenuIcon class="submenu__link-icon" aria-hidden="true" />
             </RouterLink>
           </li>
           <template v-if="authStore.isLoggedIn && authStore.canAccessAdmin">
@@ -63,7 +63,7 @@
                   <span class="submenu__link-title-en">ADMIN</span>
                   <span class="submenu__link-title-jp">管理画面</span>
                 </span>
-                <AdminIcon class="submenu__link-icon" />
+                <AdminIcon class="submenu__link-icon" aria-hidden="true" />
               </RouterLink>
             </li>
           </template>
