@@ -3,6 +3,7 @@
     class="mouse-stalker"
     :class="{ 'is-hovering': isHovering }"
     :style="stalkerStyle"
+    aria-hidden="true"
   ></div>
 </template>
 
@@ -18,16 +19,19 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 
 /**
  * マウスX座標
+ * @type {import('vue').Ref<number>}
  */
 const mouseX = ref(0);
 
 /**
  * マウスY座標
+ * @type {import('vue').Ref<number>}
  */
 const mouseY = ref(0);
 
 /**
  * ホバー状態かどうか (ボタン等に乗っているか)
+ * @type {import('vue').Ref<boolean>}
  */
 const isHovering = ref(false);
 
@@ -38,6 +42,7 @@ const isHovering = ref(false);
 /**
  * ストーカーの位置スタイルを動的に生成
  * (マウスの現在位置に translate で移動させる)
+ * @type {import('vue').ComputedRef<{ transform: string }>}
  */
 const stalkerStyle = computed(() => {
   return {
@@ -52,6 +57,7 @@ const stalkerStyle = computed(() => {
 /**
  * マウスが動いたときの処理 (座標の更新とホバー判定)
  * @param {MouseEvent} e - マウスイベント
+ * @returns {void}
  */
 const handleMouseMove = (e) => {
   // マウスの現在座標を更新
