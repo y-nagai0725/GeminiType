@@ -41,12 +41,14 @@ import MouseStalker from "@/components/MouseStalker.vue";
 
 /**
  * 現在のルート情報（URLの変化を検知するため）
+ * @type {import('vue-router').RouteLocationNormalizedLoaded}
  */
 const route = useRoute();
 
 /**
  * Simplebar要素への参照 (ref)
  * DOMに直接アクセスして、画面遷移時にスクロール位置を操作するために使用
+ * @type {import('vue').Ref<any>}
  */
 const scrollAreaRef = ref(null);
 
@@ -63,10 +65,10 @@ watch(
     /* 前の画面がフェードアウトするアニメーション（0.3秒）が終わるのを待ってから
        スクロール位置を戻すことで、画面遷移中の不自然なガタつきを防ぐ */
     setTimeout(() => {
-      // scrollAreaRef が存在しているかチェック（安全対策）
+      // scrollAreaRef が存在しているかチェック
       if (scrollAreaRef.value) {
         // Simplebar独自のスクロール要素を取得する
-        const scrollElement = scrollAreaRef.value.SimpleBar.getScrollElement();
+        const scrollElement = scrollAreaRef.value.SimpleBar?.getScrollElement();
 
         if (scrollElement) {
           // スクロール位置を一番上（0）に戻す
