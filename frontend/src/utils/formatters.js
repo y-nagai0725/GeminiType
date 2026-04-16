@@ -5,11 +5,16 @@
 /**
  * 日付を「YYYY/MM/DD HH:mm」形式に変換する
  * @param {string | Date} dateInput 日付データ
- * @returns {string} 「YYYY/MM/DD HH:mm」形式の文字列
+ * @returns {string} 「YYYY/MM/DD HH:mm」形式の文字列。無効なデータの場合は "-"
  */
 export const formatDate = (dateInput) => {
   if (!dateInput) return "-";
+
   const date = new Date(dateInput);
+
+  // 万が一「Invalid Date (無効な日付)」が作られた場合のガード
+  if (Number.isNaN(date.getTime())) return "-";
+
   return date.toLocaleString("ja-JP", {
     year: "numeric",
     month: "2-digit",
@@ -32,8 +37,8 @@ export const truncateText = (text, maxLength = 10) => {
 
 /**
  * ミスキー情報（JSON文字列 or オブジェクト）を「K(2), A(1)」形式にする
- * @param {string | object} missedKeysInput ミスキー情報（JSON文字列 or オブジェクト）
- * @returns {string} 「K(2), A(1)」形式の文字列
+ * @param {string | Record<string, number>} missedKeysInput ミスキー情報（JSON文字列 or オブジェクト）
+ * @returns {string} 「K(2), A(1)」形式の文字列。データがない場合は "NONE"
  */
 export const formatMissedKeys = (missedKeysInput) => {
   if (!missedKeysInput) return "NONE";
