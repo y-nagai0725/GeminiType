@@ -1,17 +1,40 @@
 <template>
-  <div class="loading" :class="[`bg-${bgColor}`, `line-${lineColor}`]">
+  <div
+    class="loading"
+    :class="[`bg-${bgColor}`, `line-${lineColor}`]"
+    role="status"
+    aria-live="polite"
+    :aria-label="text ? undefined : '読み込み中'"
+  >
     {{ text }}
   </div>
 </template>
 
 <script setup>
+// =========================================================================
+// Props (親コンポーネントからの受け取り)
+// =========================================================================
+
+/**
+ * 親コンポーネントから受け取るデータ
+ * @type {Readonly<import('vue').ExtractPropTypes<{ text: StringConstructor, bgColor: StringConstructor, lineColor: StringConstructor }>>}
+ */
 const props = defineProps({
   // 何の処理を待っているかのテキスト
-  text: { type: String, default: "" },
+  text: {
+    type: String,
+    default: "",
+  },
   // スピナーの軌道（ベースの円）の色
-  bgColor: { type: String, default: "gray" },
+  bgColor: {
+    type: String,
+    default: "gray",
+  },
   // くるくる回る線の色
-  lineColor: { type: String, default: "green" },
+  lineColor: {
+    type: String,
+    default: "green",
+  },
 });
 </script>
 
