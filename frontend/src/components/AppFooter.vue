@@ -4,7 +4,7 @@
       <div class="footer__top-box">
         <div class="footer__logo-box">
           <RouterLink to="/" class="footer__logo-link">
-            <SiteLogoIcon class="footer__logo-icon" />
+            <SiteLogoIcon class="footer__logo-icon" aria-hidden="true" />
             <span class="footer__title">GeminiType</span>
           </RouterLink>
         </div>
@@ -69,6 +69,7 @@
               rel="noopener noreferrer"
               >ポートフォリオ<ExternalLinkIcon
                 class="footer__external-link-icon"
+                aria-hidden="true"
             /></a>
           </li>
           <li class="footer__external-link-item">
@@ -77,7 +78,9 @@
               class="footer__external-link footer__external-link--roboto"
               target="_blank"
               rel="noopener noreferrer"
-              >GitHub<ExternalLinkIcon class="footer__external-link-icon"
+              >GitHub<ExternalLinkIcon
+                class="footer__external-link-icon"
+                aria-hidden="true"
             /></a>
           </li>
           <li class="footer__external-link-item">
@@ -86,7 +89,9 @@
               class="footer__external-link"
               target="_blank"
               rel="noopener noreferrer"
-              >技術ブログ<ExternalLinkIcon class="footer__external-link-icon"
+              >技術ブログ<ExternalLinkIcon
+                class="footer__external-link-icon"
+                aria-hidden="true"
             /></a>
           </li>
         </ul>
