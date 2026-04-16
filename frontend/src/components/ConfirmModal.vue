@@ -2,26 +2,40 @@
   <Teleport to="body">
     <Transition name="modal-fade">
       <div v-if="show" class="confirm-modal-overlay" @click.self="handleCancel">
-        <div class="confirm-modal">
+        <div
+          class="confirm-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-modal-title"
+          aria-describedby="confirm-modal-message"
+        >
           <button
+            type="button"
             @click="handleCancel"
             class="confirm-modal__close"
             aria-label="確認画面を閉じる"
           >
             <PlusIcon class="confirm-modal__close-icon" aria-hidden="true" />
           </button>
-          <p class="confirm-modal__title">{{ title }}</p>
 
-          <p class="confirm-modal__message">{{ message }}</p>
+          <p id="confirm-modal-title" class="confirm-modal__title">
+            {{ title }}
+          </p>
+
+          <p id="confirm-modal-message" class="confirm-modal__message">
+            {{ message }}
+          </p>
 
           <div class="confirm-modal__actions">
             <button
+              type="button"
               class="confirm-modal__button confirm-modal__button--cancel"
               @click="handleCancel"
             >
               キャンセル
             </button>
             <button
+              type="button"
               class="confirm-modal__button confirm-modal__button--confirm"
               @click="handleConfirm"
             >
@@ -46,6 +60,7 @@ import PlusIcon from "@/components/icons/PlusIcon.vue";
 
 /**
  * 親コンポーネントから受け取るデータ
+ * @type {Readonly<import('vue').ExtractPropTypes<{ show: BooleanConstructor, title: StringConstructor, message: StringConstructor }>>}
  */
 const props = defineProps({
   // 表示・非表示
@@ -67,6 +82,7 @@ const props = defineProps({
 
 /**
  * 親コンポーネントへ送るイベント
+ * @type {(e: 'confirm' | 'cancel') => void}
  */
 const emit = defineEmits(["confirm", "cancel"]);
 
@@ -76,6 +92,7 @@ const emit = defineEmits(["confirm", "cancel"]);
 
 /**
  * 実行ボタンが押された時の処理
+ * @returns {void}
  */
 const handleConfirm = () => {
   emit("confirm");
@@ -83,6 +100,7 @@ const handleConfirm = () => {
 
 /**
  * キャンセルボタン（または背景）が押された時の処理
+ * @returns {void}
  */
 const handleCancel = () => {
   emit("cancel");
@@ -94,8 +112,6 @@ const handleCancel = () => {
   position: fixed;
   top: 0;
   left: 0;
-
-  /* Teleport でbody直下に配置し、ヘッダーより前面に表示させる */
   z-index: $z-modal-overlay;
   display: flex;
   align-items: center;
