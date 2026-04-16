@@ -18,31 +18,37 @@ export const useAdminStore = defineStore('admin', () => {
 
   /**
    * ジャンル一覧
+   * @type {import('vue').Ref<Array<Object>>}
    */
   const genres = ref([]);
 
   /**
    * 問題文一覧
+   * @type {import('vue').Ref<Array<Object>>}
    */
   const problems = ref([]);
 
   /**
    * ページネーション: 合計ページ数
+   * @type {import('vue').Ref<number>}
    */
   const totalPages = ref(1);
 
   /**
    * ページネーション: 現在の表示ページ
+   * @type {import('vue').Ref<number>}
    */
   const currentPage = ref(1);
 
   /**
    * 検索対象のジャンル
+   * @type {import('vue').Ref<string|number>}
    */
   const filterGenreId = ref('');
 
   /**
    * 検索キーワード
+   * @type {import('vue').Ref<string>}
    */
   const filterSearchText = ref('');
 
@@ -53,6 +59,7 @@ export const useAdminStore = defineStore('admin', () => {
 
   /**
    * ジャンルを全て取得
+   * @returns {Promise<void>}
    */
   const fetchGenres = async () => {
     try {
@@ -65,6 +72,7 @@ export const useAdminStore = defineStore('admin', () => {
 
   /**
    * 検索条件に合う問題文を取得
+   * @returns {Promise<void>}
    */
   const fetchProblems = async () => {
     try {
@@ -105,7 +113,8 @@ export const useAdminStore = defineStore('admin', () => {
 
   /**
    * 「ページ」を変える時の処理
-   * @param {Number} newPage 表示するページ番号
+   * @param {number} newPage 表示するページ番号
+   * @returns {Promise<void>}
    */
   const setPage = async (newPage) => {
     if (1 <= newPage && newPage <= totalPages.value) {
@@ -118,6 +127,7 @@ export const useAdminStore = defineStore('admin', () => {
 
   /**
    * 「検索」ボタンが押された時の処理
+   * @returns {Promise<void>}
    */
   const applyFilters = async () => {
     // 検索実行時は、「1ページ目」に戻す
@@ -127,7 +137,8 @@ export const useAdminStore = defineStore('admin', () => {
 
   /**
    * 新しいジャンルを登録する
-   * @param {String} name ジャンル名
+   * @param {string} name ジャンル名
+   * @returns {Promise<void>}
    */
   const addGenre = async (name) => {
     try {
@@ -143,9 +154,10 @@ export const useAdminStore = defineStore('admin', () => {
 
   /**
    * 新しい問題文を登録する
-   * @param {Number} genre_id ジャンルid
-   * @param {String} problem_text 問題文
-   * @param {String} problem_hiragana ひらがな
+   * @param {number} genre_id ジャンルid
+   * @param {string} problem_text 問題文
+   * @param {string} problem_hiragana ひらがな
+   * @returns {Promise<void>}
    */
   const addProblem = async (genre_id, problem_text, problem_hiragana) => {
     try {
@@ -161,7 +173,8 @@ export const useAdminStore = defineStore('admin', () => {
 
   /**
    * ジャンルを削除する
-   * @param {Number} id 削除対象のid
+   * @param {number} id 削除対象のid
+   * @returns {Promise<void>}
    */
   const deleteGenre = async (id) => {
     try {
@@ -183,7 +196,8 @@ export const useAdminStore = defineStore('admin', () => {
 
   /**
    * 問題文を削除する
-   * @param {Number} id 削除対象のid
+   * @param {number} id 削除対象のid
+   * @returns {Promise<void>}
    */
   const deleteProblem = async (id) => {
     try {
@@ -199,8 +213,9 @@ export const useAdminStore = defineStore('admin', () => {
 
   /**
    * ジャンルを更新する
-   * @param {Number} id 更新対象のid
-   * @param {String} name ジャンル名
+   * @param {number} id 更新対象のid
+   * @param {string} name ジャンル名
+   * @returns {Promise<void>}
    */
   const updateGenre = async (id, name) => {
     try {
@@ -219,10 +234,11 @@ export const useAdminStore = defineStore('admin', () => {
 
   /**
    * 問題文を更新する
-   * @param {Number} id 更新対象のid
-   * @param {Number} genre_id ジャンルid
-   * @param {String} problem_text 問題文
-   * @param {String} problem_hiragana ひらがな
+   * @param {number} id 更新対象のid
+   * @param {number} genre_id ジャンルid
+   * @param {string} problem_text 問題文
+   * @param {string} problem_hiragana ひらがな
+   * @returns {Promise<void>}
    */
   const updateProblem = async (id, genre_id, problem_text, problem_hiragana) => {
     try {
