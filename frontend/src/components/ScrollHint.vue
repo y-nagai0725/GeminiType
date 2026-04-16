@@ -1,6 +1,6 @@
 <template>
   <Transition name="fade">
-    <div v-if="show" class="scroll-hint">
+    <div v-if="show" class="scroll-hint" aria-hidden="true">
       <span class="scroll-hint__text">スワイプできます</span>
       <ArrowIcon class="scroll-hint__icon" />
     </div>
@@ -14,9 +14,15 @@
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 
 // =========================================================================
-// Props & Emits
+// Props (親コンポーネントからの受け取り)
 // =========================================================================
-defineProps({
+
+/**
+ * 親コンポーネントから受け取るデータ
+ * @type {Readonly<import('vue').ExtractPropTypes<{ show: BooleanConstructor }>>}
+ */
+const props = defineProps({
+  // 表示・非表示を切り替えるフラグ
   show: {
     type: Boolean,
     required: true,
