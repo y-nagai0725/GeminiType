@@ -4,15 +4,28 @@
       <Loading :text="'問題準備中…'" :bgColor="'white'" :lineColor="'blue'" />
     </div>
 
-    <div v-else-if="errorMessage" class="typing-core__error">
+    <div
+      v-else-if="errorMessage"
+      class="typing-core__error"
+      role="alert"
+      aria-live="assertive"
+    >
       <p class="typing-core__error-title">Error</p>
       <p class="typing-core__error-message">{{ errorMessage }}</p>
       <RouterLink to="/menu" class="typing-core__back-button">
-        メインメニューに戻る<ArrowIcon class="typing-core__arrow-icon" />
+        メインメニューに戻る<ArrowIcon
+          class="typing-core__arrow-icon"
+          aria-hidden="true"
+        />
       </RouterLink>
     </div>
 
-    <div v-else-if="isCompleted" class="typing-core__completed">
+    <div
+      v-else-if="isCompleted"
+      class="typing-core__completed"
+      role="status"
+      aria-live="polite"
+    >
       <p class="typing-core__completed-title">Finish!</p>
       <p class="typing-core__completed-message">お疲れ様でした！</p>
 
@@ -50,21 +63,33 @@
       </div>
     </div>
 
-    <div v-else-if="!isStarted" class="typing-core__ready">
-      <div class="typing-core__mode-info" v-if="gameMode !== 'normal'">
-        <template v-if="gameMode === 'time_limit'">
+    <div
+      v-else-if="!isStarted"
+      class="typing-core__ready"
+      role="status"
+      aria-live="polite"
+    >
+      <div
+        class="typing-core__mode-info"
+        v-if="gameMode !== settingsStore.GAME_MODES.NORMAL"
+      >
+        <template v-if="gameMode === settingsStore.GAME_MODES.TIME_LIMIT">
           <span class="typing-core__mode-name">
-            <TimerIcon class="typing-core__timer-icon" />時間制限モード
+            <TimerIcon
+              class="typing-core__timer-icon"
+              aria-hidden="true"
+            />時間制限モード
           </span>
           <span class="typing-core__mode-time-limit">
             制限時間:
             <span class="typing-core__mode-count">{{ timeLimit }}秒</span>
           </span>
         </template>
-        <template v-if="gameMode === 'sudden_death'">
+        <template v-if="gameMode === settingsStore.GAME_MODES.SUDDEN_DEATH">
           <span class="typing-core__mode-name">
             <SuddenDeathIcon
               class="typing-core__sudden-death-icon"
+              aria-hidden="true"
             />サドンデスモード
           </span>
           <span class="typing-core__mode-sudden-death">
@@ -92,7 +117,11 @@
         {{ currentProblemIndex + 1 }} / {{ problems.length }}
       </div>
 
-      <div class="typing-core__circular-indicator" v-if="gameMode !== 'normal'">
+      <div
+        class="typing-core__circular-indicator"
+        v-if="gameMode !== settingsStore.GAME_MODES.NORMAL"
+        aria-hidden="true"
+      >
         <svg viewBox="0 0 60 60">
           <circle
             class="typing-core__indicator-bg"
@@ -115,14 +144,20 @@
           class="typing-core__indicator-content"
           :class="{
             'is-danger':
-              indicatorClass.includes('is-danger') && gameMode === 'time_limit',
+              indicatorClass.includes('is-danger') &&
+              gameMode === settingsStore.GAME_MODES.TIME_LIMIT,
           }"
         >
-          <template v-if="gameMode === 'time_limit'">
+          <template v-if="gameMode === settingsStore.GAME_MODES.TIME_LIMIT">
             <span class="typing-core__indicator-time">{{ remainingTime }}</span>
           </template>
-          <template v-else-if="gameMode === 'sudden_death'">
-            <HeartIcon class="typing-core__indicator-heart" />
+          <template
+            v-else-if="gameMode === settingsStore.GAME_MODES.SUDDEN_DEATH"
+          >
+            <HeartIcon
+              class="typing-core__indicator-heart"
+              aria-hidden="true"
+            />
             <span class="typing-core__indicator-life">{{
               remainingLives
             }}</span>
@@ -164,7 +199,7 @@
         </div>
       </div>
 
-      <div class="typing-core__stats">
+      <div class="typing-core__stats" aria-live="polite" aria-atomic="true">
         <span class="typing-core__stat-label">Stats</span>
         <span class="typing-core__stat-label">
           KPM:
@@ -214,7 +249,7 @@
       </div>
     </div>
 
-    <div class="typing-core__keyboard-container">
+    <div class="typing-core__keyboard-container" aria-hidden="true">
       <div
         v-for="(row, rowIndex) in keyboardLayout"
         :key="rowIndex"
@@ -235,7 +270,7 @@
       </div>
     </div>
 
-    <div class="typing-core__hands-container">
+    <div class="typing-core__hands-container" aria-hidden="true">
       <div class="typing-core__hand typing-core__hand--left">
         <div
           class="typing-core__finger typing-core__finger--pinky"
@@ -341,14 +376,22 @@
 // =========================================================================
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { useRouter, RouterLink } from "vue-router";
-import api from "../services/api";
 import romajiMapData from "@/data/romajiDictionary.json";
+
+// --- Services ---
+import api from "../services/api";
+
+// --- Stores ---
 import { useNotificationStore } from "../stores/notificationStore";
 import { useSettingsStore } from "../stores/settingsStore";
+
+// --- Components ---
+import Loading from "@/components/Loading.vue";
+
+// --- Icons ---
 import TimerIcon from "@/components/icons/TimerIcon.vue";
 import SuddenDeathIcon from "@/components/icons/SuddenDeathIcon.vue";
 import HeartIcon from "@/components/icons/HeartIcon.vue";
-import Loading from "@/components/Loading.vue";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 
 // =========================================================================
@@ -358,6 +401,7 @@ import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 /**
  * キーボードレイアウト配列
  * 描画順（行ごと）にキーのラベルと判定用のキーコード、CSSクラスを定義
+ * @type {Array<Array<{ label: string, key: string, class?: string }>>}
  */
 const keyboardLayout = [
   // 1行目
@@ -434,7 +478,7 @@ const keyboardLayout = [
 
 /**
  * 記号から「実際に押すべき物理キー」へ変換するマップ
- * 例: "!" を打つためにはキーボードの "1" を光らせる必要があるため
+ * @type {Object.<string, string>}
  */
 const symbolToKeyMap = {
   "!": "1",
@@ -462,15 +506,17 @@ const symbolToKeyMap = {
 
 /**
  * Shiftキーを同時に押す必要がある文字のリスト（大文字以外）
+ * @type {string}
  */
 const shiftRequiredSymbols = "!\"#$%&'()=~|`{+*}<>?_";
 
 /**
  * キー文字から「担当する指ID」へのマッピング
  * キーボードガイドの手のグラフィックを光らせるために使用
+ * @type {Object.<string, string>}
  */
 const keyToFingerMap = {
-  // --- 左手 ---
+  // 左手
   1: "left-pinky",
   Q: "left-pinky",
   A: "left-pinky",
@@ -491,9 +537,8 @@ const keyToFingerMap = {
   T: "left-index",
   G: "left-index",
   B: "left-index",
-  " ": "left-thumb", // ベースポジションとして左手親指に割り当て
-
-  // --- 右手 ---
+  " ": "left-thumb",
+  // 右手
   6: "right-index",
   Y: "right-index",
   H: "right-index",
@@ -526,6 +571,7 @@ const keyToFingerMap = {
 
 /**
  * ローマ字マップ（高速アクセスできるMapオブジェクトに変換）
+ * @type {Map<string, string[]>}
  */
 const romajiMap = new Map(
   romajiMapData.map((item) => [item.Pattern, item.TypePattern])
@@ -533,19 +579,58 @@ const romajiMap = new Map(
 
 /**
  * ローディングの最低表示時間 (ミリ秒)
- * 処理が速すぎた時に画面が一瞬だけチラつくのを防ぐためのバッファ時間
+ * .env.local から取得し、設定されていなければ300msを設定する
+ * @type {number}
  */
-const MIN_LOADING_MS = 300;
+const MIN_LOADING_MS = Number(import.meta.env.VITE_MIN_LOADING_MS) || 300;
 
 /**
  * 円形インジケーター用の半径
+ * @type {number}
  */
 const INDICATOR_RADIUS = 25;
 
 /**
  * 円形インジケーター用の円周
+ * @type {number}
  */
 const CIRCUMFERENCE = 2 * Math.PI * INDICATOR_RADIUS;
+
+/**
+ * インジケーターが「警告（黄色）」になる残り時間（秒）
+ * @type {number}
+ */
+const TIME_THRESHOLD_WARNING = 15;
+
+/**
+ * インジケーターが「危険（赤色）」になる残り時間（秒）
+ * @type {number}
+ */
+const TIME_THRESHOLD_DANGER = 10;
+
+/**
+ * インジケーターが「警告（黄色）」になる残りライフ数
+ * @type {number}
+ */
+const LIFE_THRESHOLD_WARNING = 4;
+
+/**
+ * インジケーターが「危険（赤色）」になる残りライフ数
+ * @type {number}
+ */
+const LIFE_THRESHOLD_DANGER = 2;
+
+/**
+ * 制限時間モード失敗時のメッセージ
+ * @type {string}
+ */
+const TIME_LIMIT_MESSAGE = "Time Up!";
+
+/**
+ * サドンデスモード失敗時のメッセージ
+ * @type {string}
+ */
+const SUDDEN_DEATH_MESSAGE = "Miss Limit Exceeded!";
 
 // =========================================================================
 // Props & Emits
@@ -553,13 +638,22 @@ const CIRCUMFERENCE = 2 * Math.PI * INDICATOR_RADIUS;
 
 /**
  * Props定義
+ * @type {Readonly<import('vue').ExtractPropTypes<{
+ * problems: { type: ArrayConstructor, required: true },
+ * showDebug: { type: BooleanConstructor, default: false },
+ * gameMode: { type: StringConstructor, default: string },
+ * timeLimit: { type: NumberConstructor, default: number },
+ * missLimit: { type: NumberConstructor, default: number },
+ * showRomaji: { type: BooleanConstructor, default: boolean },
+ * isTryMode: { type: BooleanConstructor, default: false }
+ * }>>}
  */
 const props = defineProps({
   // 問題配列
   problems: { type: Array, required: true },
   // デバッグ表示
   showDebug: { type: Boolean, default: false },
-  // ゲームモード ('normal', 'time_limit', 'sudden_death')
+  // ゲームモード ('normal', 'time_limt', 'sudden_death')
   gameMode: { type: String, default: "normal" },
   // 制限時間 (秒)
   timeLimit: { type: Number, default: 60 },
@@ -573,6 +667,7 @@ const props = defineProps({
 
 /**
  * Emits定義
+ * @type {(e: 'complete', data: Object) => void}
  */
 const emit = defineEmits(["complete"]);
 
@@ -581,7 +676,7 @@ const emit = defineEmits(["complete"]);
 // =========================================================================
 
 /**
- * router
+ * routerインスタンス
  */
 const router = useRouter();
 
@@ -591,117 +686,139 @@ const router = useRouter();
 const notificationStore = useNotificationStore();
 
 /**
- * 設定store
+ * 設定管理用のストア
  */
 const settingsStore = useSettingsStore();
 
 /**
  * ロード中かどうか
+ * @type {import('vue').Ref<boolean>}
  */
 const isLoading = ref(true);
 
 /**
  * 全問完了フラグ
+ * @type {import('vue').Ref<boolean>}
  */
 const isCompleted = ref(false);
 
 /**
  * スタートしたかどうか (待機画面用)
+ * @type {import('vue').Ref<boolean>}
  */
 const isStarted = ref(false);
 
 /**
  * エラーメッセージ
+ * @type {import('vue').Ref<string>}
  */
 const errorMessage = ref("");
 
 /**
  * 全問のひらがなリスト
+ * @type {import('vue').Ref<string[]>}
  */
 const hiraganaList = ref([]);
 
 /**
- * 全問のパース（分割）結果を保持する配列
+ * 全問のパース結果配列
+ * @type {import('vue').Ref<Array<{ parsedUnits: Array<Object>, defaultActivePatterns: string[] }>>}
  */
 const parsedProblemsList = ref([]);
 
 /**
  * 現在の問題番号 (0始まり)
+ * @type {import('vue').Ref<number>}
  */
 const currentProblemIndex = ref(0);
 
 /**
  * 今の問題でミスをしたかどうか
+ * @type {import('vue').Ref<boolean>}
  */
 const hasMissedInCurrentProblem = ref(false);
 
 /**
  * ひらがなを分割した配列 (現在の問題)
+ * @type {import('vue').Ref<Array<{ hiragana: string, patterns: string[] }>>}
  */
 const parsedProblem = ref([]);
 
 /**
  * 分割のユニットindex
+ * @type {import('vue').Ref<number>}
  */
 const unitIndex = ref(0);
 
 /**
  * 入力中判定用バッファ
+ * @type {import('vue').Ref<string>}
  */
 const inputBuffer = ref("");
 
 /**
  * 見本ローマ字を構成するための、入力パターンのローマ字配列
+ * @type {import('vue').Ref<string[]>}
  */
 const activePatterns = ref([]);
 
 /**
  * タイプ済みの文字数 (色を変える長さ)
+ * @type {import('vue').Ref<number>}
  */
 const typedRomajiLength = ref(0);
 
 /**
  * 問題開始時間 (UNIX timestamp)
+ * @type {import('vue').Ref<number>}
  */
 const problemStartTime = ref(0);
 
 /**
  * 正解キー数 (今の問題)
+ * @type {import('vue').Ref<number>}
  */
 const correctKeyCount = ref(0);
 
 /**
  * ミスタイプ数 (今の問題)
+ * @type {import('vue').Ref<number>}
  */
 const missKeyCount = ref(0);
 
 /**
- * 今の問題でミスしたキーの集計 { key: count }
+ * 今の問題でミスしたキーの集計
+ * @type {import('vue').Ref<Object.<string, number>>}
  */
 const currentMissedKeys = ref({});
 
 /**
  * 全問の結果をためる配列
+ * @type {import('vue').Ref<Array<Object>>}
  */
 const sessionResults = ref([]);
 
 /**
  * 残り時間
+ * @type {import('vue').Ref<number>}
  */
 const remainingTime = ref(props.timeLimit);
 
 /**
  * セッション通算ミス数
+ * @type {import('vue').Ref<number>}
  */
 const totalMissCountSession = ref(0);
 
 /**
  * ミスした瞬間の点滅アニメーション用フラグ
+ * @type {import('vue').Ref<boolean>}
  */
 const isMissAnimating = ref(false);
 
 /**
  * タイマーID
+ * @type {ReturnType<typeof setInterval> | null}
  */
 let timerInterval = null;
 
@@ -711,6 +828,7 @@ let timerInterval = null;
 
 /**
  * 現在の問題オブジェクト
+ * @type {import('vue').ComputedRef<Object|null>}
  */
 const targetProblem = computed(
   () => props.problems[currentProblemIndex.value] || null
@@ -718,6 +836,7 @@ const targetProblem = computed(
 
 /**
  * 現在の問題のひらがな
+ * @type {import('vue').ComputedRef<string>}
  */
 const targetHiragana = computed(
   () => hiraganaList.value[currentProblemIndex.value] || ""
@@ -725,6 +844,7 @@ const targetHiragana = computed(
 
 /**
  * 現在の（判定中の）ユニット
+ * @type {import('vue').ComputedRef<Object|null>}
  */
 const currentUnit = computed(
   () => parsedProblem.value[unitIndex.value] || null
@@ -732,6 +852,7 @@ const currentUnit = computed(
 
 /**
  * 現在の（判定中の）ユニットの正解入力パターン配列
+ * @type {import('vue').ComputedRef<string[]>}
  */
 const currentPatterns = computed(() =>
   currentUnit.value ? currentUnit.value.patterns : []
@@ -739,11 +860,13 @@ const currentPatterns = computed(() =>
 
 /**
  * 見本ローマ字(全体)
+ * @type {import('vue').ComputedRef<string>}
  */
 const displayRomaji = computed(() => activePatterns.value.join(""));
 
 /**
- * 見本ローマ字の入力済み部分（文字色が変わった部分）
+ * 見本ローマ字の入力済み部分
+ * @type {import('vue').ComputedRef<string>}
  */
 const typedDisplayRomaji = computed(() =>
   displayRomaji.value.substring(0, typedRomajiLength.value)
@@ -751,6 +874,7 @@ const typedDisplayRomaji = computed(() =>
 
 /**
  * 見本ローマ字の未入力部分
+ * @type {import('vue').ComputedRef<string>}
  */
 const remainingDisplayRomaji = computed(() =>
   displayRomaji.value.substring(typedRomajiLength.value)
@@ -758,6 +882,7 @@ const remainingDisplayRomaji = computed(() =>
 
 /**
  * 現在のKPM (リアルタイム)
+ * @type {import('vue').ComputedRef<number>}
  */
 const currentKpm = computed(() => {
   if (!problemStartTime.value || correctKeyCount.value === 0) return 0;
@@ -767,6 +892,7 @@ const currentKpm = computed(() => {
 
 /**
  * 現在の正確率 (リアルタイム)
+ * @type {import('vue').ComputedRef<number>}
  */
 const currentAccuracy = computed(() => {
   const total = correctKeyCount.value + missKeyCount.value;
@@ -776,46 +902,52 @@ const currentAccuracy = computed(() => {
 
 /**
  * 残りライフ (Sudden Death用)
+ * @type {import('vue').ComputedRef<number|null>}
  */
 const remainingLives = computed(() => {
-  if (props.gameMode !== "sudden_death") return null;
-  // ミス許容回数 - 現在のミス数 (0未満にはしない)
+  if (props.gameMode !== settingsStore.GAME_MODES.SUDDEN_DEATH) return null;
   return Math.max(0, props.missLimit - totalMissCountSession.value);
 });
 
 /**
  * 残り時間の割合 (%)
+ * @type {import('vue').ComputedRef<number>}
  */
 const timeProgressPercentage = computed(() => {
-  if (props.gameMode !== "time_limit") return 0;
+  if (props.gameMode !== settingsStore.GAME_MODES.TIME_LIMIT) return 0;
   return (remainingTime.value / props.timeLimit) * 100;
 });
 
 /**
  * インジケーターの色クラスとアニメーション種類
+ * @type {import('vue').ComputedRef<string>}
  */
 const indicatorClass = computed(() => {
-  if (props.gameMode === "time_limit") {
-    if (remainingTime.value >= 15) return "is-safe time-mode";
-    if (remainingTime.value >= 10) return "is-warning time-mode";
+  if (props.gameMode === settingsStore.GAME_MODES.TIME_LIMIT) {
+    if (remainingTime.value >= TIME_THRESHOLD_WARNING)
+      return "is-safe time-mode";
+    if (remainingTime.value >= TIME_THRESHOLD_DANGER)
+      return "is-warning time-mode";
     return "is-danger time-mode";
-  } else if (props.gameMode === "sudden_death") {
-    if (remainingLives.value >= 4) return "is-safe life-mode";
-    if (remainingLives.value >= 2) return "is-warning life-mode";
+  } else if (props.gameMode === settingsStore.GAME_MODES.SUDDEN_DEATH) {
+    if (remainingLives.value >= LIFE_THRESHOLD_WARNING)
+      return "is-safe life-mode";
+    if (remainingLives.value >= LIFE_THRESHOLD_DANGER)
+      return "is-warning life-mode";
     return "is-danger life-mode";
   }
   return "";
 });
 
 /**
- * インジケーターの破線オフセット（減り具合）
+ * インジケーターの破線オフセット
+ * @type {import('vue').ComputedRef<number>}
  */
 const indicatorOffset = computed(() => {
-  if (props.gameMode === "time_limit") {
+  if (props.gameMode === settingsStore.GAME_MODES.TIME_LIMIT) {
     const progress = timeProgressPercentage.value / 100;
-    // 100%の時に0、0%の時に円周と同じ長さ（隠れる）になる
     return CIRCUMFERENCE * (1 - progress);
-  } else if (props.gameMode === "sudden_death") {
+  } else if (props.gameMode === settingsStore.GAME_MODES.SUDDEN_DEATH) {
     let progress = 0;
     if (props.missLimit > 0) {
       progress = remainingLives.value / props.missLimit;
@@ -827,24 +959,25 @@ const indicatorOffset = computed(() => {
 
 /**
  * 通算の平均KPM (リアルタイム)
+ * @type {import('vue').ComputedRef<number|string>}
  */
 const sessionAverageKpm = computed(() => {
-  // 過去問のデータ集計
   let totalCorrect = 0;
   let totalTimeMs = 0;
 
+  // 過去の問題の集計
   sessionResults.value.forEach((res) => {
     totalCorrect += res.correct_key_count;
     totalTimeMs += res.duration_ms;
   });
 
-  // 今プレイ中のデータも足す
+  // 今プレイ中のデータを加える
   if (problemStartTime.value > 0) {
     totalCorrect += correctKeyCount.value;
-    totalTimeMs += Date.now() - problemStartTime.value; // 今の経過時間
+    totalTimeMs += Date.now() - problemStartTime.value;
   }
 
-  // 計算 (時間が0なら '-' を返す)
+  // 経過時間が0なら '-' を返す
   if (totalTimeMs === 0) return "-";
 
   const totalMin = totalTimeMs / 1000 / 60;
@@ -853,18 +986,19 @@ const sessionAverageKpm = computed(() => {
 
 /**
  * 通算の平均正確率 (リアルタイム)
+ * @type {import('vue').ComputedRef<number|string>}
  */
 const sessionAverageAccuracy = computed(() => {
   let totalCorrect = 0;
   let totalMiss = 0;
 
-  // 過去問題集計
+  // 過去の問題の集計
   sessionResults.value.forEach((res) => {
     totalCorrect += res.correct_key_count;
     totalMiss += res.miss_count;
   });
 
-  // 今の問題の分
+  // 今プレイ中のデータを加える
   totalCorrect += correctKeyCount.value;
   totalMiss += missKeyCount.value;
 
@@ -872,12 +1006,12 @@ const sessionAverageAccuracy = computed(() => {
 
   // 1キーも打っていない場合は '-' を返す
   if (total === 0) return "-";
-
   return Math.round((totalCorrect / total) * 100);
 });
 
 /**
  * ローマ字ガイドを表示すべきかどうか
+ * @type {import('vue').ComputedRef<boolean>}
  */
 const shouldShowRomaji = computed(() => {
   // 設定が「常に表示(true)」なら無条件で表示
@@ -889,7 +1023,7 @@ const shouldShowRomaji = computed(() => {
 
 /**
  * 次に入力すべきキー
- * (現在のパターンと入力済みバッファから特定)
+ * @type {import('vue').ComputedRef<string|null>}
  */
 const nextExpectedKey = computed(() => {
   // 現在の入力対象パターン (例: "ka")
@@ -913,8 +1047,8 @@ const nextExpectedKey = computed(() => {
 
 /**
  * 表示用にスペースをオープンボックスに変換する
- * @param {String} text 変換したい文字列
- * @returns {String} 変換後の文字列
+ * @param {string} text 変換したい文字列
+ * @returns {string} 変換後の文字列
  */
 const formatSpaceForDisplay = (text) => {
   if (!text) return "";
@@ -924,7 +1058,8 @@ const formatSpaceForDisplay = (text) => {
 
 /**
  * 効果音を再生する
- * @param {String} type 'type' or 'miss'
+ * @param {string} type 'type' または 'miss'
+ * @returns {void}
  */
 const playSound = (type) => {
   if (type === "type" && !settingsStore.soundEnabled) return;
@@ -940,12 +1075,13 @@ const playSound = (type) => {
 
 /**
  * ゲームスタート処理
+ * @returns {void}
  */
 const startGame = () => {
   isStarted.value = true;
 
   // 時間制限モードならタイマー始動
-  if (props.gameMode === "time_limit") {
+  if (props.gameMode === settingsStore.GAME_MODES.TIME_LIMIT) {
     remainingTime.value = props.timeLimit;
     startTimer();
   }
@@ -953,6 +1089,7 @@ const startGame = () => {
 
 /**
  * タイマー処理
+ * @returns {void}
  */
 const startTimer = () => {
   if (timerInterval) clearInterval(timerInterval);
@@ -961,7 +1098,7 @@ const startTimer = () => {
     remainingTime.value--;
     // 時間切れチェック
     if (remainingTime.value <= 0) {
-      forceFinishGame("Time Up!");
+      forceFinishGame(TIME_LIMIT_MESSAGE);
     }
   }, 1000);
 };
@@ -969,7 +1106,8 @@ const startTimer = () => {
 /**
  * 完了通知を送るヘルパー関数
  * (成功・失敗に関わらず、共通の形式で親にデータを渡す)
- * @param {String|null} reason 終了理由（成功時はnull）
+ * @param {string|null} [reason=null] 終了理由（成功時はnull）
+ * @returns {void}
  */
 const emitComplete = (reason = null) => {
   if (timerInterval) clearInterval(timerInterval);
@@ -1000,7 +1138,8 @@ const emitComplete = (reason = null) => {
 
 /**
  * 強制終了処理 (ゲームオーバー時)
- * @param {String} reason 終了理由
+ * @param {string} reason 終了理由
+ * @returns {void}
  */
 const forceFinishGame = (reason) => {
   if (timerInterval) clearInterval(timerInterval);
@@ -1026,8 +1165,8 @@ const forceFinishGame = (reason) => {
 
 /**
  * 問題文のひらがなを分割する
- * @param {String} hiragana 問題文のひらがな
- * @returns {Object} パースされたユニット配列とデフォルトの入力パターン配列
+ * @param {string} hiragana 問題文のひらがな
+ * @returns {{ parsedUnits: Array<{ hiragana: string, patterns: string[] }>, defaultActivePatterns: string[] }} パースされたユニット配列とデフォルトの入力パターン配列
  */
 const parseHiragana = (hiragana) => {
   const units = [];
@@ -1063,6 +1202,7 @@ const parseHiragana = (hiragana) => {
 /**
  * キー判定処理（メインロジック）
  * @param {KeyboardEvent} e キーボードイベントオブジェクト
+ * @returns {void}
  */
 const handleKeydown = (e) => {
   // ロード中や完了時は操作を受け付けない
@@ -1131,7 +1271,8 @@ const handleKeydown = (e) => {
 
 /**
  * ミスタイプ時の処理
- * @param {String} key 入力されたキー
+ * @param {string} key 入力されたキー
+ * @returns {void}
  */
 const handleMiss = (key) => {
   playSound("miss");
@@ -1160,10 +1301,10 @@ const handleMiss = (key) => {
   }, 300);
 
   // Sudden Death判定
-  if (props.gameMode === "sudden_death") {
+  if (props.gameMode === settingsStore.GAME_MODES.SUDDEN_DEATH) {
     // ミス許容回数を超えたらアウト
     if (totalMissCountSession.value > props.missLimit) {
-      forceFinishGame("Miss Limit Exceeded!");
+      forceFinishGame(SUDDEN_DEATH_MESSAGE);
       return;
     }
   }
@@ -1173,6 +1314,7 @@ const handleMiss = (key) => {
  * 「前方一致」判定の時の処理
  * @param {string} partialPattern 前方一致した入力パターン
  * @param {string} newBuffer 最新のバッファ
+ * @returns {void}
  */
 const handlePartialMatch = (partialPattern, newBuffer) => {
   // 見本を動的に差し替え
@@ -1186,6 +1328,7 @@ const handlePartialMatch = (partialPattern, newBuffer) => {
 /**
  * 判定をクリアして、次のユニットに進む
  * @param {string} matchedPattern パターンとマッチしたローマ字文字列
+ * @returns {void}
  */
 const advanceUnit = (matchedPattern) => {
   activePatterns.value[unitIndex.value] = matchedPattern;
@@ -1201,6 +1344,7 @@ const advanceUnit = (matchedPattern) => {
 
 /**
  * 文字色を変える長さを再計算
+ * @returns {void}
  */
 const updateHighlightingLength = () => {
   let newLength = 0;
@@ -1213,6 +1357,7 @@ const updateHighlightingLength = () => {
 
 /**
  * 1問終了時の処理
+ * @returns {void}
  */
 const finishCurrentProblem = () => {
   // 今の問題にかかった時間 (ミリ秒) を計算
@@ -1251,6 +1396,7 @@ const finishCurrentProblem = () => {
 
 /**
  * 現在の問題のセットアップ（初期化）
+ * @returns {void}
  */
 const setupCurrentProblem = () => {
   hasMissedInCurrentProblem.value = false;
@@ -1272,12 +1418,15 @@ const setupCurrentProblem = () => {
 
 /**
  * タイピング対象キーであるか（キーボードのハイライト判定）
- * @param {Object} keyObj キーボードレイアウトのキーオブジェクト
- * @returns {Boolean} 光らせるべきならtrue
+ * @param {{ label: string, key: string, class?: string }} keyObj キーボードレイアウトのキーオブジェクト
+ * @returns {boolean} 光らせるべきならtrue
  */
 const isKeyActive = (keyObj) => {
-  const target = nextExpectedKey.value; // 次に打つべき文字
-  const keyChar = keyObj.key; // キーボード上の文字 ('a', '1', 'Shift' など)
+  // 次に打つべき文字
+  const target = nextExpectedKey.value;
+
+  // キーボード上の文字 ('a', '1', 'Shift' など)
+  const keyChar = keyObj.key;
 
   // スタート前はスペースキーだけ光らせる
   if (!isStarted.value && keyChar === " ") {
@@ -1286,6 +1435,7 @@ const isKeyActive = (keyObj) => {
     return false;
   }
 
+  // 次に打つべき文字がない場合は光らせない
   if (!target) return false;
 
   // ローマ字ガイドが非表示の時はキーボードも光らせない
@@ -1293,18 +1443,18 @@ const isKeyActive = (keyObj) => {
     return false;
   }
 
-  // --- A. Shiftキー自体の判定 ---
+  // --- Shiftキー自体の判定 ---
   if (keyChar === "ShiftLeft" || keyChar === "ShiftRight") {
-    // 1. まず、ターゲット文字について情報整理
-    let targetBaseKey = target; // 判定に使う「キーの文字」
+    // 判定に使う「キーの文字」
+    let targetBaseKey = target;
 
     // 記号の場合、Shift不要な「元のキー文字」に変換 (例: '!' -> '1')
     if (symbolToKeyMap[target]) {
       targetBaseKey = symbolToKeyMap[target];
     }
 
-    // 2. Shiftが必要な文字かチェック
-    const isUpperCase = target >= "A" && target <= "Z";
+    // Shiftが必要な文字かチェック
+    const isUpperCase = "A" <= target && target <= "Z";
     const isShiftSymbol = shiftRequiredSymbols.includes(target);
 
     // Shift不要なら、Shiftキーは光らせない
@@ -1312,16 +1462,16 @@ const isKeyActive = (keyObj) => {
       return false;
     }
 
-    // 3. 文字を打つ「指」を取得して、「手」を判別
+    // 文字を打つ「指」を取得
     const fingerId = keyToFingerMap[targetBaseKey.toUpperCase()];
 
     // 指情報がない（万が一の未定義キー）場合は光らせない
     if (!fingerId) return false;
 
-    // 'left-pinky' -> 'left', 'right-index' -> 'right' を取り出す
+    // 「手」を判別 （'left-pinky' -> 'left', 'right-index' -> 'right' を取り出す）
     const hand = fingerId.split("-")[0];
 
-    // 4. クロスハンドの原則：手と逆のShiftキーを光らせる
+    // 「手」と逆のShiftキーを光らせる
     if (hand === "left" && keyChar === "ShiftRight") {
       return true; // 文字が左手 → 右Shiftを光らせる
     }
@@ -1332,14 +1482,14 @@ const isKeyActive = (keyObj) => {
     return false;
   }
 
-  // --- B. 通常キーの判定 ---
+  // --- 通常キーの判定 ---
 
-  // 1. そのまま一致するか？ (小文字に揃えて比較)
+  // そのまま一致するか？ (小文字に揃えて比較)
   if (target.toLowerCase() === keyChar.toLowerCase()) {
     return true;
   }
 
-  // 2. 記号の対応表で一致するか？ (例: targetが'!'なら、keyCharが'1'かチェック)
+  // 記号の対応表で一致するか？ (例: targetが'!'なら、keyCharが'1'かチェック)
   if (symbolToKeyMap[target] === keyChar) {
     return true;
   }
@@ -1349,8 +1499,8 @@ const isKeyActive = (keyObj) => {
 
 /**
  * タイピング対象キーの対応している指であるか（ガイドハンドのハイライト判定）
- * @param {String} fingerId 指のID (例: 'left-index')
- * @returns {Boolean} 光らせるべきならtrue
+ * @param {string} fingerId 指のID (例: 'left-index')
+ * @returns {boolean} 光らせるべきならtrue
  */
 const isFingerActive = (fingerId) => {
   // 設定で非表示なら光らせない
@@ -1358,6 +1508,7 @@ const isFingerActive = (fingerId) => {
     return false;
   }
 
+  // 次に打つべき文字
   const target = nextExpectedKey.value;
   if (!target) return false;
 
@@ -1367,18 +1518,18 @@ const isFingerActive = (fingerId) => {
     targetBaseKey = symbolToKeyMap[target];
   }
 
-  // 文字を打つ指 (charFingerId) を取得
+  // 文字を打つ指を取得
   const charFingerId = keyToFingerMap[targetBaseKey.toUpperCase()];
 
-  // --- 判定A：この指は「文字を打つ指」か？ ---
+  // --- この指は「文字を打つ指」か？ ---
   if (charFingerId === fingerId) {
-    return true; // 文字担当の指なら光る！
+    return true; // 文字担当の指なら光らせる
   }
 
-  // --- 判定B：この指は「Shiftを押す指」か？ ---
+  // --- この指は「Shiftを押す指」か？ ---
 
   // Shiftが必要かチェック
-  const isUpperCase = target >= "A" && target <= "Z";
+  const isUpperCase = "A" <= target && target <= "Z";
   const isShiftSymbol = shiftRequiredSymbols.includes(target);
 
   // Shiftが必要な場合のみ、小指の判定を行う
@@ -1387,7 +1538,7 @@ const isFingerActive = (fingerId) => {
     if (!charFingerId) return false;
     const charHand = charFingerId.split("-")[0];
 
-    // 小指判定 (クロスハンドの原則)
+    // 小指判定
     // 文字が「左手」なら → 「右手の小指」を光らせる
     if (charHand === "left" && fingerId === "right-pinky") {
       return true;
@@ -1406,7 +1557,7 @@ const isFingerActive = (fingerId) => {
 // =========================================================================
 
 /**
- * マウント時処理
+ * コンポーネントが画面に表示された時の処理
  */
 onMounted(async () => {
   window.addEventListener("keydown", handleKeydown);
@@ -1465,7 +1616,7 @@ onMounted(async () => {
 });
 
 /**
- * アンマウント時処理
+ * コンポーネントが破棄される時の処理
  */
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeydown);
