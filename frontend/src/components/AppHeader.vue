@@ -3,7 +3,7 @@
     <div class="header__inner">
       <div class="header__left">
         <RouterLink to="/" class="header__logo-link" @click="closeMenu">
-          <SiteLogoIcon class="header__logo-icon" />
+          <SiteLogoIcon class="header__logo-icon" aria-hidden="true" />
           <span class="header__title">GeminiType</span>
         </RouterLink>
       </div>
@@ -23,8 +23,9 @@
             >
           </template>
           <template v-else>
-            <span class="header__user-name"
-              ><UserIcon class="header__user-icon" /> {{ authStore.user?.name
+            <span class="header__user-name">
+              <UserIcon class="header__user-icon" aria-hidden="true" />
+              {{ authStore.user?.name
               }}<span class="header__honorific-title">さん</span></span
             >
             <RouterLink to="/mypage" class="header__button" @click="closeMenu"
@@ -58,8 +59,9 @@
         class="header__fullscreen-menu"
         aria-label="メインナビゲーション"
       >
-        <span v-if="authStore.isLoggedIn" class="header__menu-user-name"
-          ><UserIcon class="header__menu-user-icon" /> {{ authStore.user?.name
+        <span v-if="authStore.isLoggedIn" class="header__menu-user-name">
+          <UserIcon class="header__menu-user-icon" aria-hidden="true" />
+          {{ authStore.user?.name
           }}<span class="header__menu-honorific-title">さん</span></span
         >
         <ul class="header__menu-list">
