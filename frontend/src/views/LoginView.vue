@@ -7,7 +7,7 @@
 
     <div class="login-view__contents-wrapper">
       <div class="login-view__link-wrapper">
-        <div class="login-view__link login-view__link--disable">
+        <div class="login-view__link login-view__link--disabled">
           <span class="login-view__link-text login-view__link-text--jp"
             >ログイン</span
           >

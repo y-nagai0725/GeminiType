@@ -18,7 +18,7 @@
             >LOGIN</span
           >
         </RouterLink>
-        <div class="register-view__link register-view__link--disable">
+        <div class="register-view__link register-view__link--disabled">
           <span class="register-view__link-text register-view__link-text--jp"
             >ユーザー登録</span
           >
