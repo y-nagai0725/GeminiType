@@ -1,5 +1,5 @@
 <template>
-  <div class="notification">
+  <div class="notification" aria-live="polite" aria-atomic="true">
     <transition-group
       name="notification-fade"
       tag="div"
@@ -12,6 +12,7 @@
           'notification__item',
           `notification__item--${notification.type}`,
         ]"
+        :role="notification.type === 'error' ? 'alert' : 'status'"
         @click="notificationStore.removeNotification(notification.id)"
       >
         {{ notification.message }}
@@ -31,7 +32,7 @@ import { useNotificationStore } from "../stores/notificationStore";
 // =========================================================================
 
 /**
- * お知らせstore
+ * お知らせを管理するStore
  */
 const notificationStore = useNotificationStore();
 </script>
@@ -75,8 +76,6 @@ const notificationStore = useNotificationStore();
     padding: 1em;
     font-weight: $bold;
     color: $white;
-
-    /* ユーザーが「押せば消せる」と直感的にわかるようにする */
     cursor: pointer;
     border-radius: $radius-md;
 
