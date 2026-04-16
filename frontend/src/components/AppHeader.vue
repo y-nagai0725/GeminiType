@@ -10,6 +10,10 @@
 
       <div class="header__right">
         <div class="header__pc-actions">
+          <RouterLink to="/menu" class="header__nav-link" @click="closeMenu">
+            メインメニュー
+          </RouterLink>
+
           <template v-if="!authStore.isLoggedIn">
             <RouterLink to="/login" class="header__button" @click="closeMenu"
               >ログイン</RouterLink
@@ -274,6 +278,19 @@ const handleLogout = () => {
       display: flex;
       gap: 2.4rem;
       align-items: center;
+    }
+  }
+
+  &__nav-link {
+    @include fluid-text(14, 15);
+
+    font-weight: $bold;
+    color: $white;
+    letter-spacing: 0.1em;
+    transition: color $transition-base;
+
+    @include hover {
+      color: $yellow;
     }
   }
 
