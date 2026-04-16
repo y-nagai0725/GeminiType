@@ -33,6 +33,8 @@
           class="header__hamburger-button"
           :class="{ 'is-active': isMenuOpen }"
           :aria-expanded="isMenuOpen"
+          aria-controls="global-menu"
+          aria-label="メインメニューを開閉する"
           @click="toggleMenu"
         >
           <span class="header__line-wrapper">
@@ -46,7 +48,12 @@
     </div>
 
     <Transition name="fade">
-      <nav v-show="isMenuOpen" class="header__fullscreen-menu">
+      <nav
+        v-show="isMenuOpen"
+        id="global-menu"
+        class="header__fullscreen-menu"
+        aria-label="メインナビゲーション"
+      >
         <span v-if="authStore.isLoggedIn" class="header__menu-user-name"
           ><UserIcon class="header__menu-user-icon" /> {{ authStore.user?.name
           }}<span class="header__menu-honorific-title">さん</span></span
@@ -142,12 +149,14 @@ const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
 
 /**
- * router
+ * Vue Routerのインスタンス
+ * @type {import('vue-router').Router}
  */
 const router = useRouter();
 
 /**
  * メニューの開閉状態
+ * @type {import('vue').Ref<boolean>}
  */
 const isMenuOpen = ref(false);
 
@@ -156,7 +165,8 @@ const isMenuOpen = ref(false);
 // =========================================================================
 
 /**
- * メニューの切り替え
+ * メニューの開閉を切り替える
+ * @returns {void}
  */
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
@@ -164,13 +174,15 @@ const toggleMenu = () => {
 
 /**
  * メニューを閉じる
+ * @returns {void}
  */
 const closeMenu = () => {
   isMenuOpen.value = false;
 };
 
 /**
- * ログアウト処理
+ * ログアウト処理を実行し、メニューを閉じて通知を出す
+ * @returns {void}
  */
 const handleLogout = () => {
   // メニューを閉じる
