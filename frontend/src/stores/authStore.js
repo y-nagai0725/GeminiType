@@ -18,17 +18,20 @@ export const useAuthStore = defineStore('auth', () => {
   // =======================================================================
 
   /**
-   * router
+   * Vue Routerインスタンス
+   * @type {import('vue-router').Router}
    */
   const router = useRouter();
 
   /**
-   * 「トークン」は、localStorageから読み込む
+   * 認証トークン (初期値はlocalStorageから取得)
+   * @type {import('vue').Ref<string | null>}
    */
   const token = ref(localStorage.getItem('token'));
 
   /**
-   * ログインしてる「ユーザー情報」
+   * ログイン中のユーザー情報
+   * @type {import('vue').Ref<Object | null>}
    */
   const user = ref(null);
 
@@ -38,22 +41,26 @@ export const useAuthStore = defineStore('auth', () => {
   // =======================================================================
 
   /**
-   * ログイン状態かどうか
+   * ログイン状態かどうかを判定
+   * @type {import('vue').ComputedRef<boolean>}
    */
   const isLoggedIn = computed(() => !!token.value);
 
   /**
-   * フル権限の管理者（ADMIN）かどうか
+   * フル権限の管理者（ADMIN）かどうかを判定
+   * @type {import('vue').ComputedRef<boolean>}
    */
   const isAdmin = computed(() => !!user.value && user.value.role === 'ADMIN');
 
   /**
-   * ゲスト管理者（GUEST_ADMIN）かどうか
+   * ゲスト管理者（GUEST_ADMIN）かどうかを判定
+   * @type {import('vue').ComputedRef<boolean>}
    */
   const isGuestAdmin = computed(() => !!user.value && user.value.role === 'GUEST_ADMIN');
 
   /**
-   * 管理画面にアクセスできる権限（ADMIN または GUEST_ADMIN）があるかどうか
+   * 管理画面にアクセスできる権限（ADMIN または GUEST_ADMIN）があるかを判定
+   * @type {import('vue').ComputedRef<boolean>}
    */
   const canAccessAdmin = computed(() => !!user.value && (user.value.role === 'ADMIN' || user.value.role === 'GUEST_ADMIN'));
 
@@ -63,9 +70,10 @@ export const useAuthStore = defineStore('auth', () => {
   // =======================================================================
 
   /**
-   * ログイン処理
+   * ログイン処理を実行し、成功時は元のページ（またはメインメニュー）へ遷移する
    * @param {string} email メールアドレス
    * @param {string} password パスワード
+   * @returns {Promise<void>}
    */
   const login = async (email, password) => {
     try {
@@ -91,7 +99,8 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   /**
-   * ユーザー情報を取得
+   * サーバーから最新のユーザー情報を取得してStateにセットする
+   * @returns {Promise<void>}
    */
   const fetchUser = async () => {
     if (token.value) { // トークンがある時だけ実行
@@ -111,7 +120,8 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   /**
-   * ログアウト
+   * ログアウト処理を実行し、ログイン画面へ遷移する
+   * @returns {void}
    */
   const logout = () => {
     token.value = null;
