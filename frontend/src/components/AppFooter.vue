@@ -9,7 +9,7 @@
           </RouterLink>
         </div>
 
-        <nav class="footer__nav">
+        <nav class="footer__nav" aria-label="フッターナビゲーション">
           <ul class="footer__list">
             <li class="footer__item">
               <RouterLink to="/" class="footer__link footer__link--roboto"
@@ -62,6 +62,7 @@
               href="https://portfolio.mikanbako.jp/"
               class="footer__external-link"
               target="_blank"
+              rel="noopener noreferrer"
               >ポートフォリオ<ExternalLinkIcon
                 class="footer__external-link-icon"
             /></a>
@@ -71,6 +72,7 @@
               href="https://github.com/y-nagai0725"
               class="footer__external-link footer__external-link--roboto"
               target="_blank"
+              rel="noopener noreferrer"
               >GitHub<ExternalLinkIcon class="footer__external-link-icon"
             /></a>
           </li>
@@ -79,6 +81,7 @@
               href="https://blog.mikanbako.jp/"
               class="footer__external-link"
               target="_blank"
+              rel="noopener noreferrer"
               >技術ブログ<ExternalLinkIcon class="footer__external-link-icon"
             /></a>
           </li>
@@ -106,17 +109,18 @@ import ExternalLinkIcon from "@/components/icons/ExternalLinkIcon.vue";
 // =========================================================================
 
 /**
- * router
+ * Vue Routerのインスタンス
+ * @type {import('vue-router').Router}
  */
 const router = useRouter();
 
 /**
- * 認証store
+ * 認証状態を管理するStore
  */
 const authStore = useAuthStore();
 
 /**
- * お知らせstore
+ * お知らせ表示を管理するStore
  */
 const notificationStore = useNotificationStore();
 
@@ -125,14 +129,12 @@ const notificationStore = useNotificationStore();
 // =========================================================================
 
 /**
- * ログアウト処理
+ * ログアウト処理を実行し、通知を表示する
+ * @returns {void}
  */
 const handleLogout = () => {
   authStore.logout();
   notificationStore.addNotification("ログアウトしました", "success");
-
-  // Note: 実際の画面遷移は、authStore.logout() 内、またはそこからトリガーされる
-  // router側のフック（ナビゲーションガード）等で行われる想定です。
 };
 </script>
 
