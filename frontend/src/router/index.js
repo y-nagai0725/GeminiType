@@ -25,6 +25,10 @@ import NotFoundView from '../views/NotFoundView.vue';
 // ルーターの作成とルート定義
 // =========================================================================
 
+/**
+ * Vue Routerのインスタンス
+ * @type {import('vue-router').Router}
+ */
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -86,13 +90,15 @@ const router = createRouter({
     },
     {
       // セッション詳細ページ
-      path: '/mypage/session/:id(\\d+)', // :idには半角数字のみ許可
+      // :idには半角数字(\d+)のみ許可し、それ以外はNotFoundへルーティングさせる
+      path: '/mypage/session/:id(\\d+)',
       name: 'session-detail',
       component: SessionDetailView,
       meta: { requiresAuth: true }, // 要ログイン
     },
     {
       // Not Foundページ
+      // 上記のどのパスにもマッチしない全てのURLをキャッチする
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: NotFoundView
@@ -105,26 +111,29 @@ const router = createRouter({
 // =========================================================================
 
 /**
- * グローバルガード
+ * グローバルガード (各ルートへ遷移する直前に実行される処理)
+ * 認証状態の復元と、アクセス権限のチェックを行う
  */
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
 
-  // ログイン状態の復元チェック
-  // (トークンがあるのにユーザー情報がない場合、サーバーから取得する)
+  // --- ログイン状態の復元チェック ---
+  // ブラウザのリロード時など、トークンはlocalStorageにあるが、
+  // メモリ上のuserオブジェクトが消失している場合にサーバーから再取得する
   if (authStore.isLoggedIn && !authStore.user) {
     try {
       await authStore.fetchUser();
     } catch (error) {
-      // トークンが無効だった場合などは、ログアウト扱いにする
+      // トークンが無効・期限切れだった場合などは、ログアウト扱いにする
       console.warn('セッションの復元に失敗しました:', error);
       authStore.logout();
     }
   }
 
-  // ログインが必要なページへの遷移時にログインしていない場合
+  // --- アクセス権限チェック ---
+  // ログインが必要なページ(requiresAuth: true)への遷移時にログインしていない場合
   if (to.meta.requiresAuth && !authStore.isLoggedIn) {
-    // 元々行きたかったパスをクエリに含めてログイン画面へ遷移
+    // ログイン成功後に元々行きたかったページへ戻れるよう、クエリにパスを保持してリダイレクト
     next({
       path: '/login',
       query: { redirect: to.fullPath }
@@ -132,7 +141,8 @@ router.beforeEach(async (to, from, next) => {
     return;
   }
 
-  next(); // 次のページへ進む
+  // チェックを通過した場合はそのまま次のページへ進む
+  next();
 });
 
 export default router;
