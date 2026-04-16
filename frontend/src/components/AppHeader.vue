@@ -117,9 +117,13 @@
           </template>
 
           <li class="header__menu-item" v-if="authStore.isLoggedIn">
-            <a href="#" @click.prevent="handleLogout" class="header__menu-link"
-              >ログアウト</a
+            <button
+              type="button"
+              @click="handleLogout"
+              class="header__menu-link"
             >
+              ログアウト
+            </button>
           </li>
         </ul>
       </nav>
@@ -454,6 +458,7 @@ const handleLogout = () => {
     font-weight: $bold;
     color: $white;
     letter-spacing: 0.1em;
+    cursor: pointer;
     transition: color $transition-base;
 
     @include hover {

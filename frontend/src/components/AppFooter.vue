@@ -47,9 +47,13 @@
                 >
               </li>
               <li class="footer__item">
-                <a href="#" class="footer__link" @click.prevent="handleLogout"
-                  >ログアウト</a
+                <button
+                  type="button"
+                  class="footer__link"
+                  @click="handleLogout"
                 >
+                  ログアウト
+                </button>
               </li>
             </template>
           </ul>
@@ -244,6 +248,7 @@ const handleLogout = () => {
     font-weight: $bold;
     color: $white;
     letter-spacing: 0.1em;
+    cursor: pointer;
     transition: color $transition-base;
 
     &--roboto {
