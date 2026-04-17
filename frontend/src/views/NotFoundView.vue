@@ -1,7 +1,7 @@
 <template>
   <div class="not-found-view">
     <h1 class="not-found-view__title">
-      <span class="en">NOT FOUND</span>
+      <span class="en" aria-hidden="true">NOT FOUND</span>
       <span class="ja">ページが見つかりません</span>
     </h1>
 
@@ -16,14 +16,16 @@
           to="/menu"
           class="not-found-view__link-button not-found-view__link-button--menu"
         >
-          メインメニューに戻る<ArrowIcon class="not-found-view__arrow-icon" />
+          メインメニューに戻る
+          <ArrowIcon class="not-found-view__arrow-icon" aria-hidden="true" />
         </RouterLink>
 
         <RouterLink
           to="/"
           class="not-found-view__link-button not-found-view__link-button--top"
         >
-          トップページに戻る<ArrowIcon class="not-found-view__arrow-icon" />
+          トップページに戻る
+          <ArrowIcon class="not-found-view__arrow-icon" aria-hidden="true" />
         </RouterLink>
       </div>
     </div>
@@ -34,7 +36,9 @@
 // =========================================================================
 // パッケージ・モジュールの読み込み
 // =========================================================================
+import { RouterLink } from "vue-router";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
+
 </script>
 
 <style lang="scss" scoped>
