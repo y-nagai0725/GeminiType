@@ -204,12 +204,12 @@ import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 import ScoreIcon from "@/components/icons/ScoreIcon.vue";
 
 // --- Images (AI Icons) ---
-import iconLoading from "@/assets/images/typing-result/ai-icon__loading.webp";
-import iconError from "@/assets/images/typing-result/ai-icon__error.webp";
-import iconRankC from "@/assets/images/typing-result/ai-icon__rank-c.webp";
-import iconRankB from "@/assets/images/typing-result/ai-icon__rank-b.webp";
-import iconRankA from "@/assets/images/typing-result/ai-icon__rank-a.webp";
-import iconRankS from "@/assets/images/typing-result/ai-icon__rank-s.webp";
+import iconLoading from "@/assets/images/typing-result/ai-icon-loading.webp";
+import iconError from "@/assets/images/typing-result/ai-icon-error.webp";
+import iconRankC from "@/assets/images/typing-result/ai-icon-rank-c.webp";
+import iconRankB from "@/assets/images/typing-result/ai-icon-rank-b.webp";
+import iconRankA from "@/assets/images/typing-result/ai-icon-rank-a.webp";
+import iconRankS from "@/assets/images/typing-result/ai-icon-rank-s.webp";
 
 // =========================================================================
 // 定数定義
