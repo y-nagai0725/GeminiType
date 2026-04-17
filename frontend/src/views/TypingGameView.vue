@@ -13,7 +13,12 @@
       <Loading />
     </div>
 
-    <div v-else-if="errorMessage" class="game-view__error">
+    <div
+      v-else-if="errorMessage"
+      class="game-view__error"
+      role="alert"
+      aria-live="assertive"
+    >
       <p class="game-view__message game-view__message--error">
         エラーが発生しました
       </p>
@@ -21,7 +26,10 @@
         {{ errorMessage }}
       </p>
       <RouterLink to="/menu" class="game-view__link-button">
-        メインメニューに戻る<ArrowIcon class="game-view__arrow-icon" />
+        メインメニューに戻る<ArrowIcon
+          class="game-view__arrow-icon"
+          aria-hidden="true"
+        />
       </RouterLink>
     </div>
 
@@ -63,7 +71,12 @@
 
     <Teleport to="body">
       <Transition name="fade-game-over">
-        <div v-if="isGameOver" class="game-over-overlay">
+        <div
+          v-if="isGameOver"
+          class="game-over-overlay"
+          role="alert"
+          aria-live="assertive"
+        >
           <div class="game-over-content">
             <p class="game-over-text">GAME OVER</p>
             <p class="game-over-reason">{{ gameOverReason }}</p>
@@ -80,15 +93,25 @@
 // =========================================================================
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter, RouterLink } from "vue-router";
+
+// --- Services & Utilities ---
 import api from "../services/api";
+
+// --- Stores ---
 import { useSettingsStore } from "../stores/settingsStore";
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
+
+// --- Composables ---
 import { useDeviceEnvironment } from "../composables/useDeviceEnvironment";
+
+// --- Components ---
 import DeviceWarningModal from "@/components/DeviceWarningModal.vue";
 import TypingCore from "../components/TypingCore.vue";
-import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import Loading from "@/components/Loading.vue";
+
+// --- Icons ---
+import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 
 // =========================================================================
 // 定数定義
@@ -96,9 +119,10 @@ import Loading from "@/components/Loading.vue";
 
 /**
  * ローディングの最低表示時間 (ミリ秒)
- * 画面のチラつき(FOUC)防止用
+ * .env.local から取得し、設定されていなければ300msをデフォルトにします
+ * @type {number}
  */
-const MIN_LOADING_MS = 300;
+const MIN_LOADING_MS = Number(import.meta.env.VITE_MIN_LOADING_MS) || 300;
 
 // =========================================================================
 // State (状態管理)
@@ -106,11 +130,13 @@ const MIN_LOADING_MS = 300;
 
 /**
  * route (現在のURL情報)
+ * @type {import('vue-router').RouteLocationNormalizedLoaded}
  */
 const route = useRoute();
 
 /**
  * router (ページ遷移用)
+ * @type {import('vue-router').Router}
  */
 const router = useRouter();
 
@@ -131,36 +157,43 @@ const notificationStore = useNotificationStore();
 
 /**
  * ローディング中かどうか
+ * @type {import('vue').Ref<boolean>}
  */
 const isLoading = ref(false);
 
 /**
  * ローディング中の詳細メッセージ
+ * @type {import('vue').Ref<string>}
  */
 const loadingMessage = ref("");
 
 /**
  * エラーメッセージ
+ * @type {import('vue').Ref<string>}
  */
 const errorMessage = ref("");
 
 /**
  * ゲームオーバー演出用のフラグ
+ * @type {import('vue').Ref<boolean>}
  */
 const isGameOver = ref(false);
 
 /**
  * ゲームオーバーの理由テキスト
+ * @type {import('vue').Ref<string>}
  */
 const gameOverReason = ref("");
 
 /**
  * 問題リストデータ
+ * @type {import('vue').Ref<Array<Object>>}
  */
 const problems = ref([]);
 
 /**
  * 警告モーダルの表示フラグ
+ * @type {import('vue').Ref<boolean>}
  */
 const showWarningModal = ref(false);
 
@@ -168,16 +201,19 @@ const showWarningModal = ref(false);
 
 /**
  * モード ('db' or 'gemini')
+ * @type {import('vue').ComputedRef<string|undefined>}
  */
 const mode = computed(() => route.query.mode);
 
 /**
  * ジャンルID (DBモード用)
+ * @type {import('vue').ComputedRef<string|undefined>}
  */
 const genreId = computed(() => route.query.genreId);
 
 /**
  * お題 (Geminiモード用)
+ * @type {import('vue').ComputedRef<string|undefined>}
  */
 const prompt = computed(() => route.query.prompt);
 
@@ -230,6 +266,7 @@ const validateQuery = () => {
 /**
  * APIから問題を取得する
  * モードに応じてDBかGeminiか自動で切り替える
+ * @returns {Promise<void>}
  */
 const loadProblems = async () => {
   isLoading.value = true;
@@ -290,6 +327,7 @@ const loadProblems = async () => {
  * タイピング終了時（子コンポーネント: TypingCoreから発火）
  * 結果を集計し、必要ならDBへ保存し、結果画面へ遷移する
  * @param {Object} data TypingCoreから渡されるデータ { results, info }
+ * @returns {Promise<void>}
  */
 const handleComplete = async (data) => {
   // 結果配列
@@ -370,8 +408,10 @@ const handleComplete = async (data) => {
   };
 
   // --- DB保存処理 ---
+
   // 「ログインしている」かつ「通常モード」の場合のみ保存
-  const isNormalMode = settingsStore.gameMode === "normal";
+  const isNormalMode =
+    settingsStore.gameMode === settingsStore.GAME_MODES.NORMAL;
 
   if (authStore.isLoggedIn && isNormalMode) {
     try {
@@ -434,7 +474,10 @@ const handleComplete = async (data) => {
     })
   );
 
-  if (!info.isClear && settingsStore.gameMode !== "normal") {
+  if (
+    !info.isClear &&
+    settingsStore.gameMode !== settingsStore.GAME_MODES.NORMAL
+  ) {
     // 特殊モードで失敗した場合、ゲームオーバー演出を見せる
     isGameOver.value = true;
     gameOverReason.value = info.reason;
@@ -451,6 +494,7 @@ const handleComplete = async (data) => {
 
 /**
  * 警告モーダルで「キャンセル」が押された時の処理
+ * @returns {void}
  */
 const handleCancelWarning = () => {
   // メインメニュー画面へ遷移させる
@@ -462,7 +506,7 @@ const handleCancelWarning = () => {
 // =========================================================================
 
 /**
- * マウント時処理 (画面が表示されたら問題をロードする)
+ * マウント時処理
  */
 onMounted(async () => {
   // 不正なアクセスなら処理を中断して戻す
