@@ -1,7 +1,7 @@
 <template>
   <div class="result-view">
     <h1 class="result-view__title">
-      <span class="en">TYPING RESULT</span>
+      <span class="en" aria-hidden="true">TYPING RESULT</span>
       <span class="ja">タイピング結果</span>
     </h1>
 
@@ -11,6 +11,7 @@
           <div class="result-view__result-card">
             <KpmIcon
               class="result-view__card-icon result-view__card-icon--kpm"
+              aria-hidden="true"
             />
             <span class="result-view__card-title result-view__card-title--en"
               >KPM</span
@@ -22,6 +23,7 @@
           <div class="result-view__result-card">
             <AccuracyIcon
               class="result-view__card-icon result-view__card-icon--accuracy"
+              aria-hidden="true"
             />
             <span class="result-view__card-title">正確率</span>
             <span
@@ -33,6 +35,7 @@
           <div class="result-view__result-card">
             <TotalMissCountIcon
               class="result-view__card-icon result-view__card-icon--total-miss-count"
+              aria-hidden="true"
             />
             <span class="result-view__card-title">ミス回数</span>
             <span
@@ -44,6 +47,7 @@
           <div class="result-view__result-card">
             <TotalTypeCountIcon
               class="result-view__card-icon result-view__card-icon--total-type-count"
+              aria-hidden="true"
             />
             <span class="result-view__card-title">総タイプ数</span>
             <span
@@ -58,6 +62,7 @@
           <div class="result-view__score-item">
             <ScoreIcon
               class="result-view__card-icon result-view__card-icon--score"
+              aria-hidden="true"
             />
             <span class="result-view__card-title">スコア</span>
             <span
@@ -97,18 +102,19 @@
 
         <div class="result-view__actions">
           <button
+            type="button"
             class="result-view__button result-view__button--retry"
             @click="handleRetry"
           >
             もう一度やる！
-            <ArrowIcon class="result-view__arrow-icon" />
+            <ArrowIcon class="result-view__arrow-icon" aria-hidden="true" />
           </button>
           <RouterLink
             to="/menu"
             class="result-view__button result-view__button--menu"
           >
             メインメニューに戻る
-            <ArrowIcon class="result-view__arrow-icon" />
+            <ArrowIcon class="result-view__arrow-icon" aria-hidden="true" />
           </RouterLink>
         </div>
       </div>
@@ -206,11 +212,23 @@ import iconRankA from "@/assets/images/typing-result/ai-icon__rank-a.webp";
 import iconRankS from "@/assets/images/typing-result/ai-icon__rank-s.webp";
 
 // =========================================================================
+// 定数定義
+// =========================================================================
+
+/**
+ * ローディングの最低表示時間 (ミリ秒)
+ * .env.local から取得し、設定されていなければ300msをデフォルトにします
+ * @type {number}
+ */
+const MIN_LOADING_MS = Number(import.meta.env.VITE_MIN_LOADING_MS) || 300;
+
+// =========================================================================
 // State (状態管理)
 // =========================================================================
 
 /**
- * router
+ * routerインスタンス
+ * @type {import('vue-router').Router}
  */
 const router = useRouter();
 
@@ -221,21 +239,25 @@ const notificationStore = useNotificationStore();
 
 /**
  * タイピング結果データ
+ * @type {import('vue').Ref<Object|null>}
  */
 const resultData = ref(null);
 
 /**
  * 結果に対してのAIのコメント
+ * @type {import('vue').Ref<string>}
  */
 const aiComment = ref("");
 
 /**
  * AIコメント生成時のローディング
+ * @type {import('vue').Ref<boolean>}
  */
 const isCommentLoading = ref(false);
 
 /**
  * 現在表示するAIアイコン画像
+ * @type {import('vue').Ref<string>}
  */
 const currentAiIcon = ref(iconLoading);
 
@@ -245,11 +267,13 @@ const currentAiIcon = ref(iconLoading);
 
 /**
  * GSAPアニメーションのスコープ（範囲）用
+ * @type {import('vue').Ref<HTMLElement|null>}
  */
 const resultWrapperRef = ref(null);
 
 /**
  * ScoreRankCircleコンポーネントのメソッド呼び出し用
+ * @type {import('vue').Ref<any>}
  */
 const scoreRankCircleRef = ref(null);
 
@@ -273,6 +297,7 @@ const {
 
 /**
  * スコア値の算出 (KPM * (正確率 / 100)^3)
+ * @type {import('vue').ComputedRef<number|string>}
  */
 const score = computed(() => {
   if (!resultData.value) return "-";
@@ -286,7 +311,8 @@ const score = computed(() => {
 // =========================================================================
 
 /**
- * AIコメント取得
+ * AIコメント取得処理
+ * @returns {Promise<void>}
  */
 const fetchAiComment = async () => {
   if (!resultData.value) return;
@@ -302,12 +328,15 @@ const fetchAiComment = async () => {
       }
     });
 
-    const response = await api.post("/api/typing/ai-comment", {
-      kpm: Math.round(resultData.value.stats.kpm),
-      accuracy: Math.round(resultData.value.stats.accuracy),
-      missedKeys: totalMissedKeys,
-      specialModeInfo: resultData.value.specialModeInfo,
-    });
+    const [response] = await Promise.all([
+      api.post("/api/typing/ai-comment", {
+        kpm: Math.round(resultData.value.stats.kpm),
+        accuracy: Math.round(resultData.value.stats.accuracy),
+        missedKeys: totalMissedKeys,
+        specialModeInfo: resultData.value.specialModeInfo,
+      }),
+      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_MS)),
+    ]);
 
     aiComment.value = response.data.comment;
 
@@ -339,6 +368,7 @@ const fetchAiComment = async () => {
 
 /**
  * リトライ処理 (同じ設定でプレイ画面へ遷移)
+ * @returns {void}
  */
 const handleRetry = () => {
   const savedConfig = localStorage.getItem("last_session_config");
@@ -380,11 +410,13 @@ const handleRetry = () => {
 
 /**
  * GSAPコンテキスト (アンマウント時のクリーンアップ用)
+ * @type {import('gsap').Context}
  */
 let gsapContext;
 
 /**
  * 結果表示アニメーション設定
+ * @returns {void}
  */
 const setResultCardAnimation = () => {
   // アニメーション共通設定：開始状態
@@ -800,7 +832,7 @@ onUnmounted(() => {
       @include fluid-style(height, 9, 11);
 
       .simplebar-scrollbar::before {
-        background-color: $green;
+        background-color: $blue;
         opacity: 1;
       }
     }
