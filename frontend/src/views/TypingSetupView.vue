@@ -1,7 +1,7 @@
 <template>
   <div class="setup-view">
     <h1 class="setup-view__title">
-      <span class="en">TYPING SETUP</span>
+      <span class="en" aria-hidden="true">TYPING SETUP</span>
       <span class="ja">タイピング設定</span>
     </h1>
 
@@ -56,7 +56,10 @@
                 v-model="settingsStore.gameMode"
                 class="setup-view__radio"
               />
-              <TimerIcon class="setup-view__timer-icon" />時間制限
+              <TimerIcon
+                class="setup-view__timer-icon"
+                aria-hidden="true"
+              />時間制限
             </label>
             <label class="setup-view__radio-label">
               <input
@@ -67,6 +70,7 @@
               />
               <SuddenDeathIcon
                 class="setup-view__sudden-death-icon"
+                aria-hidden="true"
               />サドンデス
             </label>
           </div>
@@ -171,10 +175,16 @@
 
         <div class="setup-view__button-wrapper">
           <button type="submit" class="setup-view__start-button">
-            タイピング開始！<ArrowIcon class="setup-view__arrow-icon" />
+            タイピング開始！<ArrowIcon
+              class="setup-view__arrow-icon"
+              aria-hidden="true"
+            />
           </button>
           <RouterLink to="/menu" class="setup-view__back-button">
-            メインメニューに戻る<ArrowIcon class="setup-view__arrow-icon" />
+            メインメニューに戻る<ArrowIcon
+              class="setup-view__arrow-icon"
+              aria-hidden="true"
+            />
           </RouterLink>
         </div>
       </form>
@@ -188,8 +198,12 @@
 // =========================================================================
 import { computed, onMounted } from "vue";
 import { useRoute, useRouter, RouterLink } from "vue-router";
+
+// --- Stores ---
 import { useSettingsStore } from "../stores/settingsStore";
 import { useNotificationStore } from "../stores/notificationStore";
+
+// --- Icons ---
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import TimerIcon from "@/components/icons/TimerIcon.vue";
 import SuddenDeathIcon from "@/components/icons/SuddenDeathIcon.vue";
@@ -199,13 +213,13 @@ import SuddenDeathIcon from "@/components/icons/SuddenDeathIcon.vue";
 // =========================================================================
 
 /**
- * route
+ * route情報
  * @type {import('vue-router').RouteLocationNormalizedLoaded}
  */
 const route = useRoute();
 
 /**
- * router
+ * routerインスタンス
  * @type {import('vue-router').Router}
  */
 const router = useRouter();
