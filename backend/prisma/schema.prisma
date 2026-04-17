@@ -1,8 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// =========================================================================
+// Prisma Schema Definition
+// =========================================================================
+// docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -10,52 +9,74 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  //provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-// ユーザー (users)
+// =========================================================================
+// Models
+// =========================================================================
+
+/**
+ * ユーザーモデル (users)
+ * アプリを利用するユーザーの情報を管理します。
+ */
 model User {
   id        Int      @id @default(autoincrement())
   name      String
   email     String   @unique
   password  String
-  role      String   @default("USER")
-  sessions  TypingSession[] // このユーザーの「まとめ記録」たち
+  role      String   @default("USER") // 権限 ("USER", "ADMIN", "GUEST_ADMIN")
+
+  // リレーション
+  sessions  TypingSession[] // このユーザーのタイピング記録
 
   @@map("users")
 }
 
-// ジャンル (genres)
+/**
+ * ジャンルモデル (genres)
+ * 登録問題モードで使用する問題のカテゴリーを管理します。
+ */
 model Genre {
   id       Int        @id @default(autoincrement())
   name     String     @unique
-  problems Problem[]  // このジャンルの「問題」たち
-  sessions TypingSession[] // このジャンルを使った「まとめ記録」たち
+
+  // リレーション
+  problems Problem[]  // このジャンルに属する問題
+  sessions TypingSession[] // このジャンルが選ばれたタイピング記録
 
   @@map("genres")
 }
 
-// DB問題マスター (problems)
+/**
+ * DB問題マスター (problems)
+ * ジャンルに紐づく具体的な問題データを管理します。
+ */
 model Problem {
-  id           Int     @id @default(autoincrement())
-  genre_id     Int
-  problem_text String
-  problem_hiragana String
-  genre        Genre   @relation(fields: [genre_id], references: [id]) // ジャンルとの「つながり」
+  id               Int     @id @default(autoincrement())
+  genre_id         Int
+  problem_text     String  // 問題文
+  problem_hiragana String  // 問題文のひらがな
 
+  // リレーション
+  genre            Genre   @relation(fields: [genre_id], references: [id]) // 属するジャンル
+
+  // 制約: 同じジャンル内で同じ問題文の登録を防ぐ
   @@unique([genre_id, problem_text])
 
   @@map("problems")
 }
 
-// まとめ記録 (typing_sessions)
+/**
+ * まとめ記録 (typing_sessions)
+ * 1回のプレイ全体の総合的な結果（KPMや正確率など）を管理します。
+ */
 model TypingSession {
   id                Int       @id @default(autoincrement())
   user_id           Int
-  session_type      String    // "db" か "gemini" が入る
-  genre_id          Int?
-  gemini_prompt     String?
+  session_type      String    // "db"(登録問題) または "gemini"(AI生成)
+  genre_id          Int?      // session_typeが"db"の時のみ設定
+  gemini_prompt     String?   // session_typeが"gemini"の時のみ設定
   average_kpm       Float
   average_accuracy  Float
   most_missed_key   String
@@ -63,14 +84,18 @@ model TypingSession {
   total_miss_count  Int
   created_at        DateTime  @default(now())
 
-  user              User      @relation(fields: [user_id], references: [id]) // ユーザーとの「つながり」
-  genre             Genre?    @relation(fields: [genre_id], references: [id]) // ジャンルとの「つながり」
-  session_problems  SessionProblem[] // このセッションの「詳細記録」たち
+  // リレーション
+  user              User      @relation(fields: [user_id], references: [id]) // プレイしたユーザー
+  genre             Genre?    @relation(fields: [genre_id], references: [id]) // プレイしたジャンル
+  session_problems  SessionProblem[] // このプレイ内の各問題の詳細記録
 
   @@map("typing_sessions")
 }
 
-// 詳細記録 (session_problems)
+/**
+ * 詳細記録 (session_problems)
+ * プレイ内で出題された1問ごとの詳細な結果を管理します。
+ */
 model SessionProblem {
   id                Int      @id @default(autoincrement())
   session_id        Int
@@ -80,9 +105,10 @@ model SessionProblem {
   kpm               Float
   accuracy          Float
   miss_count        Int
-  missed_keys       String   // ここは「JSON文字列」で保存する
+  missed_keys       String   // ミスしたキーの集計 (JSON文字列として保存)
 
-  session           TypingSession @relation(fields: [session_id], references: [id]) // まとめ記録との「つながり」
+  // リレーション
+  session           TypingSession @relation(fields: [session_id], references: [id]) // 紐づくまとめ記録
 
   @@map("session_problems")
 }
