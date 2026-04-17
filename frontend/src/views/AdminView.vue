@@ -1,7 +1,7 @@
 <template>
   <div class="admin-view">
     <h1 class="admin-view__title">
-      <span class="en">ADMIN</span>
+      <span class="en" aria-hidden="true">ADMIN</span>
       <span class="ja">管理ページ</span>
     </h1>
 
@@ -27,7 +27,7 @@
           </p>
           <RouterLink to="/menu" class="admin-view__welcome-link">
             メインメニューへ
-            <ArrowIcon class="admin-view__arrow-icon" />
+            <ArrowIcon class="admin-view__arrow-icon" aria-hidden="true" />
           </RouterLink>
         </template>
       </div>
@@ -39,110 +39,31 @@
           :text="'データ読み込み中です…'"
         />
 
-        <div v-else-if="errorMessage" class="admin-view__error">
+        <div v-else-if="errorMessage" class="admin-view__error" role="alert">
           <p class="admin-view__error-message">{{ errorMessage }}</p>
         </div>
 
         <div v-else class="admin-view__content">
           <div class="admin-view__tab-control">
             <button
-              class="admin-view__tab-button admin-view__tab-button--genre"
-              :class="{ 'is-active': currentTab === 'genre' }"
-              @click="currentTab = 'genre'"
-            >
-              ジャンル管理
-            </button>
-            <button
+              type="button"
               class="admin-view__tab-button admin-view__tab-button--problem"
               :class="{ 'is-active': currentTab === 'problem' }"
               @click="currentTab = 'problem'"
             >
               問題管理
             </button>
+            <button
+              type="button"
+              class="admin-view__tab-button admin-view__tab-button--genre"
+              :class="{ 'is-active': currentTab === 'genre' }"
+              @click="currentTab = 'genre'"
+            >
+              ジャンル管理
+            </button>
           </div>
 
-          <section v-if="currentTab === 'genre'" class="admin-view__section">
-            <form
-              class="admin-view__form"
-              @submit.prevent="handleAddGenre"
-              novalidate
-            >
-              <input
-                type="text"
-                class="admin-view__input"
-                placeholder="追加するジャンル名を入力…"
-                v-model="newGenreName"
-                :maxlength="MAX_GENRE_NAME_LENGTH"
-                required
-              />
-              <button type="submit" class="admin-view__input-button">
-                <PlusIcon class="admin-view__input-button-icon" />追加
-              </button>
-            </form>
-
-            <div class="admin-view__table-container">
-              <ScrollHint :show="!isGenresTableHidden" />
-
-              <div v-if="isTableLoading" class="admin-view__loading-overlay">
-                <Loading />
-              </div>
-
-              <Simplebar
-                class="admin-view__table-wrapper"
-                ref="genresScrollRef"
-                @scroll="handleGenresScroll"
-                :auto-hide="false"
-              >
-                <table class="admin-view__genre-table">
-                  <thead>
-                    <tr>
-                      <th class="col-id">ID</th>
-                      <th class="col-genre">ジャンル名</th>
-                      <th class="col-count">登録問題数</th>
-                      <th class="col-action">操作</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      v-if="!isTableLoading && adminStore.genres.length === 0"
-                    >
-                      <td colspan="4" class="admin-view__empty-message">
-                        登録されているジャンルがありません。
-                      </td>
-                    </tr>
-                    <tr v-for="genre in adminStore.genres" :key="genre.id">
-                      <td class="col-id">{{ genre.id }}</td>
-                      <td class="col-genre">{{ genre.name }}</td>
-                      <td class="col-count">{{ genre._count.problems }}</td>
-                      <td class="col-action">
-                        <button
-                          class="admin-view__genre-table-button admin-view__genre-table-button--edit"
-                          @click="openEditModal(genre, 'genre')"
-                        >
-                          <EditIcon
-                            class="admin-view__table-button-icon admin-view__table-button-icon--edit"
-                          />
-                        </button>
-                        <button
-                          class="admin-view__genre-table-button admin-view__genre-table-button--delete"
-                          @click="handleDeleteGenre(genre.id, genre.name)"
-                        >
-                          <DeleteIcon
-                            class="admin-view__table-button-icon admin-view__table-button-icon--delete"
-                          />
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </Simplebar>
-            </div>
-          </section>
-
-          <section
-            v-else-if="currentTab === 'problem'"
-            class="admin-view__section"
-          >
+          <section v-if="currentTab === 'problem'" class="admin-view__section">
             <form
               class="admin-view__form"
               @submit.prevent="handleAddProblem"
@@ -181,7 +102,10 @@
                 required
               />
               <button type="submit" class="admin-view__input-button">
-                <PlusIcon class="admin-view__input-button-icon" />追加
+                <PlusIcon
+                  class="admin-view__input-button-icon"
+                  aria-hidden="true"
+                />追加
               </button>
             </form>
 
@@ -209,7 +133,10 @@
                 v-model="localFilterSearchText"
               />
               <button type="submit" class="admin-view__input-button">
-                <SearchIcon class="admin-view__input-button-icon" />検索
+                <SearchIcon
+                  class="admin-view__input-button-icon"
+                  aria-hidden="true"
+                />検索
               </button>
             </form>
 
@@ -260,22 +187,29 @@
                       </td>
                       <td class="col-action">
                         <button
+                          type="button"
                           class="admin-view__problem-table-button admin-view__problem-table-button--try"
                           @click="handleTryClick(problem)"
+                          aria-label="この問題を試し打ちする"
                         >
                           <TotalTypeCountIcon
                             class="admin-view__table-button-icon admin-view__table-button-icon--keyboard"
+                            aria-hidden="true"
                           />
                         </button>
                         <button
+                          type="button"
                           class="admin-view__problem-table-button admin-view__problem-table-button--edit"
                           @click="openEditModal(problem, 'problem')"
+                          aria-label="この問題を編集する"
                         >
                           <EditIcon
                             class="admin-view__table-button-icon admin-view__table-button-icon--edit"
+                            aria-hidden="true"
                           />
                         </button>
                         <button
+                          type="button"
                           class="admin-view__problem-table-button admin-view__problem-table-button--delete"
                           @click="
                             handleDeleteProblem(
@@ -283,9 +217,11 @@
                               problem.problem_text
                             )
                           "
+                          aria-label="この問題を削除する"
                         >
                           <DeleteIcon
                             class="admin-view__table-button-icon admin-view__table-button-icon--delete"
+                            aria-hidden="true"
                           />
                         </button>
                       </td>
@@ -300,6 +236,96 @@
               :total-pages="adminStore.totalPages"
               @page-change="handleSetPage"
             />
+          </section>
+
+          <section
+            v-else-if="currentTab === 'genre'"
+            class="admin-view__section"
+          >
+            <form
+              class="admin-view__form"
+              @submit.prevent="handleAddGenre"
+              novalidate
+            >
+              <input
+                type="text"
+                class="admin-view__input"
+                placeholder="追加するジャンル名を入力…"
+                v-model="newGenreName"
+                :maxlength="MAX_GENRE_NAME_LENGTH"
+                required
+              />
+              <button type="submit" class="admin-view__input-button">
+                <PlusIcon
+                  class="admin-view__input-button-icon"
+                  aria-hidden="true"
+                />追加
+              </button>
+            </form>
+
+            <div class="admin-view__table-container">
+              <ScrollHint :show="!isGenresTableHidden" />
+
+              <div v-if="isTableLoading" class="admin-view__loading-overlay">
+                <Loading />
+              </div>
+
+              <Simplebar
+                class="admin-view__table-wrapper"
+                ref="genresScrollRef"
+                @scroll="handleGenresScroll"
+                :auto-hide="false"
+              >
+                <table class="admin-view__genre-table">
+                  <thead>
+                    <tr>
+                      <th class="col-id">ID</th>
+                      <th class="col-genre">ジャンル名</th>
+                      <th class="col-count">登録問題数</th>
+                      <th class="col-action">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-if="!isTableLoading && adminStore.genres.length === 0"
+                    >
+                      <td colspan="4" class="admin-view__empty-message">
+                        登録されているジャンルがありません。
+                      </td>
+                    </tr>
+                    <tr v-for="genre in adminStore.genres" :key="genre.id">
+                      <td class="col-id">{{ genre.id }}</td>
+                      <td class="col-genre">{{ genre.name }}</td>
+                      <td class="col-count">{{ genre._count.problems }}</td>
+                      <td class="col-action">
+                        <button
+                          type="button"
+                          class="admin-view__genre-table-button admin-view__genre-table-button--edit"
+                          @click="openEditModal(genre, 'genre')"
+                          aria-label="このジャンルを編集する"
+                        >
+                          <EditIcon
+                            class="admin-view__table-button-icon admin-view__table-button-icon--edit"
+                            aria-hidden="true"
+                          />
+                        </button>
+                        <button
+                          type="button"
+                          class="admin-view__genre-table-button admin-view__genre-table-button--delete"
+                          @click="handleDeleteGenre(genre.id, genre.name)"
+                          aria-label="このジャンルを削除する"
+                        >
+                          <DeleteIcon
+                            class="admin-view__table-button-icon admin-view__table-button-icon--delete"
+                            aria-hidden="true"
+                          />
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </Simplebar>
+            </div>
           </section>
         </div>
       </template>
@@ -334,8 +360,16 @@
           @click.self="closeEditModal"
         >
           <div class="admin-view__modal-content" @click.stop>
-            <button @click="closeEditModal" class="admin-view__modal-close">
-              <PlusIcon class="admin-view__modal-close-icon" />
+            <button
+              type="button"
+              @click="closeEditModal"
+              class="admin-view__modal-close"
+              aria-label="閉じる"
+            >
+              <PlusIcon
+                class="admin-view__modal-close-icon"
+                aria-hidden="true"
+              />
             </button>
             <p v-if="editType === 'genre'" class="admin-view__modal-title">
               ジャンルの編集
@@ -476,21 +510,25 @@ import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
 
 /**
  * ローディングの最低表示時間 (ミリ秒)
+ * @type {number}
  */
-const MIN_LOADING_MS = 300;
+const MIN_LOADING_MS = Number(import.meta.env.VITE_MIN_LOADING_MS) || 300;
 
 /**
  * ジャンル名の最大文字数
+ * @type {number}
  */
 const MAX_GENRE_NAME_LENGTH = 15;
 
 /**
  * 問題の最大文字数
+ * @type {number}
  */
 const MAX_PROBLEM_TEXT_LENGTH = 25;
 
 /**
  * （問題の）ひらがなの最大文字数
+ * @type {number}
  */
 const MAX_PROBLEM_HIRAGANA_LENGTH = 50;
 
@@ -514,124 +552,147 @@ const adminStore = useAdminStore();
 const notificationStore = useNotificationStore();
 
 /**
- * router
+ * routerインスタンス
+ * @type {import('vue-router').Router}
  */
 const router = useRouter();
 
 /**
  * 問題登録のひらがなで許可する文字
+ * @type {Set<string>}
  */
 const allowedChars = new Set(romajiMapData.map((item) => item.Pattern));
 
 /**
  * ページ全体のローディング状態
+ * @type {import('vue').Ref<boolean>}
  */
 const isContentsLoading = ref(false);
 
 /**
  * 表のローディング管理用
+ * @type {import('vue').Ref<boolean>}
  */
 const isTableLoading = ref(false);
 
 /**
  * エラーメッセージ
+ * @type {import('vue').Ref<string>}
  */
 const errorMessage = ref("");
 
 /**
  * (登録用)新しいジャンル名
+ * @type {import('vue').Ref<string>}
  */
 const newGenreName = ref("");
 
 /**
  * (登録用)新しい問題のジャンルid
+ * @type {import('vue').Ref<string|number>}
  */
 const newProblemGenreId = ref("");
 
 /**
  * (登録用)新しい問題文
+ * @type {import('vue').Ref<string>}
  */
 const newProblemText = ref("");
 
 /**
  * (登録用)新しい問題文のひらがな
+ * @type {import('vue').Ref<string>}
  */
 const newProblemHiragana = ref("");
 
 /**
  * 検索用設定: ジャンルid
+ * @type {import('vue').Ref<string|number>}
  */
 const localFilterGenreId = ref("");
 
 /**
  * 検索用設定: 検索キーワード
+ * @type {import('vue').Ref<string>}
  */
 const localFilterSearchText = ref("");
 
 /**
  * 試し打ちモーダルの表示・非表示
+ * @type {import('vue').Ref<boolean>}
  */
 const isTryModalOpen = ref(false);
 
 /**
  * 試し打ちの問題
+ * @type {import('vue').Ref<Object|null>}
  */
 const problemToTry = ref(null);
 
 /**
  * 警告モーダルの表示・非表示
+ * @type {import('vue').Ref<boolean>}
  */
 const showWarningModal = ref(false);
 
 /**
  * 警告が出た際に、一時的に「どの問題を試し打ちしようとしたか」を保存する
+ * @type {import('vue').Ref<Object|null>}
  */
 const pendingProblem = ref(null);
 
 /**
  * 確認モーダルの表示・非表示
+ * @type {import('vue').Ref<boolean>}
  */
 const isConfirmOpen = ref(false);
 
 /**
  * 確認モーダルのタイトル
+ * @type {import('vue').Ref<string>}
  */
 const confirmTitle = ref("");
 
 /**
  * 確認モーダルのメッセージ
+ * @type {import('vue').Ref<string>}
  */
 const confirmMessage = ref("");
 
 /**
  * 確認了承時の処理
+ * @type {import('vue').Ref<Function|null>}
  */
 const onConfirmAction = ref(null);
 
 /**
  * 編集モーダルの表示・非表示
+ * @type {import('vue').Ref<boolean>}
  */
 const isEditModalOpen = ref(false);
 
 /**
  * 編集の種類('genre' or 'problem')
+ * @type {import('vue').Ref<string>}
  */
-const editType = ref("genre");
+const editType = ref("problem");
 
 /**
  * タブ切り替え
+ * @type {import('vue').Ref<string>}
  */
-const currentTab = ref("genre");
+const currentTab = ref("problem");
 
 /**
  * 編集フォーム
+ * @type {{ id: number|null, name: string, genre_id: string|number, problem_text: string, problem_hiragana: string }}
  */
 const editForm = reactive({
-  id: null, // 対象のid
-  name: "", // (ジャンル用)ジャンル名
-  genre_id: "", // (問題用)ジャンルid
-  problem_text: "", // (問題用)問題文
-  problem_hiragana: "", // (問題用)ひらがな
+  id: null,
+  name: "",
+  genre_id: "",
+  problem_text: "",
+  problem_hiragana: "",
 });
 
 // =========================================================================
@@ -669,7 +730,7 @@ const { checkNeedsWarning } = useDeviceEnvironment();
 
 /**
  * ゲスト権限の操作制限チェック
- * @returns {Boolean} ゲストで操作が制限された場合は true、それ以外は false
+ * @returns {boolean} ゲストで操作が制限された場合は true、それ以外は false
  */
 const isGuestRestricted = () => {
   // ゲスト管理者ならエラー通知を出して、その後の処理をストップさせる
@@ -685,8 +746,8 @@ const isGuestRestricted = () => {
 
 /**
  * 入力されたひらがなの辞書チェック
- * @param {String} text チェック対象の文字列
- * @returns {Boolean} OKならtrue
+ * @param {string} text チェック対象の文字列
+ * @returns {boolean} OKならtrue
  */
 const isValidReading = (text) => {
   // 1文字ずつチェックして、タイピング辞書にない文字が含まれていれば false を返す
@@ -698,6 +759,7 @@ const isValidReading = (text) => {
 
 /**
  * 「ジャンル追加」処理
+ * @returns {Promise<void>}
  */
 const handleAddGenre = async () => {
   // ゲスト権限では実行させない
@@ -747,6 +809,7 @@ const handleAddGenre = async () => {
 
 /**
  * 「問題文追加」処理
+ * @returns {Promise<void>}
  */
 const handleAddProblem = async () => {
   // ゲスト権限では実行させない
@@ -827,6 +890,7 @@ const handleAddProblem = async () => {
 
 /**
  * 「検索」処理
+ * @returns {Promise<void>}
  */
 const handleSearch = async () => {
   isTableLoading.value = true;
@@ -855,6 +919,8 @@ const handleSearch = async () => {
 
 /**
  * 「ページネーション」処理
+ * @param {number} newPage 指定されたページ番号
+ * @returns {Promise<void>}
  */
 const handleSetPage = async (newPage) => {
   isTableLoading.value = true;
@@ -879,6 +945,9 @@ const handleSetPage = async (newPage) => {
 
 /**
  * 「ジャンル削除」ボタンが押された時のモーダル準備処理
+ * @param {number} id ジャンルID
+ * @param {string} name ジャンル名
+ * @returns {void}
  */
 const handleDeleteGenre = (id, name) => {
   if (isGuestRestricted()) return;
@@ -899,6 +968,9 @@ const handleDeleteGenre = (id, name) => {
 
 /**
  * 「問題文削除」ボタンが押された時のモーダル準備処理
+ * @param {number} id 問題ID
+ * @param {string} text 問題文
+ * @returns {void}
  */
 const handleDeleteProblem = (id, text) => {
   if (isGuestRestricted()) return;
@@ -919,6 +991,7 @@ const handleDeleteProblem = (id, text) => {
 
 /**
  * 確認モーダルで「削除する(OK)」を押した時の実行処理
+ * @returns {Promise<void>}
  */
 const handleConfirmDelete = async () => {
   // セットされている削除処理(onConfirmAction)があれば実行する
@@ -945,6 +1018,7 @@ const handleConfirmDelete = async () => {
 
 /**
  * 確認モーダルを閉じる（キャンセル）処理
+ * @returns {void}
  */
 const closeConfirmModal = () => {
   isConfirmOpen.value = false;
@@ -956,6 +1030,9 @@ const closeConfirmModal = () => {
 
 /**
  * 「編集」モーダルを開く処理
+ * @param {Object} item 編集対象のオブジェクト
+ * @param {string} type 'genre' または 'problem'
+ * @returns {void}
  */
 const openEditModal = (item, type) => {
   if (isGuestRestricted()) return;
@@ -979,6 +1056,7 @@ const openEditModal = (item, type) => {
 
 /**
  * 「編集」モーダルを閉じる処理
+ * @returns {void}
  */
 const closeEditModal = () => {
   isEditModalOpen.value = false;
@@ -992,6 +1070,7 @@ const closeEditModal = () => {
 
 /**
  * 編集モーダルの「更新する」ボタンが押された時の処理
+ * @returns {Promise<void>}
  */
 const handleUpdateItem = async () => {
   isTableLoading.value = true;
@@ -1094,6 +1173,8 @@ const handleUpdateItem = async () => {
 
 /**
  * 試し打ちモーダルを開く処理
+ * @param {Object} problem 問題オブジェクト
+ * @returns {void}
  */
 const openTryModal = (problem) => {
   problemToTry.value = problem;
@@ -1102,6 +1183,7 @@ const openTryModal = (problem) => {
 
 /**
  * 試し打ちモーダルを閉じる処理
+ * @returns {void}
  */
 const closeTryModal = () => {
   isTryModalOpen.value = false;
@@ -1110,6 +1192,8 @@ const closeTryModal = () => {
 
 /**
  * 「試し打ち」ボタンが押された時の処理 (環境チェックあり)
+ * @param {Object} problem 問題オブジェクト
+ * @returns {void}
  */
 const handleTryClick = (problem) => {
   // PC以外の環境（タッチ端末や狭い画面）なら警告モーダルを出す
@@ -1124,6 +1208,7 @@ const handleTryClick = (problem) => {
 
 /**
  * デバイス警告モーダルで「そのままプレイ」が押された時の処理
+ * @returns {void}
  */
 const handleProceedToPlay = () => {
   showWarningModal.value = false;
@@ -1389,7 +1474,7 @@ onUnmounted(() => {
       @include fluid-style(height, 9, 11);
 
       .simplebar-scrollbar::before {
-        background-color: $green;
+        background-color: $blue;
         opacity: 1;
       }
     }
