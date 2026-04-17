@@ -169,7 +169,7 @@
             </label>
           </div>
           <p class="setup-view__credit">
-            使用した音素材<br />OtoLogic(https://otologic.jp) 様
+            使用した音素材<br /><span class="setup-view__credit-hilight">OtoLogic(https://otologic.jp)</span> 様
           </p>
         </div>
 
@@ -488,6 +488,10 @@ onMounted(() => {
     @include fluid-text(11, 12);
 
     color: $light-black;
+  }
+
+  &__credit-hilight {
+    font-weight: $bold;
   }
 
   /* --- アイコン --- */
