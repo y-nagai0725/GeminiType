@@ -167,7 +167,7 @@
               >
                 <div class="mypage-view__ranking-rank">{{ index + 1 }}</div>
                 <div class="mypage-view__ranking-key">
-                  {{ item.key.toUpperCase() }}
+                  {{ item.key }}
                 </div>
                 <div class="mypage-view__ranking-count">
                   <span class="number">{{ item.count }}</span> miss
