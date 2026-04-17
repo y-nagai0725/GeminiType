@@ -74,6 +74,8 @@
 // =========================================================================
 import { ref } from "vue";
 import { RouterLink } from "vue-router";
+
+// --- Stores ---
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
 
