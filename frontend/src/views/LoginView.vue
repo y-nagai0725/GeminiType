@@ -1,7 +1,7 @@
 <template>
   <div class="login-view">
     <h1 class="login-view__title">
-      <span class="en">LOGIN</span>
+      <span class="en" aria-hidden="true">LOGIN</span>
       <span class="ja">ログイン</span>
     </h1>
 
@@ -11,7 +11,9 @@
           <span class="login-view__link-text login-view__link-text--jp"
             >ログイン</span
           >
-          <span class="login-view__link-text login-view__link-text--en"
+          <span
+            class="login-view__link-text login-view__link-text--en"
+            aria-hidden="true"
             >LOGIN</span
           >
         </div>
@@ -22,7 +24,9 @@
           <span class="login-view__link-text login-view__link-text--jp"
             >ユーザー登録</span
           >
-          <span class="login-view__link-text login-view__link-text--en"
+          <span
+            class="login-view__link-text login-view__link-text--en"
+            aria-hidden="true"
             >REGISTER</span
           >
         </RouterLink>
@@ -54,7 +58,10 @@
         </div>
 
         <button type="submit" class="login-view__button">
-          ログイン<ArrowIcon class="login-view__arrow-icon" />
+          ログイン<ArrowIcon
+            class="login-view__arrow-icon"
+            aria-hidden="true"
+          />
         </button>
       </form>
     </div>
@@ -69,6 +76,8 @@ import { ref } from "vue";
 import { RouterLink } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import { useNotificationStore } from "../stores/notificationStore";
+
+// --- Icons ---
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 
 // =========================================================================
@@ -87,11 +96,13 @@ const notificationStore = useNotificationStore();
 
 /**
  * メールアドレス
+ * @type {import('vue').Ref<string>}
  */
 const email = ref("");
 
 /**
  * パスワード
+ * @type {import('vue').Ref<string>}
  */
 const password = ref("");
 
@@ -101,6 +112,7 @@ const password = ref("");
 
 /**
  * ログイン処理
+ * @returns {Promise<void>}
  */
 const handleLogin = async () => {
   // メールアドレスの空白チェック
