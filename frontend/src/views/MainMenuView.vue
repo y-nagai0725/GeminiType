@@ -1,7 +1,7 @@
 <template>
   <div class="main-menu">
     <h1 class="main-menu__title">
-      <span class="en">MAIN MENU</span>
+      <span class="en" aria-hidden="true">MAIN MENU</span>
       <span class="ja">メインメニュー</span>
     </h1>
 
@@ -38,7 +38,10 @@
             required
           />
           <button type="submit" class="main-menu__button">
-            AIモードでスタート！<ArrowIcon class="main-menu__arrow-icon" />
+            AIモードでスタート！<ArrowIcon
+              class="main-menu__arrow-icon"
+              aria-hidden="true"
+            />
           </button>
         </form>
       </section>
@@ -65,7 +68,11 @@
               :lineColor="'blue'"
             />
 
-            <div v-else-if="genreErrorMessage" class="main-menu__error">
+            <div
+              v-else-if="genreErrorMessage"
+              class="main-menu__error"
+              role="alert"
+            >
               <p class="main-menu__error-message">{{ genreErrorMessage }}</p>
             </div>
 
@@ -78,6 +85,7 @@
 
               <div v-else class="main-menu__genre-list">
                 <button
+                  type="button"
                   v-for="genre in genres"
                   :key="genre.id"
                   class="main-menu__genre-button"
@@ -100,11 +108,19 @@
 // =========================================================================
 import { ref, onMounted } from "vue";
 import { useRouter, RouterLink } from "vue-router";
-import api from "../services/api";
-import { useNotificationStore } from "../stores/notificationStore";
 import Simplebar from "simplebar-vue";
-import ArrowIcon from "@/components/icons/ArrowIcon.vue";
+
+// --- Services & Utilities ---
+import api from "../services/api";
+
+// --- Stores ---
+import { useNotificationStore } from "../stores/notificationStore";
+
+// --- Components ---
 import Loading from "@/components/Loading.vue";
+
+// --- Icons ---
+import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 
 // =========================================================================
 // 定数定義
@@ -112,16 +128,20 @@ import Loading from "@/components/Loading.vue";
 
 /**
  * ジャンル名が無い場合のメッセージ
+ * @type {string}
  */
 const NO_GENRES_MESSAGE = "ジャンルデータがありません。";
 
 /**
  * ローディングの最低表示時間 (ミリ秒)
+ * .env.local から取得し、設定されていなければ300msをデフォルトにします
+ * @type {number}
  */
-const MIN_LOADING_MS = 300;
+const MIN_LOADING_MS = Number(import.meta.env.VITE_MIN_LOADING_MS) || 300;
 
 /**
  * Geminiの問題生成プロンプトの最大文字数
+ * @type {number}
  */
 const MAX_GEMINI_PROMPT_LENGTH = 20;
 
@@ -130,7 +150,8 @@ const MAX_GEMINI_PROMPT_LENGTH = 20;
 // =========================================================================
 
 /**
- * router
+ * routerインスタンス
+ * @type {import('vue-router').Router}
  */
 const router = useRouter();
 
@@ -141,21 +162,25 @@ const notificationStore = useNotificationStore();
 
 /**
  * ジャンル一覧のローディング状態
+ * @type {import('vue').Ref<boolean>}
  */
 const isGenreLoading = ref(false);
 
 /**
  * ジャンル取得時のエラーメッセージ
+ * @type {import('vue').Ref<string>}
  */
 const genreErrorMessage = ref("");
 
 /**
  * ジャンル一覧データ
+ * @type {import('vue').Ref<Array<Object>>}
  */
 const genres = ref([]);
 
 /**
  * AI生成モードのお題 (v-model)
+ * @type {import('vue').Ref<string>}
  */
 const aiPrompt = ref("");
 
@@ -165,6 +190,7 @@ const aiPrompt = ref("");
 
 /**
  * AIモードで次へ（設定画面へ）進む処理
+ * @returns {void}
  */
 const handleStartAiMode = () => {
   // バリデーション: 空チェック
@@ -191,8 +217,9 @@ const handleStartAiMode = () => {
 
 /**
  * DBモードで次へ（設定画面へ）進む処理
- * @param {Number} genreId 選択されたジャンルID
- * @param {String} genreName 選択されたジャンル名
+ * @param {number} genreId 選択されたジャンルID
+ * @param {string} genreName 選択されたジャンル名
+ * @returns {void}
  */
 const handleStartDbMode = (genreId, genreName) => {
   // ジャンルIDバリデーション: IDが空または数字ではない場合は止める
@@ -362,7 +389,7 @@ onMounted(async () => {
 
   &__input {
     @include input-style($white);
-    @include fluid-style(margin-bottom, 32, 56);
+    @include fluid-style(margin-bottom, 32, 64);
   }
 
   &__button {
