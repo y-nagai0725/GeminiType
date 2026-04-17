@@ -157,7 +157,7 @@
               v-if="stats.missed_keys_ranking.length === 0"
               class="mypage-view__no-data"
             >
-              まだ履歴がありません。たくさん遊んでね！
+              {{ NO_HISTORY_MESSAGE }}
             </div>
             <div v-else class="mypage-view__ranking-wrapper">
               <div
@@ -183,7 +183,7 @@
         >
           <h2 id="chart-heading" class="mypage-view__subtitle">成長グラフ</h2>
           <div v-if="sessions.length === 0" class="mypage-view__no-data">
-            まだ履歴がありません。たくさん遊んでね！
+            {{ NO_HISTORY_MESSAGE }}
           </div>
           <div v-else class="mypage-view__chart-container">
             <ScrollHint :show="!isChartHidden" />
@@ -210,7 +210,7 @@
         >
           <h2 id="history-heading" class="mypage-view__subtitle">プレイ履歴</h2>
           <div v-if="sessions.length === 0" class="mypage-view__no-data">
-            まだ履歴がありません。たくさん遊んでね！
+            {{ NO_HISTORY_MESSAGE }}
           </div>
           <template v-else>
             <Pagination
@@ -349,9 +349,16 @@ gsap.registerPlugin(ScrollTrigger);
 
 /**
  * ローディングの最低表示時間 (ミリ秒)
+ * .env.local から取得し、設定されていなければ300msをデフォルトにします
  * @type {number}
  */
-const MIN_LOADING_MS = 300;
+const MIN_LOADING_MS = Number(import.meta.env.VITE_MIN_LOADING_MS) || 300;
+
+/**
+ * 履歴がない場合のメッセージ
+ * @type {string}
+ */
+const NO_HISTORY_MESSAGE = "まだ履歴がありません。たくさん遊んでね！";
 
 // =========================================================================
 // State (状態管理)
@@ -359,6 +366,7 @@ const MIN_LOADING_MS = 300;
 
 /**
  * routerインスタンス
+ * @type {import('vue-router').Router}
  */
 const router = useRouter();
 
@@ -392,7 +400,7 @@ const errorMessage = ref("");
 
 /**
  * 統計データ
- * @type {import('vue').Ref<Object>}
+ * @type {import('vue').Ref<{ total_types: number, average_kpm: number, average_accuracy: number, missed_keys_ranking: Array<Object>, first_play_at: string|null, latest_play_at: string|null }>}
  */
 const stats = ref({
   total_types: 0,
@@ -405,7 +413,7 @@ const stats = ref({
 
 /**
  * 履歴データ一覧
- * @type {import('vue').Ref<Array>}
+ * @type {import('vue').Ref<Array<Object>>}
  */
 const sessions = ref([]);
 
@@ -473,7 +481,7 @@ const {
 
 /**
  * スコア値の算出 (KPM * (正確率 / 100)^3)
- * @returns {number|string} 計算されたスコア値、データが存在しない場合は "-"
+ * @type {import('vue').ComputedRef<number|string>}
  */
 const score = computed(() => {
   if (stats.value.average_kpm === 0 && stats.value.average_accuracy === 0)
@@ -552,11 +560,13 @@ const handlePageChange = async (page) => {
 
 /**
  * GSAPコンテキスト (アンマウント時のクリーンアップ用)
+ * @type {import('gsap').Context}
  */
 let gsapContext;
 
 /**
  * GSAPアニメーションのセットアップ処理
+ * @returns {void}
  */
 const setAnimation = () => {
   // アニメーション共通設定：開始状態
@@ -1033,7 +1043,7 @@ onUnmounted(() => {
       @include fluid-style(height, 9, 11);
 
       .simplebar-scrollbar::before {
-        background-color: $green;
+        background-color: $blue;
         opacity: 1;
       }
     }
