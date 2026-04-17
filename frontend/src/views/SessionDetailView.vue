@@ -1,7 +1,7 @@
 <template>
   <div class="session-detail">
     <h1 class="session-detail__title">
-      <span class="en">SESSION DETAIL</span>
+      <span class="en" aria-hidden="true">SESSION DETAIL</span>
       <span class="ja">セッション詳細</span>
     </h1>
 
@@ -12,10 +12,13 @@
         :text="'データ読み込み中です…'"
       />
 
-      <div v-else-if="errorMessage" class="session-detail__error">
+      <div v-else-if="errorMessage" class="session-detail__error" role="alert">
         <p class="session-detail__error-message">{{ errorMessage }}</p>
         <RouterLink to="/mypage" class="session-detail__back-button">
-          マイページに戻る<ArrowIcon class="session-detail__arrow-icon" />
+          マイページに戻る<ArrowIcon
+            class="session-detail__arrow-icon"
+            aria-hidden="true"
+          />
         </RouterLink>
       </div>
 
@@ -42,6 +45,7 @@
           <div class="session-detail__score-item">
             <KpmIcon
               class="session-detail__score-icon session-detail__score-icon--kpm"
+              aria-hidden="true"
             />
             <span class="session-detail__score-label">平均 KPM</span>
             <span
@@ -53,6 +57,7 @@
           <div class="session-detail__score-item">
             <AccuracyIcon
               class="session-detail__score-icon session-detail__score-icon--acc"
+              aria-hidden="true"
             />
             <span class="session-detail__score-label">平均 正確率</span>
             <span
@@ -64,6 +69,7 @@
           <div class="session-detail__score-item">
             <TotalTypeCountIcon
               class="session-detail__score-icon session-detail__score-icon--total-type-count"
+              aria-hidden="true"
             />
             <span class="session-detail__score-label">総タイプ数</span>
             <span
@@ -75,6 +81,7 @@
           <div class="session-detail__score-item">
             <TotalMissCountIcon
               class="session-detail__score-icon session-detail__score-icon--total-miss-count"
+              aria-hidden="true"
             />
             <span class="session-detail__score-label">総ミス数</span>
             <span
@@ -86,16 +93,13 @@
           <div class="session-detail__score-item">
             <WorstKeyIcon
               class="session-detail__score-icon session-detail__score-icon--worst-key"
+              aria-hidden="true"
             />
             <span class="session-detail__score-label">苦手キー</span>
             <span
               class="session-detail__score-value session-detail__score-value--worst-key"
             >
-              {{
-                !session.most_missed_key
-                  ? "NONE"
-                  : session.most_missed_key.toUpperCase()
-              }}
+              {{ !session.most_missed_key ? "NONE" : session.most_missed_key }}
             </span>
           </div>
         </div>
@@ -142,11 +146,14 @@
                     </td>
                     <td class="col-action">
                       <button
+                        type="button"
                         class="session-detail__button session-detail__button--try"
                         @click="handleTryClick(problem)"
+                        aria-label="この問題を練習する"
                       >
                         <TotalTypeCountIcon
                           class="session-detail__button-icon session-detail__button-icon--keyboard"
+                          aria-hidden="true"
                         />
                       </button>
                     </td>
@@ -159,7 +166,10 @@
 
         <div class="session-detail__back">
           <RouterLink to="/mypage" class="session-detail__back-button">
-            マイページに戻る<ArrowIcon class="session-detail__arrow-icon" />
+            マイページに戻る<ArrowIcon
+              class="session-detail__arrow-icon"
+              aria-hidden="true"
+            />
           </RouterLink>
         </div>
       </div>
@@ -226,8 +236,10 @@ import WorstKeyIcon from "@/components/icons/WorstKeyIcon.vue";
 
 /**
  * ローディングの最低表示時間 (ミリ秒)
+ * .env.local から取得し、設定されていなければ300msをデフォルトにします
+ * @type {number}
  */
-const MIN_LOADING_MS = 300;
+const MIN_LOADING_MS = Number(import.meta.env.VITE_MIN_LOADING_MS) || 300;
 
 // =========================================================================
 // State (状態管理)
@@ -235,11 +247,13 @@ const MIN_LOADING_MS = 300;
 
 /**
  * 現在のルート情報
+ * @type {import('vue-router').RouteLocationNormalizedLoaded}
  */
 const route = useRoute();
 
 /**
- * router
+ * routerインスタンス
+ * @type {import('vue-router').Router}
  */
 const router = useRouter();
 
@@ -255,36 +269,43 @@ const settingsStore = useSettingsStore();
 
 /**
  * ローディング状態
+ * @type {import('vue').Ref<boolean>}
  */
 const isContentsLoading = ref(false);
 
 /**
  * エラーメッセージ
+ * @type {import('vue').Ref<string>}
  */
 const errorMessage = ref("");
 
 /**
  * セッション詳細データ
+ * @type {import('vue').Ref<Object|null>}
  */
 const session = ref(null);
 
 /**
  * 試し打ちモーダルの表示・非表示
+ * @type {import('vue').Ref<boolean>}
  */
 const isTryModalOpen = ref(false);
 
 /**
  * 試し打ちの問題データ
+ * @type {import('vue').Ref<Object|null>}
  */
 const problemToTry = ref(null);
 
 /**
  * 警告モーダルの表示・非表示
+ * @type {import('vue').Ref<boolean>}
  */
 const showWarningModal = ref(false);
 
 /**
  * 警告が出た際に、一時的に「どの問題を試し打ちしようとしたか」を保存する
+ * @type {import('vue').Ref<Object|null>}
  */
 const pendingProblem = ref(null);
 
@@ -293,7 +314,8 @@ const pendingProblem = ref(null);
 // =========================================================================
 
 /**
- * GSAPアニメーションのスコープ（範囲）用
+ * GSAPアニメーションのスコープ（範囲）用ラッパー
+ * @type {import('vue').Ref<HTMLElement|null>}
  */
 const sessionDetailWrapperRef = ref(null);
 
@@ -323,6 +345,7 @@ const { checkNeedsWarning } = useDeviceEnvironment();
 /**
  * 「試し打ちモーダル」を開く時の処理
  * @param {Object} problem 問題オブジェクト
+ * @returns {void}
  */
 const openTryModal = (problem) => {
   problemToTry.value = problem;
@@ -331,6 +354,7 @@ const openTryModal = (problem) => {
 
 /**
  * 「試し打ちモーダル」を閉じる時の処理
+ * @returns {void}
  */
 const closeTryModal = () => {
   isTryModalOpen.value = false;
@@ -339,6 +363,8 @@ const closeTryModal = () => {
 
 /**
  * 「試し打ち」ボタンが押された時の最初の処理
+ * @param {Object} problem 問題オブジェクト
+ * @returns {void}
  */
 const handleTryClick = (problem) => {
   if (checkNeedsWarning()) {
@@ -353,6 +379,7 @@ const handleTryClick = (problem) => {
 
 /**
  * 警告モーダルで「そのままプレイ」が押された時の処理
+ * @returns {void}
  */
 const handleProceedToPlay = () => {
   // 警告モーダルを閉じる
@@ -372,11 +399,13 @@ const handleProceedToPlay = () => {
 
 /**
  * GSAPコンテキスト (アンマウント時のクリーンアップ用)
+ * @type {import('gsap').Context}
  */
 let gsapContext;
 
 /**
  * アニメーション設定
+ * @returns {void}
  */
 const setAnimation = () => {
   // アニメーション共通設定：開始状態
