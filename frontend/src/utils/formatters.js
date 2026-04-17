@@ -36,9 +36,9 @@ export const truncateText = (text, maxLength = 10) => {
 };
 
 /**
- * ミスキー情報（JSON文字列 or オブジェクト）を「K(2), A(1)」形式にする
+ * ミスキー情報（JSON文字列 or オブジェクト）を「a(2), G(1)」形式にする
  * @param {string | Record<string, number>} missedKeysInput ミスキー情報（JSON文字列 or オブジェクト）
- * @returns {string} 「K(2), A(1)」形式の文字列。データがない場合は "NONE"
+ * @returns {string} 「a(2), G(1)」形式の文字列。データがない場合は "NONE"
  */
 export const formatMissedKeys = (missedKeysInput) => {
   if (!missedKeysInput) return "NONE";
@@ -60,8 +60,8 @@ export const formatMissedKeys = (missedKeysInput) => {
     return "NONE";
   }
 
-  // 整形: { a: 2, k: 1 } -> "A(2), K(1)"
+  // 整形: { a: 2, G: 1 } -> "a(2), G(1)"
   return Object.entries(missedKeys)
-    .map(([key, count]) => `${key.toUpperCase()}(${count})`)
+    .map(([key, count]) => `${key}(${count})`)
     .join(", ");
 };
