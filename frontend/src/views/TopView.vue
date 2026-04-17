@@ -14,31 +14,33 @@
         </p>
         <RouterLink to="/menu" class="top-view__button top-view__button--menu">
           メインメニューへ進む
-          <ArrowIcon class="top-view__arrow-icon" />
+          <ArrowIcon class="top-view__arrow-icon" aria-hidden="true" />
         </RouterLink>
       </div>
 
       <div v-else class="top-view__actions">
         <RouterLink to="/menu" class="top-view__button top-view__button--guest">
           ゲストで遊ぶ (登録なし)
-          <ArrowIcon class="top-view__arrow-icon" />
+          <ArrowIcon class="top-view__arrow-icon" aria-hidden="true" />
         </RouterLink>
 
         <div class="top-view__sub-actions">
           <RouterLink
             to="/login"
             class="top-view__button top-view__button--small"
-            >ログイン <ArrowIcon class="top-view__arrow-icon"
+            >ログイン
+            <ArrowIcon class="top-view__arrow-icon" aria-hidden="true"
           /></RouterLink>
           <RouterLink
             to="/register"
             class="top-view__button top-view__button--small"
-            >ユーザー登録 <ArrowIcon class="top-view__arrow-icon"
+            >ユーザー登録
+            <ArrowIcon class="top-view__arrow-icon" aria-hidden="true"
           /></RouterLink>
         </div>
       </div>
 
-      <div class="top-view__scroll-indicator">
+      <div class="top-view__scroll-indicator" aria-hidden="true">
         <span class="top-view__scroll-text">SCROLL</span>
         <div class="top-view__scroll-line-wrapper">
           <div class="top-view__scroll-line"></div>
@@ -77,6 +79,7 @@
             </div>
           </Transition>
           <button
+            type="button"
             class="top-view__circle-button"
             @click="isAiModeDetail = !isAiModeDetail"
             :aria-expanded="isAiModeDetail"
@@ -115,6 +118,7 @@
             </div>
           </Transition>
           <button
+            type="button"
             class="top-view__circle-button"
             @click="isProgressDetail = !isProgressDetail"
             :aria-expanded="isProgressDetail"
@@ -156,6 +160,7 @@
             </div>
           </Transition>
           <button
+            type="button"
             class="top-view__circle-button"
             @click="isStressFreeDetail = !isStressFreeDetail"
             :aria-expanded="isStressFreeDetail"
@@ -275,46 +280,51 @@
       <template v-if="authStore.isLoggedIn">
         <RouterLink to="/menu" class="top-view__button top-view__button--menu">
           メインメニューへ進む
-          <ArrowIcon class="top-view__arrow-icon" />
+          <ArrowIcon class="top-view__arrow-icon" aria-hidden="true" />
         </RouterLink>
       </template>
 
       <template v-else>
         <RouterLink to="/menu" class="top-view__button top-view__button--guest">
           ゲストで遊ぶ (登録なし)
-          <ArrowIcon class="top-view__arrow-icon" />
+          <ArrowIcon class="top-view__arrow-icon" aria-hidden="true" />
         </RouterLink>
 
         <div class="top-view__sub-actions">
           <RouterLink
             to="/login"
             class="top-view__button top-view__button--small"
-            >ログイン <ArrowIcon class="top-view__arrow-icon"
+            >ログイン
+            <ArrowIcon class="top-view__arrow-icon" aria-hidden="true"
           /></RouterLink>
           <RouterLink
             to="/register"
             class="top-view__button top-view__button--small"
-            >ユーザー登録 <ArrowIcon class="top-view__arrow-icon"
+            >ユーザー登録
+            <ArrowIcon class="top-view__arrow-icon" aria-hidden="true"
           /></RouterLink>
         </div>
       </template>
     </div>
   </div>
 </template>
+
 <script setup>
 // =========================================================================
 // パッケージ・モジュールの読み込み
 // =========================================================================
 import { ref, onMounted, onUnmounted } from "vue";
 import { RouterLink } from "vue-router";
-import { useAuthStore } from "../stores/authStore";
-import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 
-// =========================================================================
-// プラグイン登録・初期設定
-// =========================================================================
+// --- Stores ---
+import { useAuthStore } from "../stores/authStore";
+
+// --- Icons ---
+import ArrowIcon from "@/components/icons/ArrowIcon.vue";
+
+// GSAPプラグインの登録
 gsap.registerPlugin(ScrollTrigger);
 
 // =========================================================================
@@ -328,16 +338,19 @@ const authStore = useAuthStore();
 
 /**
  * 「AI問題生成モード」詳細表示・非表示
+ * @type {import('vue').Ref<boolean>}
  */
 const isAiModeDetail = ref(false);
 
 /**
  * 「成長記録」詳細表示・非表示
+ * @type {import('vue').Ref<boolean>}
  */
 const isProgressDetail = ref(false);
 
 /**
  * 「ストレスフリーな入力判定」詳細表示・非表示
+ * @type {import('vue').Ref<boolean>}
  */
 const isStressFreeDetail = ref(false);
 
@@ -345,21 +358,25 @@ const isStressFreeDetail = ref(false);
 
 /**
  * 全体ラッパー要素参照
+ * @type {import('vue').Ref<HTMLElement|null>}
  */
 const topWrapper = ref(null);
 
 /**
  * 横スクロール要素参照
+ * @type {import('vue').Ref<HTMLElement|null>}
  */
 const horizontalScrollWrapper = ref(null);
 
 /**
  * スライドラッパー参照
+ * @type {import('vue').Ref<HTMLElement|null>}
  */
 const slideWrapper = ref(null);
 
 /**
  * GSAPコンテキスト (アンマウント時のクリーンアップ用)
+ * @type {import('gsap').Context}
  */
 let gsapContext;
 
@@ -369,6 +386,7 @@ let gsapContext;
 
 /**
  * GSAPアニメーションのセットアップ処理
+ * @returns {void}
  */
 const setAnimation = () => {
   // アニメーション共通設定：開始状態 (下からフワッと現れる準備)
