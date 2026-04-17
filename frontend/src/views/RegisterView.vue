@@ -1,7 +1,7 @@
 <template>
   <div class="register-view">
     <h1 class="register-view__title">
-      <span class="en">REGISTER</span>
+      <span class="en" aria-hidden="true">REGISTER</span>
       <span class="ja">ユーザー登録</span>
     </h1>
 
@@ -14,7 +14,9 @@
           <span class="register-view__link-text register-view__link-text--jp"
             >ログイン</span
           >
-          <span class="register-view__link-text register-view__link-text--en"
+          <span
+            class="register-view__link-text register-view__link-text--en"
+            aria-hidden="true"
             >LOGIN</span
           >
         </RouterLink>
@@ -22,7 +24,9 @@
           <span class="register-view__link-text register-view__link-text--jp"
             >ユーザー登録</span
           >
-          <span class="register-view__link-text register-view__link-text--en"
+          <span
+            class="register-view__link-text register-view__link-text--en"
+            aria-hidden="true"
             >REGISTER</span
           >
         </div>
@@ -93,7 +97,7 @@
         </div>
 
         <button type="submit" class="register-view__button">
-          登録<ArrowIcon class="register-view__arrow-icon" />
+          登録<ArrowIcon class="register-view__arrow-icon" aria-hidden="true" />
         </button>
       </form>
     </div>
@@ -106,22 +110,30 @@
 // =========================================================================
 import { ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
+
+// --- Services & Utilities ---
 import api from "../services/api";
+
+// --- Stores ---
 import { useNotificationStore } from "../stores/notificationStore";
 import { useAuthStore } from "../stores/authStore";
+
+// --- Icons ---
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 
 // =========================================================================
-// 定数定義 (マジックナンバーの排除)
+// 定数定義
 // =========================================================================
 
 /**
  * ユーザー名の最大文字数
+ * @type {number}
  */
 const MAX_NAME_LENGTH = 10;
 
 /**
  * パスワードの最小文字数
+ * @type {number}
  */
 const MIN_PASSWORD_LENGTH = 4;
 
@@ -130,7 +142,8 @@ const MIN_PASSWORD_LENGTH = 4;
 // =========================================================================
 
 /**
- * router
+ * routerインスタンス
+ * @type {import('vue-router').Router}
  */
 const router = useRouter();
 
@@ -146,21 +159,25 @@ const authStore = useAuthStore();
 
 /**
  * ユーザー名
+ * @type {import('vue').Ref<string>}
  */
 const name = ref("");
 
 /**
  * メールアドレス
+ * @type {import('vue').Ref<string>}
  */
 const email = ref("");
 
 /**
  * パスワード
+ * @type {import('vue').Ref<string>}
  */
 const password = ref("");
 
 /**
  * 確認用パスワード
+ * @type {import('vue').Ref<string>}
  */
 const passwordConfirm = ref("");
 
@@ -170,6 +187,7 @@ const passwordConfirm = ref("");
 
 /**
  * ユーザー登録処理
+ * @returns {Promise<void>}
  */
 const handleRegister = async () => {
   // ユーザー名の空白チェック
