@@ -42,18 +42,23 @@
               class="result-view__card-value result-view__card-value--total-miss-count"
             >
               {{ resultData.stats.total_miss_count }}
+              <span class="small">/ {{ resultData.stats.total_types }}</span>
             </span>
           </div>
           <div class="result-view__result-card">
-            <TotalTypeCountIcon
-              class="result-view__card-icon result-view__card-icon--total-type-count"
+            <WorstKeyIcon
+              class="result-view__card-icon result-view__card-icon--worst-key"
               aria-hidden="true"
             />
-            <span class="result-view__card-title">総タイプ数</span>
+            <span class="result-view__card-title">苦手キー</span>
             <span
-              class="result-view__card-value result-view__card-value--total-type-count"
+              class="result-view__card-value result-view__card-value--worst-key"
             >
-              {{ resultData.stats.total_types }}
+              {{
+                !resultData.stats.most_missed_key
+                  ? "NONE"
+                  : resultData.stats.most_missed_key
+              }}
             </span>
           </div>
         </div>
@@ -200,7 +205,7 @@ import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 import KpmIcon from "@/components/icons/KpmIcon.vue";
 import AccuracyIcon from "@/components/icons/AccuracyIcon.vue";
 import TotalMissCountIcon from "@/components/icons/TotalMissCountIcon.vue";
-import TotalTypeCountIcon from "@/components/icons/TotalTypeCountIcon.vue";
+import WorstKeyIcon from "@/components/icons/WorstKeyIcon.vue";
 import ScoreIcon from "@/components/icons/ScoreIcon.vue";
 
 // --- Images (AI Icons) ---
@@ -626,7 +631,7 @@ onUnmounted(() => {
       fill: $red;
     }
 
-    &--total-type-count {
+    &--worst-key {
       fill: $light-black;
     }
 
@@ -653,6 +658,11 @@ onUnmounted(() => {
     font-weight: $bold;
     line-height: 1;
 
+    & > .small {
+      font-size: 0.66em;
+      color: $light-black;
+    }
+
     &--kpm {
       color: $blue;
     }
@@ -665,7 +675,7 @@ onUnmounted(() => {
       color: $red;
     }
 
-    &--total-type-count {
+    &--worst-key {
       color: $light-black;
     }
 

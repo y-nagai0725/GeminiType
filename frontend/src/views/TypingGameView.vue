@@ -468,6 +468,7 @@ const handleComplete = async (data) => {
         accuracy: avgAccuracy,
         total_types: totalTypes,
         total_miss_count: totalMissCount,
+        most_missed_key: mostMissedKey,
       },
       results: results,
       specialModeInfo: specialModeInfo,
