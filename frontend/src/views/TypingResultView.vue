@@ -172,6 +172,16 @@
           </Simplebar>
         </div>
       </div>
+
+      <div v-if="authStore.isLoggedIn" class="result-view__link-wrapper">
+        <RouterLink
+          to="/mypage"
+          class="result-view__button result-view__button--mypage"
+        >
+          マイページへ
+          <ArrowIcon class="result-view__arrow-icon" aria-hidden="true" />
+        </RouterLink>
+      </div>
     </div>
   </div>
 </template>
@@ -190,6 +200,7 @@ import { formatMissedKeys } from "../utils/formatters";
 
 // --- Stores ---
 import { useNotificationStore } from "../stores/notificationStore";
+import { useAuthStore } from "../stores/authStore";
 
 // --- Composables ---
 import { useScrollHint } from "../composables/useScrollHint";
@@ -241,6 +252,11 @@ const router = useRouter();
  * お知らせstore
  */
 const notificationStore = useNotificationStore();
+
+/**
+ * 認証store
+ */
+const authStore = useAuthStore();
 
 /**
  * タイピング結果データ
@@ -795,15 +811,23 @@ onUnmounted(() => {
     margin-inline: auto;
 
     &--retry {
-      @include button-style-fill($green);
+      @include button-style-fill($blue);
     }
 
     &--menu {
-      @include button-style-border($blue);
+      @include button-style-border($green);
+    }
+
+    &--mypage {
+      @include button-style-fill($green);
     }
 
     @include pc {
       width: 100%;
+
+      &--mypage {
+        width: 35rem;
+      }
     }
   }
 
