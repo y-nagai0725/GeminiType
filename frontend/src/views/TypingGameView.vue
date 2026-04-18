@@ -11,6 +11,41 @@
         {{ loadingMessage }}
       </p>
       <Loading />
+      <div
+        v-if="mode === 'gemini'"
+        class="game-view__ai-loading-wrapper"
+        ref="aiLoadingWrapperRef"
+      >
+        <div class="game-view__ai-loading">
+          <img
+            :src="aiTypingIcon"
+            alt="AIタイピングアイコン"
+            class="game-view__ai-icon"
+          />
+
+          <div class="game-view__editor-bubble">
+            <div class="game-view__editor-header">
+              <span
+                class="game-view__editor-dot game-view__editor-dot--red"
+              ></span
+              ><span
+                class="game-view__editor-dot game-view__editor-dot--yellow"
+              ></span
+              ><span
+                class="game-view__editor-dot game-view__editor-dot--green"
+              ></span>
+            </div>
+            <div class="game-view__editor-body">
+              <span class="game-view__editor-prompt-symbol">> </span>
+              <span
+                ref="aiTypingTextRef"
+                class="game-view__editor-typing-text"
+              ></span>
+              <span class="game-view__editor-blinking-cursor">_</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div
@@ -91,8 +126,10 @@
 // =========================================================================
 // パッケージ・モジュールの読み込み
 // =========================================================================
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
 import { useRoute, useRouter, RouterLink } from "vue-router";
+import gsap from "gsap";
+import { TextPlugin } from "gsap/TextPlugin";
 
 // --- Services & Utilities ---
 import api from "../services/api";
@@ -113,6 +150,12 @@ import Loading from "@/components/Loading.vue";
 // --- Icons ---
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 
+// --- Images (AI Icons) ---
+import aiTypingIcon from "@/assets/images/typing-result/ai-icon-rank-c.webp";
+
+// GSAPプラグインの登録
+gsap.registerPlugin(TextPlugin);
+
 // =========================================================================
 // 定数定義
 // =========================================================================
@@ -123,6 +166,17 @@ import ArrowIcon from "@/components/icons/ArrowIcon.vue";
  * @type {number}
  */
 const MIN_LOADING_MS = Number(import.meta.env.VITE_MIN_LOADING_MS) || 300;
+
+/**
+ * AIが高速で打ち込むダミーテキストの配列
+ */
+const TYPING_DUMMY_TEXTS = [
+  "あなたにぴったりの問題文を生成中...",
+  "吾輩は猫である。名前はまだ無い。",
+  "function generateQuestions() { return optimal; }",
+  "タイピングしやすい文字列を解析しています...",
+  "ちょっとキーボード打つのが早すぎましたかね？",
+];
 
 // =========================================================================
 // State (状態管理)
@@ -197,6 +251,12 @@ const problems = ref([]);
  */
 const showWarningModal = ref(false);
 
+/**
+ * GSAPコンテキスト (アンマウント時のクリーンアップ用)
+ * @type {import('gsap').Context}
+ */
+let gsapContext;
+
 // --- URLクエリからのデータ取得 (Computed) ---
 
 /**
@@ -216,6 +276,20 @@ const genreId = computed(() => route.query.genreId);
  * @type {import('vue').ComputedRef<string|undefined>}
  */
 const prompt = computed(() => route.query.prompt);
+
+// =========================================================================
+// DOM / コンポーネント参照 (Refs)
+// =========================================================================
+
+/**
+ *
+ */
+const aiLoadingWrapperRef = ref(null);
+
+/**
+ *
+ */
+const aiTypingTextRef = ref(null);
 
 // =========================================================================
 // Composables 呼び出し
@@ -271,6 +345,8 @@ const validateQuery = () => {
 const loadProblems = async () => {
   isLoading.value = true;
   errorMessage.value = "";
+  await nextTick();
+  setAnimation();
 
   try {
     let response;
@@ -319,6 +395,9 @@ const loadProblems = async () => {
       error.message ||
       "問題の読み込みに失敗しました";
   } finally {
+    if (gsapContext) {
+      gsapContext.revert();
+    }
     isLoading.value = false;
   }
 };
@@ -502,6 +581,46 @@ const handleCancelWarning = () => {
   router.push("/menu");
 };
 
+/**
+ * GSAPアニメーションのセットアップ処理
+ * @returns {void}
+ */
+const setAnimation = () => {
+  // GSAPアニメーションをContextで囲む（Vueのコンポーネント破棄時に一括解除するため）
+  gsapContext = gsap.context(() => {
+    const tl = gsap.timeline({ repeat: -1 });
+
+    TYPING_DUMMY_TEXTS.forEach((text) => {
+      // テキストを高速で打ち込む
+      tl.to(aiTypingTextRef.value, {
+        duration: text.length * 0.05,
+        text: text,
+        ease: "none",
+      })
+        // 打ち終わったら少し待機して読ませる
+        .to({}, { duration: 1 })
+        // バックスペースで高速で消す（空文字にする）
+        .to(
+          {},
+          {
+            duration: text.length * 0.02, // 消す時はさらに早く
+            ease: "none",
+            onUpdate: function () {
+              // 進行度に合わせて、表示する文字数を後ろから削っていく
+              const currentLength = Math.ceil(
+                text.length * (1 - this.progress())
+              );
+              aiTypingTextRef.value.textContent = text.substring(
+                0,
+                currentLength
+              );
+            },
+          }
+        );
+    });
+  }, aiLoadingWrapperRef.value);
+};
+
 // =========================================================================
 // ライフサイクル
 // =========================================================================
@@ -524,6 +643,16 @@ onMounted(async () => {
 
   // 問題データの取得を開始
   await loadProblems();
+});
+
+/**
+ * アンマウント時処理
+ */
+onUnmounted(() => {
+  // コンポーネントが破棄される時にGSAPのアニメーションをリセットし、メモリリークを防ぐ
+  if (gsapContext) {
+    gsapContext.revert();
+  }
 });
 </script>
 
@@ -561,6 +690,76 @@ onMounted(async () => {
 
   &__sub-message {
     font-size: 1.4rem;
+  }
+
+  /* --- AIローディング --- */
+  &__ai-loading {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+    align-items: center;
+  }
+
+  &__ai-icon {
+    width: 14rem;
+    aspect-ratio: 1;
+    animation: typing-bounce 0.15s infinite;
+  }
+
+  &__editor-bubble {
+    width: 32rem;
+    overflow: hidden;
+    background-color: $black;
+    border-radius: $radius-md;
+    box-shadow: $modal-box-shadow;
+  }
+
+  &__editor-header {
+    display: flex;
+    gap: 6px;
+    padding: 8px 12px;
+    background-color: $black;
+  }
+
+  &__editor-dot {
+    width: 10px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+
+    &--red {
+      background-color: $red;
+    }
+
+    &--yellow {
+      background-color: $yellow;
+    }
+
+    &--green {
+      background-color: $green;
+    }
+  }
+
+  &__editor-body {
+    min-height: 8rem;
+    padding: 16px;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: left;
+  }
+
+  &__editor-prompt-symbol {
+    color: $green;
+  }
+
+  &__editor-typing-text {
+    color: $yellow;
+  }
+
+  &__editor-blinking-cursor {
+    font-weight: $bold;
+    color: $blue;
+    animation: blink 1s step-end infinite;
   }
 
   /* --- 戻るボタン --- */
@@ -690,6 +889,33 @@ onMounted(async () => {
   100% {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+/* AIがタイピングしている反動を表現する微小な揺れ */
+@keyframes typing-bounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  25% {
+    transform: translateY(-2px) rotate(-1deg);
+  }
+
+  75% {
+    transform: translateY(-1px) rotate(1deg);
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
   }
 }
 </style>
