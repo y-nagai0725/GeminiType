@@ -467,7 +467,7 @@ const setAnimation = () => {
         anticipatePin: 1,
         invalidateOnRefresh: true,
         // スライドの合計幅だけスクロールしたらピン留めを解除する
-        end: () => "+=" + slideWrapper.value.offsetWidth,
+        end: () => "+=" + window.innerWidth * (slides.length - 1),
       },
     });
 
