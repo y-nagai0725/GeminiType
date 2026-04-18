@@ -253,7 +253,7 @@
               <img
                 src="@/assets/images/top/gallery-5.webp"
                 loading="lazy"
-                alt="苦手キーと詳細履歴"
+                alt="詳細履歴と試し打ち"
                 class="top-view__slide-image"
               />
               <p class="top-view__slide-description">
