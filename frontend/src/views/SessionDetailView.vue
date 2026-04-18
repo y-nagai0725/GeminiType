@@ -715,7 +715,7 @@ onUnmounted(() => {
       @include fluid-style(height, 9, 11);
 
       .simplebar-scrollbar::before {
-        background-color: $green;
+        background-color: $blue;
         opacity: 1;
       }
     }
