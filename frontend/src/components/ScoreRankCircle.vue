@@ -231,6 +231,12 @@ watch(progressCircleDashoffset, (newValue) => {
  * @returns {void}
  */
 const playAnimation = () => {
+  // スコアが "-" や 0 の時は、アニメーションさせずにそのままにする
+  if (!props.score || props.score === "-") {
+    progressCircleDashoffset.value = CIRCUMFERENCE;
+    return;
+  }
+
   gsap.fromTo(
     progressCircleDashoffset,
     { value: CIRCUMFERENCE },
