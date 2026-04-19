@@ -17,13 +17,19 @@
         ref="aiLoadingWrapperRef"
       >
         <div class="game-view__ai-loading">
-          <img
-            :src="aiTypingIcon"
-            alt="AIタイピングアイコン"
-            class="game-view__ai-icon"
-          />
+          <div class="game-view__ai-icon-wrapper">
+            <Transition name="icon-fade" mode="out-in">
+              <img
+                :key="currentAiIcon"
+                :src="currentAiIcon"
+                alt="AIタイピングアイコン"
+                class="game-view__ai-icon"
+                :class="{ 'is-typing': isAiIconTyping }"
+              />
+            </Transition>
+          </div>
 
-          <div class="game-view__editor-bubble">
+          <div class="game-view__editor">
             <div class="game-view__editor-header">
               <span
                 class="game-view__editor-dot game-view__editor-dot--red"
@@ -151,7 +157,8 @@ import Loading from "@/components/Loading.vue";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 
 // --- Images (AI Icons) ---
-import aiTypingIcon from "@/assets/images/typing-result/ai-icon-rank-c.webp";
+import aiTypingIcon from "@/assets/images/typing-game/ai-icon-typing.webp";
+import aiReadyIcon from "@/assets/images/typing-game/ai-icon-ready.webp";
 
 // GSAPプラグインの登録
 gsap.registerPlugin(TextPlugin);
@@ -169,13 +176,14 @@ const MIN_LOADING_MS = Number(import.meta.env.VITE_MIN_LOADING_MS) || 300;
 
 /**
  * AIが高速で打ち込むダミーテキストの配列
+ * @type {string[]}
  */
-const TYPING_DUMMY_TEXTS = [
-  "あなたにぴったりの問題文を生成中...",
-  "吾輩は猫である。名前はまだ無い。",
+const AI_TYPING_DUMMY_TEXTS = [
+  "あなたにぴったりの問題文をGeminiが生成中...",
+  "（カタカタカタ...）AIも今、必死にタイピングして問題を作っています！",
   "function generateQuestions() { return optimal; }",
-  "タイピングしやすい文字列を解析しています...",
-  "ちょっとキーボード打つのが早すぎましたかね？",
+  "問題文を生成中... 指の体操をしてお待ちください！",
+  "Geminiがフルパワーで問題を作成中！ どんな文章が出るかお楽しみに。",
 ];
 
 // =========================================================================
@@ -252,12 +260,53 @@ const problems = ref([]);
 const showWarningModal = ref(false);
 
 /**
+ * 現在表示するAIアイコン画像
+ * @type {import('vue').Ref<string>}
+ */
+const currentAiIcon = ref(aiTypingIcon);
+
+/**
+ * AIアイコン画像タイピングアニメーションフラグ
+ * @type {import('vue').Ref<boolean>}
+ */
+const isAiIconTyping = ref(true);
+
+/**
  * GSAPコンテキスト (アンマウント時のクリーンアップ用)
  * @type {import('gsap').Context}
  */
 let gsapContext;
 
-// --- URLクエリからのデータ取得 (Computed) ---
+// =========================================================================
+// DOM / コンポーネント参照 (Refs)
+// =========================================================================
+
+/**
+ * AIローディングアニメーションの全体ラッパー要素
+ * @type {import('vue').Ref<HTMLElement|null>}
+ */
+const aiLoadingWrapperRef = ref(null);
+
+/**
+ * AIがタイピングしているテキストを表示する要素
+ * @type {import('vue').Ref<HTMLElement|null>}
+ */
+const aiTypingTextRef = ref(null);
+
+// =========================================================================
+// Composables 呼び出し
+// =========================================================================
+
+/**
+ * デバイスのプレイ環境を判定する
+ */
+const { checkNeedsWarning } = useDeviceEnvironment();
+
+// =========================================================================
+// Computed (計算プロパティ)
+// =========================================================================
+
+// --- URLクエリからのデータ取得 ---
 
 /**
  * モード ('db' or 'gemini')
@@ -276,29 +325,6 @@ const genreId = computed(() => route.query.genreId);
  * @type {import('vue').ComputedRef<string|undefined>}
  */
 const prompt = computed(() => route.query.prompt);
-
-// =========================================================================
-// DOM / コンポーネント参照 (Refs)
-// =========================================================================
-
-/**
- *
- */
-const aiLoadingWrapperRef = ref(null);
-
-/**
- *
- */
-const aiTypingTextRef = ref(null);
-
-// =========================================================================
-// Composables 呼び出し
-// =========================================================================
-
-/**
- * デバイスのプレイ環境を判定する
- */
-const { checkNeedsWarning } = useDeviceEnvironment();
 
 // =========================================================================
 // Actions (処理)
@@ -345,8 +371,6 @@ const validateQuery = () => {
 const loadProblems = async () => {
   isLoading.value = true;
   errorMessage.value = "";
-  await nextTick();
-  setAnimation();
 
   try {
     let response;
@@ -369,6 +393,10 @@ const loadProblems = async () => {
     // --- Geminiモードの場合 ---
     else if (mode.value === "gemini") {
       loadingMessage.value = "AIが問題を生成中です、少々お待ちください...";
+
+      // AIローディングアニメーション設定
+      await nextTick();
+      setAnimation();
 
       const params = new URLSearchParams();
       params.append("count", settingsStore.problemCount);
@@ -395,9 +423,12 @@ const loadProblems = async () => {
       error.message ||
       "問題の読み込みに失敗しました";
   } finally {
+    // GSAPアニメーション削除
     if (gsapContext) {
       gsapContext.revert();
     }
+
+    // ローディング非表示
     isLoading.value = false;
   }
 };
@@ -588,14 +619,27 @@ const handleCancelWarning = () => {
 const setAnimation = () => {
   // GSAPアニメーションをContextで囲む（Vueのコンポーネント破棄時に一括解除するため）
   gsapContext = gsap.context(() => {
+    // timeline作成、繰り返しを無限に設定
     const tl = gsap.timeline({ repeat: -1 });
 
-    TYPING_DUMMY_TEXTS.forEach((text) => {
+    // お題テキスト
+    const promptText = `テーマ：[ ${prompt.value} ] の問題を生成しています...`;
+
+    // アニメーションさせるテキスト配列作成
+    const animationTexts = [promptText, ...AI_TYPING_DUMMY_TEXTS];
+
+    // アニメーション設定
+    animationTexts.forEach((text) => {
       // テキストを高速で打ち込む
       tl.to(aiTypingTextRef.value, {
-        duration: text.length * 0.05,
+        duration: text.length * 0.04,
         text: text,
         ease: "none",
+        onComplete: () => {
+          // テキスト入力完了後にAIアイコンを待機用画像に変更
+          currentAiIcon.value = aiReadyIcon;
+          isAiIconTyping.value = false;
+        },
       })
         // 打ち終わったら少し待機して読ませる
         .to({}, { duration: 1 })
@@ -603,7 +647,7 @@ const setAnimation = () => {
         .to(
           {},
           {
-            duration: text.length * 0.02, // 消す時はさらに早く
+            duration: text.length * 0.02,
             ease: "none",
             onUpdate: function () {
               // 進行度に合わせて、表示する文字数を後ろから削っていく
@@ -614,6 +658,11 @@ const setAnimation = () => {
                 0,
                 currentLength
               );
+            },
+            onComplete: () => {
+              // テキスト削除完了後にAIアイコンをタイピング用画像に変更
+              currentAiIcon.value = aiTypingIcon;
+              isAiIconTyping.value = true;
             },
           }
         );
@@ -694,37 +743,55 @@ onUnmounted(() => {
 
   /* --- AIローディング --- */
   &__ai-loading {
+    @include fluid-style(gap, 16, 24);
+
     display: flex;
     flex-direction: column;
-    gap: 1.6rem;
     align-items: center;
+
+    @include pc {
+      flex-direction: row;
+    }
+  }
+
+  &__ai-icon-wrapper {
+    @include fluid-style(width, 120, 140);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    background-color: $gray;
+    border-radius: 100vmax;
   }
 
   &__ai-icon {
-    width: 14rem;
+    width: 80%;
     aspect-ratio: 1;
-    animation: typing-bounce 0.15s infinite;
+
+    &.is-typing {
+      animation: typing-bounce 0.15s infinite;
+    }
   }
 
-  &__editor-bubble {
-    width: 32rem;
+  &__editor {
+    width: 30rem;
     overflow: hidden;
-    background-color: $black;
     border-radius: $radius-md;
     box-shadow: $modal-box-shadow;
   }
 
   &__editor-header {
     display: flex;
-    gap: 6px;
-    padding: 8px 12px;
-    background-color: $black;
+    gap: 0.8rem;
+    padding: 0.8rem 1.2rem;
+    background-color: $gray;
   }
 
   &__editor-dot {
-    width: 10px;
+    width: 1rem;
     aspect-ratio: 1;
-    border-radius: 50%;
+    border-radius: 100vmax;
 
     &--red {
       background-color: $red;
@@ -741,11 +808,12 @@ onUnmounted(() => {
 
   &__editor-body {
     min-height: 8rem;
-    padding: 16px;
-    font-family: "Courier New", Courier, monospace;
-    font-size: 14px;
+    padding: 1.6rem;
+    font-family: "Noto Sans JP", "Roboto Mono", monospace;
+    font-size: 1.4rem;
     line-height: 1.5;
     text-align: left;
+    background-color: $black;
   }
 
   &__editor-prompt-symbol {
@@ -908,6 +976,7 @@ onUnmounted(() => {
   }
 }
 
+/* エディタのカーソル点滅 */
 @keyframes blink {
   0%,
   100% {
@@ -917,5 +986,16 @@ onUnmounted(() => {
   50% {
     opacity: 0;
   }
+}
+
+/* AIアイコン切り替えアニメーション */
+.icon-fade-enter-active,
+.icon-fade-leave-active {
+  transition: opacity 0.1s ease-out;
+}
+
+.icon-fade-enter-from,
+.icon-fade-leave-to {
+  opacity: 0;
 }
 </style>
