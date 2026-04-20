@@ -380,7 +380,7 @@ const fetchAiComment = async () => {
   } catch (error) {
     console.error("AIコメント取得エラー:", error);
     aiComment.value =
-      "お疲れ様！ (AIコメントの取得に失敗しちゃったけど、応援してるよ！)";
+      "お疲れ様！ (AIからのコメント取得に失敗しちゃいました💦 ページを更新（リロード）するともう一度取得できるから、よかったら試してみてね！応援してるよ！)";
     currentAiIcon.value = iconError; // エラー時はエラー用AIアイコン
   } finally {
     isCommentLoading.value = false;
