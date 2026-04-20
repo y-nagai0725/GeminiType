@@ -656,7 +656,7 @@ onUnmounted(() => {
     }
 
     &--worst-key {
-      color: $black;
+      color: $dark-blue;
     }
   }
 
@@ -680,7 +680,7 @@ onUnmounted(() => {
     }
 
     &--worst-key {
-      fill: $black;
+      fill: $dark-blue;
     }
   }
 

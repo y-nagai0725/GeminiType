@@ -910,7 +910,7 @@ onUnmounted(() => {
     line-height: 1;
 
     &--score {
-      stroke: $orange;
+      fill: $orange;
     }
 
     &--kpm {

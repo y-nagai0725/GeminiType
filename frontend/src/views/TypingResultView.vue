@@ -648,11 +648,11 @@ onUnmounted(() => {
     }
 
     &--worst-key {
-      fill: $light-black;
+      fill: $dark-blue;
     }
 
     &--score {
-      stroke: $orange;
+      fill: $orange;
     }
   }
 
@@ -692,7 +692,7 @@ onUnmounted(() => {
     }
 
     &--worst-key {
-      color: $light-black;
+      color: $dark-blue;
     }
 
     &--score {
