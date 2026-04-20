@@ -785,7 +785,7 @@ onUnmounted(() => {
         color: $red;
 
         &.is-none {
-          color: $black;
+          color: $dark-blue;
         }
       }
     }

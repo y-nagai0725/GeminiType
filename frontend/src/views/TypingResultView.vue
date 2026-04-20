@@ -927,9 +927,8 @@ onUnmounted(() => {
         font-family: $roboto-mono;
         color: $red;
 
-        /* NONEの場合は黒文字にする */
         &.is-none {
-          color: $black;
+          color: $dark-blue;
         }
       }
     }

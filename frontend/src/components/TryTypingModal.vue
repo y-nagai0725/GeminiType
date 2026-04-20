@@ -205,9 +205,11 @@ onUnmounted(() => {
   &__sound-settings {
     @include fluid-style(gap, 16, 24);
     @include fluid-style(margin-bottom, 10, 16);
+    @include fluid-style(top, 16, 24);
+    @include fluid-style(right, 80, 88);
 
+    position: absolute;
     display: flex;
-    justify-content: flex-end;
   }
 
   &__sound-label {

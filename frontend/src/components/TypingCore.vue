@@ -1,12 +1,17 @@
 <template>
   <div class="typing-core">
-    <div v-if="isLoading" class="typing-core__loading">
+    <div
+      v-if="isLoading"
+      class="typing-core__loading"
+      :class="gameMode.replace('_', '-')"
+    >
       <Loading :text="'問題準備中…'" :bgColor="'white'" :lineColor="'blue'" />
     </div>
 
     <div
       v-else-if="errorMessage"
       class="typing-core__error"
+      :class="gameMode.replace('_', '-')"
       role="alert"
       aria-live="assertive"
     >
@@ -23,6 +28,7 @@
     <div
       v-else-if="isCompleted"
       class="typing-core__completed"
+      :class="gameMode.replace('_', '-')"
       role="status"
       aria-live="polite"
     >
@@ -66,6 +72,7 @@
     <div
       v-else-if="!isStarted"
       class="typing-core__ready"
+      :class="gameMode.replace('_', '-')"
       role="status"
       aria-live="polite"
     >
@@ -1653,9 +1660,16 @@ onUnmounted(() => {
     justify-content: center;
 
     /* 中身の量が違っても、画面がガタガタ動かないように最低高さを確保 */
-    min-height: 25rem;
+    min-height: 27rem;
     background-color: $gray;
     border-radius: $radius-lg;
+
+    /* 特殊モード時はUI（ゲージ等）が増えるため、
+       少しだけ高さを広げてあげることでレイアウトの窮屈さを防ぐ */
+    &.time-limit,
+    &.sudden-death {
+      min-height: 30rem;
+    }
   }
 
   &__completed-title,
@@ -1729,7 +1743,7 @@ onUnmounted(() => {
     flex-direction: column;
     gap: 1.6rem;
     justify-content: space-between;
-    min-height: 25rem;
+    min-height: 27rem;
     padding: 1.6rem 3.2rem;
     background-color: $gray;
     border-radius: $radius-lg;
