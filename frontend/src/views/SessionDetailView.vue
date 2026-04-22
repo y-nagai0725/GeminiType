@@ -206,7 +206,6 @@ import {
 } from "../utils/formatters";
 
 // --- Stores ---
-import { useNotificationStore } from "../stores/notificationStore";
 import { useSettingsStore } from "../stores/settingsStore";
 
 // --- Composables ---
@@ -256,11 +255,6 @@ const route = useRoute();
  * @type {import('vue-router').Router}
  */
 const router = useRouter();
-
-/**
- * お知らせstore
- */
-const notificationStore = useNotificationStore();
 
 /**
  * 設定store
@@ -495,7 +489,6 @@ onMounted(async () => {
     console.error("詳細取得エラー:", error);
     errorMessage.value =
       error.response?.data?.message || "データの取得に失敗しました";
-    notificationStore.addNotification("データの取得に失敗しました", "error");
   } finally {
     isContentsLoading.value = false;
 
