@@ -193,7 +193,7 @@ const aiPrompt = ref("");
  * @type {import('vue').ComputedRef<Array<Object>>}
  */
 const activeGenres = computed(() => {
-  return genres.value.filter(genre => genre._count?.problems > 0);
+  return genres.value.filter((genre) => (genre._count?.problems ?? 0) > 0);
 });
 
 // =========================================================================
