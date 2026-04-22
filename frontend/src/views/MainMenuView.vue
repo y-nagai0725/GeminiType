@@ -86,7 +86,7 @@
               <div v-else class="main-menu__genre-list">
                 <button
                   type="button"
-                  v-for="genre in genres"
+                  v-for="genre in activeGenres"
                   :key="genre.id"
                   class="main-menu__genre-button"
                   @click="handleStartDbMode(genre.id, genre.name)"
@@ -106,7 +106,7 @@
 // =========================================================================
 // パッケージ・モジュールの読み込み
 // =========================================================================
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRouter, RouterLink } from "vue-router";
 import Simplebar from "simplebar-vue";
 
@@ -183,6 +183,18 @@ const genres = ref([]);
  * @type {import('vue').Ref<string>}
  */
 const aiPrompt = ref("");
+
+// =========================================================================
+// Computed (計算プロパティ)
+// =========================================================================
+
+/**
+ * 問題数が1件以上登録されている、実際に表示対象となるジャンル一覧
+ * @type {import('vue').ComputedRef<Array<Object>>}
+ */
+const activeGenres = computed(() => {
+  return genres.value.filter(genre => genre._count?.problems > 0);
+});
 
 // =========================================================================
 // Actions (処理)

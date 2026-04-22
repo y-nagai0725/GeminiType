@@ -991,6 +991,11 @@ app.get('/api/genres', async (req, res) => {
   try {
     const genres = await prisma.genre.findMany({
       orderBy: { id: 'asc' },
+      include: {
+        _count: {
+          select: { problems: true } // ジャンルに紐づく問題数を取得
+        }
+      },
     });
     res.json(genres);
   } catch (error) {
