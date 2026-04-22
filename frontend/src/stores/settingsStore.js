@@ -182,7 +182,8 @@ export const useSettingsStore = defineStore('settings', () => {
 
       // バリデーションを通過した（またはリセットされた）安全な値を自動保存する
       saveSettings();
-    }
+    },
+    { immediate: true }
   );
 
   // =======================================================================
