@@ -122,7 +122,7 @@ const geminiModel = genAI.getGenerativeModel({
  * Gemini APIのタイムアウト時間（ミリ秒）
  * @type {number}
  */
-const GEMINI_TIMEOUT_MS = 15000;
+const GEMINI_TIMEOUT_MS = 17000;
 
 /**
  * Yahoo APIのタイムアウト時間（ミリ秒）
@@ -183,7 +183,7 @@ const MAX_SCORE = 370;
  * @type {{ S: number, A: number, B: number }}
  */
 const RANK_THRESHOLDS = {
-  S: Math.round(MAX_SCORE * 0.95),
+  S: Math.round(MAX_SCORE * 0.9),
   A: Math.round(MAX_SCORE * 0.75),
   B: Math.round(MAX_SCORE * 0.6),
 };

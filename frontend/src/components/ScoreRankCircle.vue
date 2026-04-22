@@ -132,7 +132,7 @@ const MAX_SCORE = 370;
  * @type {Object.<string, number>}
  */
 const RANK_SCORE_THRESHOLDS = {
-  S: Math.round(MAX_SCORE * 0.95),
+  S: Math.round(MAX_SCORE * 0.9),
   A: Math.round(MAX_SCORE * 0.75),
   B: Math.round(MAX_SCORE * 0.6),
 };
