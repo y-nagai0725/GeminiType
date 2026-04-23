@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <AppHeader />
+    <AppHeader class="header" />
 
     <Simplebar id="app-main-scroll" class="app-scroll-area" ref="scrollAreaRef">
       <main class="app-main">
@@ -11,8 +11,8 @@
         </RouterView>
       </main>
 
-      <Submenu />
-      <AppFooter />
+      <Submenu class="submenu" />
+      <AppFooter class="footer" />
     </Simplebar>
 
     <NotificationDisplay />
@@ -24,9 +24,10 @@
 // =========================================================================
 // パッケージ・モジュールの読み込み
 // =========================================================================
-import { ref, watch } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRoute, RouterView } from "vue-router";
 import Simplebar from "simplebar-vue";
+import gsap from "gsap";
 
 // コンポーネントの読み込み
 import AppHeader from "@/components/AppHeader.vue";
@@ -51,6 +52,43 @@ const route = useRoute();
  * @type {import('vue').Ref<any>}
  */
 const scrollAreaRef = ref(null);
+
+// =========================================================================
+// ライフサイクル
+// =========================================================================
+
+/**
+ * マウント時処理
+ */
+onMounted(() => {
+  const tl = gsap.timeline();
+
+  tl.set(".app-container", { visibility: "visible" });
+
+  // ヘッダー、メイン、フッターを順番にふわっと出す
+  tl.from(".header", {
+    y: -30,
+    opacity: 0,
+    duration: 0.8,
+    ease: "power3.out",
+  })
+    .from(
+      ".app-main",
+      { opacity: 0, scale: 0.98, duration: 1.0, ease: "power2.out" },
+      "-=0.5"
+    )
+    .from(
+      [".submenu", ".footer"],
+      {
+        y: 20,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.1, // 少しだけずらす
+        ease: "power2.out",
+      },
+      "-=0.6"
+    );
+});
 
 // =========================================================================
 // Watchers (監視処理)
@@ -83,11 +121,19 @@ watch(
 <style lang="scss" scoped>
 .app-container {
   position: relative;
+  visibility: hidden;
   width: 100%;
   height: 100svh;
 
   /* 外側は絶対にスクロールさせず、中のSimplebarでスクロールさせる */
   overflow: hidden;
+}
+
+/* 各パーツが個別にアニメーションされるように */
+.header,
+.app-main,
+.footer {
+  will-change: transform, opacity;
 }
 
 /* =========================================================================
