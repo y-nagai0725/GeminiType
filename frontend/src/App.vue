@@ -54,18 +54,21 @@ const route = useRoute();
 const scrollAreaRef = ref(null);
 
 // =========================================================================
-// ライフサイクル
+// GSAP アニメーション制御
 // =========================================================================
 
 /**
- * マウント時処理
+ * アニメーション設定
+ * @returns {void}
  */
-onMounted(() => {
+const setAnimation = () => {
+  // timeline作成
   const tl = gsap.timeline();
 
+  // 初期状態で透明にしているのを解除
   tl.set(".app-container", { visibility: "visible" });
 
-  // ヘッダー、メイン、フッターを順番にふわっと出す
+  // ヘッダー、メイン、フッターを順番に出現させる
   tl.from(".header", {
     y: -30,
     opacity: 0,
@@ -74,20 +77,30 @@ onMounted(() => {
   })
     .from(
       ".app-main",
-      { opacity: 0, scale: 0.98, duration: 1.0, ease: "power2.out" },
-      "-=0.5"
+      { opacity: 0, duration: 1, ease: "power2.out" },
+      "-=0.65"
     )
     .from(
       [".submenu", ".footer"],
       {
-        y: 20,
         opacity: 0,
         duration: 0.8,
-        stagger: 0.1, // 少しだけずらす
+        stagger: 0.1,
         ease: "power2.out",
       },
-      "-=0.6"
+      "-=0.2"
     );
+};
+
+// =========================================================================
+// ライフサイクル
+// =========================================================================
+
+/**
+ * マウント時処理
+ */
+onMounted(() => {
+  setAnimation();
 });
 
 // =========================================================================
@@ -129,10 +142,9 @@ watch(
   overflow: hidden;
 }
 
-/* 各パーツが個別にアニメーションされるように */
 .header,
-.app-main,
-.footer {
+.footer,
+.submenu {
   will-change: transform, opacity;
 }
 
