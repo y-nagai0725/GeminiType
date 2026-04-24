@@ -164,7 +164,10 @@ export const useAdminStore = defineStore('admin', () => {
       // 問題文登録
       await api.post('/api/admin/problems', { genre_id, problem_text, problem_hiragana });
 
-      // 問題一覧表示を更新(現在表示ページが最新になる)
+      // 問題文登録後は、「1ページ目」に戻す
+      currentPage.value = 1;
+
+      // 問題一覧表示を更新
       await fetchProblems();
     } catch (error) {
       throw error;
@@ -204,7 +207,12 @@ export const useAdminStore = defineStore('admin', () => {
       // 問題文の削除
       await api.delete(`/api/admin/problems/${id}`);
 
-      // 問題一覧表示を更新(現在表示ページが最新になる)
+      // 現在のページが1ページ目より後で、かつ現在のページのデータが1件ならば、削除後に1つ前のページを表示する
+      if (currentPage.value > 1 && problems.value.length === 1) {
+        currentPage.value--;
+      }
+
+      // 問題一覧表示を更新
       await fetchProblems();
     } catch (error) {
       throw error;
