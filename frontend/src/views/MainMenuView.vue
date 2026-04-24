@@ -31,7 +31,7 @@
           <input
             type="text"
             v-model.trim="aiPrompt"
-            placeholder="例: 料理、動物、元気が出る言葉..."
+            placeholder="空のままスタートで「おまかせ」！"
             class="main-menu__input"
             id="ai-prompt"
             :maxlength="MAX_GEMINI_PROMPT_LENGTH"
@@ -205,14 +205,11 @@ const activeGenres = computed(() => {
  * @returns {void}
  */
 const handleStartAiMode = () => {
-  // バリデーション: 空チェック
-  if (aiPrompt.value === "") {
-    notificationStore.addNotification("お題を入力して下さい。", "error");
-    return;
-  }
+  // 空だったら「おまかせ」をセット
+  const finalPrompt = aiPrompt.value === "" ? "おまかせ" : aiPrompt.value;
 
   // お題の文字数チェック
-  if (aiPrompt.value.length > MAX_GEMINI_PROMPT_LENGTH) {
+  if (finalPrompt.length > MAX_GEMINI_PROMPT_LENGTH) {
     notificationStore.addNotification(
       `お題は${MAX_GEMINI_PROMPT_LENGTH}文字以内にして下さい。`,
       "error"
@@ -223,7 +220,7 @@ const handleStartAiMode = () => {
   // 設定画面へ遷移 (Geminiモードとしてパラメータを渡す)
   router.push({
     path: "/typing/setup",
-    query: { mode: "gemini", prompt: aiPrompt.value },
+    query: { mode: "gemini", prompt: finalPrompt },
   });
 };
 
