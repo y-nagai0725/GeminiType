@@ -66,12 +66,26 @@
       <p class="game-view__sub-message game-view__sub-message--error">
         {{ errorMessage }}
       </p>
-      <RouterLink to="/menu" class="game-view__link-button">
-        メインメニューに戻る<ArrowIcon
-          class="game-view__arrow-icon"
-          aria-hidden="true"
-        />
-      </RouterLink>
+      <div class="game-view__error-actions">
+        <button
+          v-if="mode === 'gemini'"
+          type="button"
+          @click="handleRetry"
+          class="game-view__retry-button"
+        >
+          もう一度生成する<ArrowIcon
+            class="game-view__arrow-icon"
+            aria-hidden="true"
+          />
+        </button>
+
+        <RouterLink to="/menu" class="game-view__back-button">
+          メインメニューに戻る<ArrowIcon
+            class="game-view__arrow-icon"
+            aria-hidden="true"
+          />
+        </RouterLink>
+      </div>
     </div>
 
     <div v-else class="game-view__core">
@@ -613,6 +627,14 @@ const handleCancelWarning = () => {
 };
 
 /**
+ * 問題読み込みリトライ処理
+ * @returns {Promise<void>}
+ */
+const handleRetry = async () => {
+  await loadProblems();
+};
+
+/**
  * GSAPアニメーションのセットアップ処理
  * @returns {void}
  */
@@ -627,6 +649,10 @@ const setAnimation = () => {
 
     // アニメーションさせるテキスト配列作成
     const animationTexts = [promptText, ...AI_TYPING_DUMMY_TEXTS];
+
+    // AIアイコンをタイピング用画像に設定
+    currentAiIcon.value = aiTypingIcon;
+    isAiIconTyping.value = true;
 
     // アニメーション設定
     animationTexts.forEach((text) => {
@@ -741,6 +767,32 @@ onUnmounted(() => {
     font-size: 1.4rem;
   }
 
+  /* --- エラーアクション要素 --- */
+  &__error-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+    align-items: center;
+  }
+
+  &__retry-button {
+    @include button-style-fill($green);
+    @include fluid-style(width, 240, 350);
+    @include fluid-style(padding-block, 17, 22);
+    @include fluid-text(14, 18);
+  }
+
+  &__back-button {
+    @include button-style-border($blue);
+    @include fluid-style(width, 240, 350);
+    @include fluid-style(padding-block, 17, 22);
+    @include fluid-text(14, 18);
+  }
+
+  &__arrow-icon {
+    @include button-arrow-icon-style;
+  }
+
   /* --- AIローディング --- */
   &__ai-loading {
     @include fluid-style(gap, 16, 24);
@@ -828,20 +880,6 @@ onUnmounted(() => {
     font-weight: $bold;
     color: $blue;
     animation: blink 1s step-end infinite;
-  }
-
-  /* --- 戻るボタン --- */
-  &__link-button {
-    @include button-style-fill($green);
-    @include fluid-style(width, 240, 350);
-    @include fluid-style(padding-block, 17, 22);
-    @include fluid-text(14, 18);
-
-    margin-inline: auto;
-  }
-
-  &__arrow-icon {
-    @include button-arrow-icon-style;
   }
 
   /* --- コアコンポーネントのラッパー --- */
