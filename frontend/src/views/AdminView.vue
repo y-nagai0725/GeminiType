@@ -87,6 +87,7 @@
               </div>
               <input
                 type="text"
+                id="new-problem-text"
                 class="admin-view__input"
                 placeholder="新しい問題文"
                 v-model="newProblemText"
@@ -95,6 +96,7 @@
               />
               <input
                 type="text"
+                id="new-problem-hiragana"
                 class="admin-view__input"
                 placeholder="ひらがな"
                 v-model="newProblemHiragana"
@@ -128,8 +130,9 @@
               </div>
               <input
                 type="text"
+                id="search-text"
                 class="admin-view__input"
-                placeholder="（問題文）と（ひらがな）で検索"
+                placeholder="（問題文）と（ひらがな）を対象に検索"
                 v-model="localFilterSearchText"
               />
               <button type="submit" class="admin-view__input-button">
@@ -249,6 +252,7 @@
             >
               <input
                 type="text"
+                id="new-genre-name"
                 class="admin-view__input"
                 placeholder="追加するジャンル名を入力…"
                 v-model="newGenreName"
