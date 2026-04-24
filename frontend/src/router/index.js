@@ -145,4 +145,15 @@ router.beforeEach(async (to, from, next) => {
   next();
 });
 
+/**
+ * 遷移後に実行される処理
+ * 同じページへの遷移を検知して、スクロールイベントを発行する
+ */
+router.afterEach((to, from) => {
+  if (to.fullPath === from.fullPath) {
+    // カスタムイベント「scroll-to-top」を発行
+    window.dispatchEvent(new CustomEvent('scroll-to-top'));
+  }
+});
+
 export default router;

@@ -24,7 +24,7 @@
 // =========================================================================
 // パッケージ・モジュールの読み込み
 // =========================================================================
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useRoute, RouterView } from "vue-router";
 import Simplebar from "simplebar-vue";
 import gsap from "gsap";
@@ -54,42 +54,69 @@ const route = useRoute();
 const scrollAreaRef = ref(null);
 
 // =========================================================================
+// Actions (処理)
+// =========================================================================
+
+/**
+ * スクロールを一番上にスムーススクロールで戻す
+ * @returns {void}
+ */
+const scrollToTop = () => {
+  if (scrollAreaRef.value) {
+    const scrollElement = scrollAreaRef.value.SimpleBar?.getScrollElement();
+    if (scrollElement) {
+      // スムーススクロールで一番上に戻す
+      scrollElement.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+};
+
+// =========================================================================
 // GSAP アニメーション制御
 // =========================================================================
+
+/**
+ * GSAPコンテキスト (アンマウント時のクリーンアップ用)
+ * @type {import('gsap').Context}
+ */
+let gsapContext;
 
 /**
  * アニメーション設定
  * @returns {void}
  */
 const setAnimation = () => {
-  // timeline作成
-  const tl = gsap.timeline();
+  // GSAPアニメーションをContextで囲む（Vueのコンポーネント破棄時に一括解除するため）
+  gsapContext = gsap.context(() => {
+    // timeline作成
+    const tl = gsap.timeline();
 
-  // 初期状態で透明にしているのを解除
-  tl.set(".app-container", { visibility: "visible" });
+    // 初期状態で透明にしているのを解除
+    tl.set(".app-container", { visibility: "visible" });
 
-  // ヘッダー、メイン、フッターを順番に出現させる
-  tl.from(".header", {
-    y: -30,
-    opacity: 0,
-    duration: 0.8,
-    ease: "power3.out",
-  })
-    .from(
-      ".app-main",
-      { opacity: 0, duration: 1, ease: "power2.out" },
-      "-=0.65"
-    )
-    .from(
-      [".submenu", ".footer"],
-      {
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.1,
-        ease: "power2.out",
-      },
-      "-=0.2"
-    );
+    // ヘッダー、メイン、フッターを順番に出現させる
+    tl.from(".header", {
+      y: -30,
+      opacity: 0,
+      duration: 0.8,
+      ease: "power3.out",
+    })
+      .from(
+        ".app-main",
+        { opacity: 0, duration: 1, ease: "power2.out" },
+        "-=0.65"
+      )
+      .from(
+        [".submenu", ".footer"],
+        {
+          opacity: 0,
+          duration: 0.8,
+          stagger: 0.1,
+          ease: "power2.out",
+        },
+        "-=0.2"
+      );
+  });
 };
 
 // =========================================================================
@@ -100,7 +127,24 @@ const setAnimation = () => {
  * マウント時処理
  */
 onMounted(() => {
+  // GSAPアニメーション設定
   setAnimation();
+
+  // イベントリスナーを登録
+  window.addEventListener("scroll-to-top", scrollToTop);
+});
+
+/**
+ * アンマウント時処理
+ */
+onUnmounted(() => {
+  // コンポーネントが破棄される時にGSAPのアニメーションをリセットし、メモリリークを防ぐ
+  if (gsapContext) {
+    gsapContext.revert();
+  }
+
+  // コンポーネント破棄時にリスナーを解除
+  window.removeEventListener("scroll-to-top", scrollToTop);
 });
 
 // =========================================================================
