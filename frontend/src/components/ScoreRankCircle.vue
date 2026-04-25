@@ -57,16 +57,16 @@
         <p class="score-rank-circle__tooltip-formula">KPM × (正確率 / 100)³</p>
         <ul class="score-rank-circle__tooltip-list">
           <li>
-            <span class="rank-s">S</span> : {{ RANK_SCORE_THRESHOLDS.S }}〜
+            <span class="rank-s">S</span> : {{ RANK_THRESHOLDS.S }}〜
           </li>
           <li>
-            <span class="rank-a">A</span> : {{ RANK_SCORE_THRESHOLDS.A }}〜
+            <span class="rank-a">A</span> : {{ RANK_THRESHOLDS.A }}〜
           </li>
           <li>
-            <span class="rank-b">B</span> : {{ RANK_SCORE_THRESHOLDS.B }}〜
+            <span class="rank-b">B</span> : {{ RANK_THRESHOLDS.B }}〜
           </li>
           <li>
-            <span class="rank-c">C</span> : 〜{{ RANK_SCORE_THRESHOLDS.B - 1 }}
+            <span class="rank-c">C</span> : 〜{{ RANK_THRESHOLDS.B - 1 }}
           </li>
         </ul>
       </div>
@@ -131,7 +131,7 @@ const MAX_SCORE = 370;
  * ランク判定用のスコア閾値
  * @type {Object.<string, number>}
  */
-const RANK_SCORE_THRESHOLDS = {
+const RANK_THRESHOLDS = {
   S: Math.round(MAX_SCORE * 0.9),
   A: Math.round(MAX_SCORE * 0.75),
   B: Math.round(MAX_SCORE * 0.6),
@@ -188,11 +188,11 @@ const resultDashoffset = computed(() => {
  */
 const evaluateRank = (checkScore) => {
   if (!checkScore || isNaN(checkScore)) return { rank: "C", class: "rank-c" };
-  if (checkScore >= RANK_SCORE_THRESHOLDS.S)
+  if (checkScore >= RANK_THRESHOLDS.S)
     return { rank: "S", class: "rank-s" };
-  if (checkScore >= RANK_SCORE_THRESHOLDS.A)
+  if (checkScore >= RANK_THRESHOLDS.A)
     return { rank: "A", class: "rank-a" };
-  if (checkScore >= RANK_SCORE_THRESHOLDS.B)
+  if (checkScore >= RANK_THRESHOLDS.B)
     return { rank: "B", class: "rank-b" };
   return { rank: "C", class: "rank-c" };
 };
