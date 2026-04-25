@@ -776,14 +776,14 @@ onUnmounted(() => {
   }
 
   &__retry-button {
-    @include button-style-fill($green);
+    @include button-style-fill($blue);
     @include fluid-style(width, 240, 350);
     @include fluid-style(padding-block, 17, 22);
     @include fluid-text(14, 18);
   }
 
   &__back-button {
-    @include button-style-border($blue);
+    @include button-style-fill($green);
     @include fluid-style(width, 240, 350);
     @include fluid-style(padding-block, 17, 22);
     @include fluid-text(14, 18);

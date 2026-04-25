@@ -31,7 +31,7 @@
           <input
             type="text"
             v-model.trim="aiPrompt"
-            placeholder="空のままスタートで「おまかせ」！"
+            placeholder="空欄のままスタートで「おまかせ」！"
             class="main-menu__input"
             id="ai-prompt"
             :maxlength="MAX_GEMINI_PROMPT_LENGTH"
