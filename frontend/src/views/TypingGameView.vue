@@ -555,7 +555,7 @@ const handleComplete = async (data) => {
       console.error("保存エラー:", error);
       // インターセプターが401エラー（セッション切れ）は処理するため、それ以外を通知
       if (!error.response || error.response.status !== 401) {
-        notificationStore.addNotification("結果の保存に失敗しました", "error");
+        notificationStore.addNotification("結果の保存に失敗しました。", "error");
       }
     }
   } else if (!isNormalMode) {
