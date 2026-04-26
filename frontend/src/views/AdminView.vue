@@ -958,7 +958,7 @@ const handleDeleteGenre = (id, name) => {
 
   // 確認モーダルに表示するテキストをセット
   confirmTitle.value = "ジャンルの削除";
-  confirmMessage.value = `本当に「${name}」を削除しますか？\n（※問題文 が残ってると削除できません）`;
+  confirmMessage.value = `本当に「${name}」を削除しますか？\n（※問題文データが存在していると削除できません）`;
 
   // モーダルで「OK」が押された時に実行する処理をセット
   onConfirmAction.value = async () => {
