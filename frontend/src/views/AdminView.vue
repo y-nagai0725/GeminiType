@@ -962,8 +962,15 @@ const handleDeleteGenre = (id, name) => {
 
   // モーダルで「OK」が押された時に実行する処理をセット
   onConfirmAction.value = async () => {
-    await adminStore.deleteGenre(id);
+    const deleteType = await adminStore.deleteGenre(id);
     resetGenresScroll();
+
+    // 検索でフィルタリングしているジャンルの削除の場合
+    if (deleteType === -1) {
+      // 検索ジャンルとキーワードを空にする
+      localFilterGenreId.value = "";
+      localFilterSearchText.value = "";
+    }
   };
 
   // 準備ができたら確認モーダルを開く

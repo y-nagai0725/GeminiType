@@ -191,9 +191,11 @@ export const useAdminStore = defineStore('admin', () => {
       await fetchGenres();
 
       // もし、絞り込み中のジャンルを削除した場合、問題一覧も更新
-      if (filterGenreId.value === String(id)) {
+      if (filterGenreId.value === id) {
         filterGenreId.value = '';
+        filterSearchText.value = '';
         await applyFilters();
+        return -1;
       }
     } catch (error) {
       throw error;
