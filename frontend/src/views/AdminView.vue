@@ -855,7 +855,7 @@ const handleAddProblem = async () => {
   // ひらがなにタイピング不可能な文字（漢字や未対応記号）が含まれていないかチェック
   if (!isValidReading(newProblemHiragana.value)) {
     notificationStore.addNotification(
-      "ひらがなにタイピング判定の対象外となる文字が検出されました。有効なひらがな・記号・英数字のみを入力してください。",
+      "ひらがなにタイピング判定の対象外となる文字が検出されました。有効なひらがな・記号・半角英数字のみを入力してください。",
       "error"
     );
     return;
@@ -1143,7 +1143,7 @@ const handleUpdateItem = async () => {
       // ひらがなにタイピング不可能な文字（漢字や未対応記号）が含まれていないかチェック
       if (!isValidReading(editForm.problem_hiragana)) {
         notificationStore.addNotification(
-          "ひらがなにタイピング判定の対象外となる文字が検出されました。有効なひらがな・記号・英数字のみを入力してください。",
+          "ひらがなにタイピング判定の対象外となる文字が検出されました。有効なひらがな・記号・半角英数字のみを入力してください。",
           "error"
         );
         return;
