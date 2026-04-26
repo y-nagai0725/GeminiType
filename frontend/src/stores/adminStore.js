@@ -169,6 +169,9 @@ export const useAdminStore = defineStore('admin', () => {
 
       // 問題一覧表示を更新
       await fetchProblems();
+
+      // 登録問題数を更新するために、ジャンル一覧表示を更新
+      await fetchGenres();
     } catch (error) {
       throw error;
     }
@@ -214,6 +217,9 @@ export const useAdminStore = defineStore('admin', () => {
 
       // 問題一覧表示を更新
       await fetchProblems();
+
+      // 登録問題数を更新するために、ジャンル一覧表示を更新
+      await fetchGenres();
     } catch (error) {
       throw error;
     }
