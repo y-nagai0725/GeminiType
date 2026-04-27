@@ -286,7 +286,7 @@
     </section>
 
     <div class="top-view__actions top-view__actions--last">
-      <p class="top-view__subtitle">
+      <p class="top-view__subtitle top-view__subtitle--last">
         <span class="top-view__highlight">GeminiType</span>で、<br
           class="top-view__br"
         />タイピング練習！
@@ -752,6 +752,10 @@ onUnmounted(() => {
     &--top,
     &--bottom {
       visibility: hidden; // GSAPの初期状態アニメーション用
+    }
+
+    &--last {
+      line-height: 1.8;
     }
   }
 
