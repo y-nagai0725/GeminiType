@@ -271,6 +271,18 @@ const replaceKanjiNumbers = (text) => {
 };
 
 /**
+ * 全角英数字・記号を半角に一括変換する関数
+ * @param {string} text 変換したいテキスト
+ * @returns {string} 半角に変換されたテキスト
+ */
+const convertToHalfWidth = (text) => {
+  // '！' から '～' までの全角文字を対象にして、文字コードをずらして半角にする
+  return text.replace(/[！-～]/g, (match) => {
+    return String.fromCharCode(match.charCodeAt(0) - 0xFEE0);
+  }).replace(/　/g, ' '); // 全角スペースも半角スペースに変換
+};
+
+/**
  * 「日本語の文字列」を受け取って、「ひらがなの文字列」を返す
  * @param {string} japaneseText 日本語の文字列
  * @returns {Promise<string>} ひらがなの文字列
@@ -315,7 +327,8 @@ const getRubyFromYahoo = async (japaneseText) => {
 
     // 結合した文字列に対して、漢数字の置換を行う
     const rawHiragana = hiraganaWords.join('');
-    return replaceKanjiNumbers(rawHiragana);
+    const halfWidthText = convertToHalfWidth(rawHiragana);
+    return replaceKanjiNumbers(halfWidthText);
   } catch (error) {
     // axios の通信エラーやYahoo! API のエラー
     console.error('Yahoo! API との通信に失敗しました。', error);
@@ -1110,6 +1123,7 @@ app.get('/api/typing/gemini', async (req, res) => {
       - 句読点（、や。）はたまに含めること。
       - 1文は20文字以内が目安。
       - 箇条書きの記号（・や1.など）は付けないこと。
+      - 全角の英数字や記号（１、Ａ、！など）は絶対に使用せず、必ず半角（1、A、!など）を使用すること。
       - 結果は、各文章を「改行」で区切って出力すること。
       - 余計な挨拶や説明は一切不要。問題文だけを出力すること。
     `;
