@@ -1,14 +1,25 @@
 <template>
   <div class="top-view" ref="topWrapper">
     <section class="top-view__hero">
-      <h1 class="top-view__title">GeminiType</h1>
-      <p class="top-view__subtitle">
-        <span class="top-view__highlight">AI(Gemini)</span>と一緒に、<br
-          class="top-view__br"
-        />タイピングを楽しく練習しよう！
+      <h1 class="top-view__title" ref="heroTitleRef">GeminiType</h1>
+      <p class="top-view__subtitle-wrapper">
+        <span
+          class="top-view__subtitle top-view__subtitle--top"
+          ref="heroSubtitleTopRef"
+          ><span class="top-view__highlight">AI(Gemini)</span>と一緒に、</span
+        >
+        <span
+          class="top-view__subtitle top-view__subtitle--bottom"
+          ref="heroSubtitleBottomRef"
+          >タイピングを楽しく練習しよう！</span
+        >
       </p>
 
-      <div v-if="authStore.isLoggedIn" class="top-view__actions">
+      <div
+        v-if="authStore.isLoggedIn"
+        class="top-view__actions"
+        ref="heroActionsRef"
+      >
         <p class="top-view__welcome">
           おかえりなさい、{{ authStore.user?.name }} さん！
         </p>
@@ -18,7 +29,7 @@
         </RouterLink>
       </div>
 
-      <div v-else class="top-view__actions">
+      <div v-else class="top-view__actions" ref="heroActionsRef">
         <RouterLink to="/menu" class="top-view__button top-view__button--guest">
           ゲストで遊ぶ (登録なし)
           <ArrowIcon class="top-view__arrow-icon" aria-hidden="true" />
@@ -40,7 +51,11 @@
         </div>
       </div>
 
-      <div class="top-view__scroll-indicator" aria-hidden="true">
+      <div
+        class="top-view__scroll-indicator"
+        aria-hidden="true"
+        ref="heroIndicatorRef"
+      >
         <span class="top-view__scroll-text">SCROLL</span>
         <div class="top-view__scroll-line-wrapper">
           <div class="top-view__scroll-line"></div>
@@ -317,6 +332,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { RouterLink } from "vue-router";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
+import { TextPlugin } from "gsap/TextPlugin";
 
 // --- Stores ---
 import { useAuthStore } from "../stores/authStore";
@@ -325,7 +341,7 @@ import { useAuthStore } from "../stores/authStore";
 import ArrowIcon from "@/components/icons/ArrowIcon.vue";
 
 // GSAPプラグインの登録
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
 // =========================================================================
 // State (状態管理)
@@ -375,6 +391,36 @@ const horizontalScrollWrapper = ref(null);
 const slideWrapper = ref(null);
 
 /**
+ * Heroセクションタイトル参照
+ * @type {import('vue').Ref<HTMLElement|null>}
+ */
+const heroTitleRef = ref(null);
+
+/**
+ * Heroセクションサブタイトル1行目参照
+ * @type {import('vue').Ref<HTMLElement|null>}
+ */
+const heroSubtitleTopRef = ref(null);
+
+/**
+ * Heroセクションサブタイトル2行目参照
+ * @type {import('vue').Ref<HTMLElement|null>}
+ */
+const heroSubtitleBottomRef = ref(null);
+
+/**
+ * Heroセクションアクション要素参照
+ * @type {import('vue').Ref<HTMLElement|null>}
+ */
+const heroActionsRef = ref(null);
+
+/**
+ * Heroセクションスクロールインジケーター参照
+ * @type {import('vue').Ref<HTMLElement|null>}
+ */
+const heroIndicatorRef = ref(null);
+
+/**
  * GSAPコンテキスト (アンマウント時のクリーンアップ用)
  * @type {import('gsap').Context}
  */
@@ -420,7 +466,89 @@ const setAnimation = () => {
       "#app-main-scroll .simplebar-content-wrapper"
     );
 
-    // --- 特長セクションの表示アニメーション ---
+    // -----------------------------------------------------
+    // Heroセクション タイピングアニメーション
+    // -----------------------------------------------------
+
+    // timeline作成
+    const heroTl = gsap.timeline();
+
+    // タイトルとサブタイトルのテキストを取得
+    const titleText = heroTitleRef.value.textContent;
+    const subtitleTopText = heroSubtitleTopRef.value.textContent;
+    const subtitleBottomText = heroSubtitleBottomRef.value.textContent;
+
+    // アニメーション終了後に表示するhtml構造を含んだサブタイトル(1行目)を取得
+    const subtitleTopHtml = heroSubtitleTopRef.value.innerHTML;
+
+    // 要素のテキストを空にしてから表示状態にする
+    heroTl.set(
+      [
+        heroTitleRef.value,
+        heroSubtitleTopRef.value,
+        heroSubtitleBottomRef.value,
+      ],
+      {
+        visibility: "visible",
+        text: "",
+      }
+    );
+
+    // タイトルをタイピング
+    heroTl
+      .to(heroTitleRef.value, {
+        duration: titleText.length * 0.06,
+        text: titleText,
+        ease: "none",
+      })
+
+      // 少し待機
+      .to({}, { duration: 0.1 })
+
+      // サブタイトル(1行目)をタイピング
+      // ※最初はプレーンテキストとして打ち込み、終わったらHTMLをセットして色をつける
+      .to(heroSubtitleTopRef.value, {
+        duration: subtitleTopText.length * 0.05,
+        text: subtitleTopText,
+        ease: "none",
+        onComplete: () => {
+          // 打ち終わった後に、本来のHTML（ハイライト用span含む）をセットする
+          heroSubtitleTopRef.value.innerHTML = subtitleTopHtml;
+        },
+      })
+
+      // サブタイトル(2行目)をタイピング
+      .to(heroSubtitleBottomRef.value, {
+        duration: subtitleBottomText.length * 0.05,
+        text: subtitleBottomText,
+        ease: "none",
+      })
+
+      // ボタンのアクションエリアをフワッと出す
+      .fromTo(
+        heroActionsRef.value,
+        { ...fromAnimationSettings },
+        {
+          ...toAnimationSettings,
+        },
+        "-=0.2"
+      )
+
+      // アクションエリアと同時にスクロールインジケーターを表示する
+      .fromTo(
+        heroIndicatorRef.value,
+        { autoAlpha: 0 },
+        {
+          autoAlpha: 1,
+          duration: 0.8,
+          ease: "power2.out",
+        },
+        "<"
+      );
+
+    // -----------------------------------------------------
+    // 特長セクションの表示アニメーション
+    // -----------------------------------------------------
     const featuresSection = ".top-view__features";
     gsap.fromTo(
       featuresSection,
@@ -435,7 +563,9 @@ const setAnimation = () => {
       }
     );
 
-    // --- ギャラリーセクションの表示アニメーション ---
+    // -----------------------------------------------------
+    // ギャラリーセクションの表示アニメーション
+    // -----------------------------------------------------
     // この要素は後でピン留め(pin)されるため、位置(y)は動かさず autoAlpha(透明度) のみで表示させる
     gsap.fromTo(
       horizontalScrollWrapper.value,
@@ -452,7 +582,9 @@ const setAnimation = () => {
       }
     );
 
-    // --- 横スクロールアニメーション ---
+    // -----------------------------------------------------
+    // ギャラリーセクションの横スクロールアニメーション
+    // -----------------------------------------------------
     const slides = gsap.utils.toArray(".top-view__slide");
     const fills = gsap.utils.toArray(".top-view__progress-fill");
 
@@ -510,7 +642,9 @@ const setAnimation = () => {
       0
     );
 
-    // --- ページ下部アクションボタンの表示アニメーション ---
+    // -----------------------------------------------------
+    // ページ下部アクションボタンの表示アニメーション
+    // -----------------------------------------------------
     const back = ".top-view__actions--last";
     gsap.fromTo(
       back,
@@ -587,20 +721,38 @@ onUnmounted(() => {
   }
 
   &__title {
-    @include fluid-text(40, 64);
+    @include fluid-text(40, 68);
 
+    visibility: hidden; // GSAPの初期状態アニメーション用
     font-family: $roboto-mono;
     font-weight: $bold;
     letter-spacing: 0.05em;
+  }
+
+  &__subtitle-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 7.2rem; /* テキストタイピングアニメーション時にガクッとしないように高さを確保 */
+
+    @include pc {
+      flex-direction: row;
+      align-items: center;
+      min-height: 5rem;
+    }
   }
 
   &__subtitle {
     @include fluid-text(20, 32);
 
     font-weight: $bold;
-    line-height: 1.8;
     text-align: center;
     letter-spacing: 0.05em;
+
+    &--top,
+    &--bottom {
+      visibility: hidden; // GSAPの初期状態アニメーション用
+    }
   }
 
   &__highlight {
@@ -617,12 +769,9 @@ onUnmounted(() => {
     @include fluid-style(gap, 24, 48);
 
     display: flex;
+    visibility: hidden; // GSAPの初期状態アニメーション用
     flex-direction: column;
     align-items: center;
-
-    &--last {
-      visibility: hidden; // GSAPの初期状態アニメーション用
-    }
   }
 
   &__welcome {
@@ -668,14 +817,12 @@ onUnmounted(() => {
     bottom: 2.4rem;
     left: 50%;
     display: flex;
+    visibility: hidden; // GSAPの初期状態アニメーション用
     flex-direction: column;
     gap: 0.8rem;
     align-items: center;
     opacity: 0;
     transform: translateX(-50%);
-
-    /* 画面が開いてから0.5秒後に、フワッと表示させる */
-    animation: indicator-fade-in 1s ease-out 0.5s forwards;
 
     @include pc {
       bottom: 4rem;
@@ -961,13 +1108,6 @@ onUnmounted(() => {
 
   100% {
     transform: translateY(200%);
-  }
-}
-
-/* インジケーター自体のフェードイン */
-@keyframes indicator-fade-in {
-  to {
-    opacity: 1;
   }
 }
 
