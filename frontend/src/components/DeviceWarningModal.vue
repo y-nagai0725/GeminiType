@@ -131,15 +131,14 @@ defineEmits(["cancel", "play"]);
   }
 
   &__actions {
-    display: flex;
-    gap: 1.6rem;
-    justify-content: space-around;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.4rem;
   }
 
   &__button {
     @include fluid-text(12, 14);
 
-    flex-grow: 1;
     padding: 1em;
     font-weight: $bold;
     text-align: center;

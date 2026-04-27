@@ -1741,15 +1741,14 @@ onUnmounted(() => {
   }
 
   &__modal-actions {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 2.4rem;
-    justify-content: space-around;
   }
 
   &__modal-button {
     @include fluid-text(12, 14);
 
-    flex-grow: 1;
     padding: 1em;
     font-weight: $bold;
     cursor: pointer;
