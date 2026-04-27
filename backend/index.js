@@ -1057,6 +1057,13 @@ app.get('/api/typing/db', async (req, res) => {
       include: { genre: true } // ジャンル名も含める
     });
 
+    // 取得した詳細データを偏りがないようにシャッフルする
+    // （フィッシャー・イェーツのシャッフル）
+    for (let i = problems.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [problems[i], problems[j]] = [problems[j], problems[i]];
+    }
+
     // 問題データを返す
     res.json(problems);
 
