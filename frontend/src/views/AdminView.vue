@@ -879,7 +879,6 @@ const handleAddProblem = async () => {
 
     // 成功通知を出して、入力フォームを空に戻す
     notificationStore.addNotification("問題文を追加しました。", "success");
-    newProblemGenreId.value = "";
     newProblemText.value = "";
     newProblemHiragana.value = "";
   } catch (error) {
