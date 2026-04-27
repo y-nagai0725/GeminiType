@@ -971,9 +971,9 @@ const handleDeleteGenre = (id, name) => {
       localFilterSearchText.value = "";
 
       notificationStore.addNotification(
-      "※検索で絞り込んでいたジャンルを削除したため、検索条件をリセットしました。",
-      "notice"
-    );
+        "※検索で絞り込んでいたジャンルを削除したため、検索条件をリセットしました。",
+        "notice"
+      );
     }
   };
 
@@ -1551,7 +1551,7 @@ onUnmounted(() => {
 
     .col-id {
       width: 15%;
-      text-align: right;
+      text-align: left;
     }
 
     .col-genre {
@@ -1580,7 +1580,8 @@ onUnmounted(() => {
   &__genre-table-button {
     @include fluid-text(11, 13);
 
-    padding: 1em;
+    width: 4.6rem;
+    height: 4.6rem;
 
     &--edit {
       @include button-style-fill($green, $hover-action: "none");
@@ -1598,12 +1599,12 @@ onUnmounted(() => {
     @include table-style;
 
     .col-genre {
-      width: 15%;
+      width: 20%;
       text-align: left;
     }
 
     .col-problem {
-      width: 30%;
+      width: 27.5%;
       text-align: left;
     }
 
@@ -1613,7 +1614,7 @@ onUnmounted(() => {
     }
 
     .col-action {
-      width: 25%;
+      width: 22.5%;
       text-align: center;
     }
 
@@ -1632,7 +1633,8 @@ onUnmounted(() => {
   &__problem-table-button {
     @include fluid-text(11, 13);
 
-    padding: 1em;
+    width: 4.6rem;
+    height: 4.6rem;
 
     &--try {
       @include button-style-fill($blue, $hover-action: "none");
