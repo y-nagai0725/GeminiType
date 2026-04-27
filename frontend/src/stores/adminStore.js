@@ -180,7 +180,7 @@ export const useAdminStore = defineStore('admin', () => {
   /**
    * ジャンルを削除する
    * @param {number} id 削除対象のid
-   * @returns {Promise<void>}
+   * @returns {Promise<boolean>} 検索で絞り込んでいたジャンルを削除してリセットした場合はtrue、それ以外はfalse
    */
   const deleteGenre = async (id) => {
     try {
@@ -195,8 +195,10 @@ export const useAdminStore = defineStore('admin', () => {
         filterGenreId.value = '';
         filterSearchText.value = '';
         await applyFilters();
-        return -1;
+        return true;
       }
+
+      return false;
     } catch (error) {
       throw error;
     }

@@ -961,14 +961,19 @@ const handleDeleteGenre = (id, name) => {
 
   // モーダルで「OK」が押された時に実行する処理をセット
   onConfirmAction.value = async () => {
-    const deleteType = await adminStore.deleteGenre(id);
+    const isFilterReset = await adminStore.deleteGenre(id);
     resetGenresScroll();
 
     // 検索でフィルタリングしているジャンルの削除の場合
-    if (deleteType === -1) {
+    if (isFilterReset) {
       // 検索ジャンルとキーワードを空にする
       localFilterGenreId.value = "";
       localFilterSearchText.value = "";
+
+      notificationStore.addNotification(
+      "※検索で絞り込んでいたジャンルを削除したため、検索条件をリセットしました。",
+      "notice"
+    );
     }
   };
 

@@ -86,6 +86,11 @@ const notificationStore = useNotificationStore();
     &--error {
       background-color: $red;
     }
+
+    &--notice {
+      color: $black;
+      background-color: $yellow;
+    }
   }
 }
 

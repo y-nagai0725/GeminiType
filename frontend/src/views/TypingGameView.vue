@@ -561,13 +561,13 @@ const handleComplete = async (data) => {
   } else if (!isNormalMode) {
     notificationStore.addNotification(
       "特殊モードのため、結果は保存されません（記録のみ表示します）",
-      "success",
+      "notice",
       2500
     );
   } else {
     notificationStore.addNotification(
       "お疲れ様！ユーザー登録すると結果を保存できるよ！",
-      "success"
+      "notice"
     );
   }
 
