@@ -1302,10 +1302,10 @@ const handleMiss = (key) => {
 
   // ミスアニメーションを発火させる
   isMissAnimating.value = true;
-  // 0.3秒(アニメーションと同じ長さ)後にフラグを戻す
+  // 0.2秒(アニメーションと同じ長さ)後にフラグを戻す
   setTimeout(() => {
     isMissAnimating.value = false;
-  }, 300);
+  }, 200);
 
   // Sudden Death判定
   if (props.gameMode === settingsStore.GAME_MODES.SUDDEN_DEATH) {
@@ -2090,7 +2090,7 @@ onUnmounted(() => {
     }
 
     &.is-miss-flash {
-      animation: miss-flash 0.3s ease-out;
+      animation: miss-flash 0.2s ease-out;
     }
   }
 }
