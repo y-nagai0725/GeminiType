@@ -807,7 +807,7 @@ onUnmounted(() => {
   &__button {
     @include fluid-text(11, 13);
 
-    width: 4rem;
+    width: 4.6rem;
     aspect-ratio: 1;
 
     &--try {

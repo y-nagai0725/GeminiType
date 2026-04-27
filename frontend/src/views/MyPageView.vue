@@ -254,7 +254,7 @@
                           {{ session.genre ? session.genre.name : "削除済" }}
                         </span>
                         <span v-else class="ai">
-                          AI: {{ truncateText(session.gemini_prompt, 15) }}
+                          AI: {{ truncateText(session.gemini_prompt, 20) }}
                         </span>
                       </td>
                       <td class="col-kpm">
@@ -737,7 +737,7 @@ onUnmounted(() => {
     @include button-style-border($black);
 
     width: 75%;
-    padding: 1em 0;
+    padding: 1.35em 0;
     font-size: 1.2rem;
   }
 
