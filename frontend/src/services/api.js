@@ -60,7 +60,7 @@ api.interceptors.response.use(
       // セッション切れの通知を表示
       notificationStore.addNotification(
         'セッションが期限切れです。もう一度ログインして下さい。',
-        'error'
+        'notice'
       );
 
       // ログアウト(ログイン画面への強制遷移含む)
