@@ -98,8 +98,9 @@ const setAnimation = () => {
     tl.from(".header", {
       y: -30,
       opacity: 0,
-      duration: 0.8,
+      duration: 0.85,
       ease: "power3.out",
+      clearProps: "transform"
     })
       .from(
         ".app-main",
