@@ -139,6 +139,7 @@ const chartOptions = computed(() => {
     plugins: {
       legend: {
         // 上に出る凡例の設定
+        onClick: () => {}, // 凡例クリック時に何も動作しないように
         labels: {
           color: colorBlack,
           font: {
