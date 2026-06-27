@@ -85,7 +85,7 @@
           </li>
           <li class="footer__external-link-item">
             <a
-              href="https://blog.mikanbako.jp/"
+              href="https://docs.mikanbako.jp/"
               class="footer__external-link"
               target="_blank"
               rel="noopener noreferrer"
